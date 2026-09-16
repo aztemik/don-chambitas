@@ -175,8 +175,9 @@ Lo que falta —qué pasa al tocar la notificación— lo define el ticket de
 Resultó no ser una decisión de diseño: `basedatos/01_esquema.sql` ya la había
 tomado. `conversaciones.solicitud_id` es nulable y el índice único
 `uq_conversacion_unica` va sobre `(cliente_id, trabajador_id,
-coalesce(solicitud_id, uuid-cero))`, y `fn_crear_conversacion` recibe
-`p_solicitud_id` con valor por omisión nulo. Es decir: un hilo por cliente,
+coalesce(solicitud_id, uuid-cero))`, y `fn_abrir_conversacion` recibe
+`p_solicitud_id` con valor por omisión nulo y devuelve el hilo existente si ya
+lo hay. Es decir: un hilo por cliente,
 trabajador y solicitud, más un hilo suelto para el contacto que nace en P-07.
 **Resuelto: se escribió esa regla en HU-24**, que ahora tiene un criterio para
 cada caso, los dos marcados como regla de la base. El esquema no se tocó.

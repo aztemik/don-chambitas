@@ -69,6 +69,19 @@ tocó.
 
 ## Decisiones recientes
 
+**2026-09-15 · Dos decisiones nuevas: `DEC-23` y `DEC-24`.** Salen de los
+hallazgos que dejó `S1-T02`. La primera amplía los filtros de búsqueda de tres
+a cinco —se agregan estado y municipio— y con eso cambia `PRODUCTO.md`, el
+renglón de P-06 y el título de `S4-T05`. La segunda pone por escrito la regla
+de unicidad del hilo de chat que el esquema ya aplicaba, y que HU-24 no
+describía para el caso de P-07.
+
+Los otros dos hallazgos no necesitaron número: H-02 era la descripción de P-06,
+que había quedado corta frente a HU-18, y H-03 se cerró aceptando que las
+notificaciones locales sigan cubiertas por los criterios de HU-22 y HU-26 en
+vez de tener historia propia. Los cuatro están explicados al final de
+`PANTALLAS.md`.
+
 **2026-09-15 · La base de datos está levantada y verificada.** Reinstalación
 desde cero contra el proyecto de Supabase: `00_reinicio.sql` dejó todo en cero
 —las once comprobaciones en `OK`, cubetas incluidas— y `01` a `04` corrieron sin
