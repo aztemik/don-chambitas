@@ -25,6 +25,32 @@ Y dos que **no** crean nada, para comprobar que lo de arriba quedó bien:
 Los dos devuelven una tabla donde **todo tiene que decir `PASA`**. Cualquier
 renglón con `>>> FALLA` dice exactamente qué quedó mal y con qué valor.
 
+Y uno que no se pega en el SQL Editor, porque prueba justo lo que desde ahí no
+se puede probar:
+
+| Archivo | Qué hace |
+|---|---|
+| `92_prueba_rls_anon.py` | Abre sesiones reales contra la API y comprueba que un usuario no alcanza los datos de otro |
+
+```bash
+cp .env.ejemplo .env      # y pon SUPABASE_URL y SUPABASE_ANON_KEY
+python3 basedatos/92_prueba_rls_anon.py
+```
+
+**Por qué hace falta, si `91` ya prueba RLS.** `91` usa `set role authenticated`
+dentro de una transacción. Eso no pasa por el JWT, ni por el rol `anon` sin
+sesión, ni por PostgREST, y ahí es donde vive el riesgo: la `anon key` va
+dentro del APK y cualquiera la saca. Este guion lee como leería esa persona.
+
+**Escribe y no limpia.** Registra cuatro cuentas `@prueba.donchambitas.mx` con
+su perfil, su solicitud, sus postulaciones y una conversación. Borrarlas
+necesita la `service_role`, que no entra al repositorio, así que al terminar
+imprime el `DELETE` que hay que pegar en el SQL Editor.
+
+`.env` está en `.gitignore`; `.env.ejemplo` es la plantilla sin valores y esa
+sí se comparte. La `service_role` y la llave de OpenAI **no van en ninguno de
+los dos**.
+
 ### Empezar de cero
 
 `00_reinicio.sql` borra todo —tablas, funciones, tipos, políticas y **todas las
