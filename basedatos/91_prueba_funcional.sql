@@ -26,6 +26,17 @@
 --  Los usuarios se crean directo en auth.users porque la aplicacion todavia
 --  no existe. Es la unica razon; en cuanto haya pantalla de registro, esto se
 --  prueba desde el telefono.
+--
+--  QUE CORRE CON RLS ACTIVO
+--    El grueso del script corre como postgres, que se SALTA RLS. Las pruebas
+--    10, 12, 13 y 21 a 24 no: esas hacen SET ROLE authenticated y ponen
+--    request.jwt.claims, porque lo que vigilan solo se rompe cuando RLS esta
+--    activo. Son las que detectan que a una funcion de trigger le falte el
+--    SECURITY DEFINER, que es una falla silenciosa: sin RLS de por medio, esa
+--    misma funcion se comporta bien y la prueba pasa sin demostrar nada.
+--
+--    Si el usuario que corre el script no puede hacer SET ROLE authenticated,
+--    esas pruebas dicen ">>> NO SE PUDO PROBAR" en vez de mentir con un PASA.
 -- ============================================================================
 
 delete from auth.users where email like '%@prueba.donchambitas.mx';
@@ -46,6 +57,18 @@ declare
     v_n int; v_n2 int; v_txt text; v_uuid uuid; v_ts timestamptz; v_num numeric;
     v_rest int; v_rol_ok boolean; v_uid uuid; v_tabla text;
 begin
+    -- ---- 0. Se puede hacer SET ROLE authenticated? ------------------------
+    -- Se averigua una sola vez, aqui arriba, porque de esto dependen las
+    -- pruebas 10, 12, 13 y 21 a 24: todas necesitan que RLS este activo, y
+    -- RLS no se aplica al rol postgres.
+    begin
+        set local role authenticated;
+        reset role;
+        v_rol_ok := true;
+    exception when others then
+        v_rol_ok := false;
+    end;
+
     select id into v_cat from public.categorias where nombre = 'Plomeria';
     select id into v_edo from public.estados where clave = 'PUE';
     select m.id into v_mun from public.municipios m
@@ -167,15 +190,43 @@ begin
     values (v_cli, v_cat, 'Solicitud cancelada', 'Ya no la necesito', 'cancelada')
     returning id into v_sol2;
 
-    begin
-        insert into public.postulaciones (solicitud_id, trabajador_id)
-        values (v_sol2, v_tra2);
-        insert into resultado_prueba values (10, 'no se puede postular a una solicitud no abierta',
-            '>>> FALLA', 'lo permitio');
-    exception when others then
-        insert into resultado_prueba values (10, 'no se puede postular a una solicitud no abierta',
-            'PASA', left(sqlerrm, 70));
-    end;
+    --
+    -- Corre con SET ROLE authenticated, no como postgres. La diferencia no es
+    -- cosmetica: fn_validar_postulacion tiene que LEER esa solicitud cancelada
+    -- ajena para poder rechazar la postulacion, y con RLS activo solo la ve
+    -- por ser SECURITY DEFINER. Como postgres, que se salta RLS, la prueba
+    -- pasaba aunque a la funcion le faltara el SECURITY DEFINER.
+    --
+    -- La politica de INSERT de postulaciones (trabajador_id = auth.uid()) SI
+    -- deja pasar este insert, asi que lo que lo rechaza es el trigger y no la
+    -- politica. Por eso se exige ademas que el mensaje sea el del trigger: si
+    -- alguna vez lo rechazara otra capa, la prueba lo dice en vez de pasar
+    -- por la razon equivocada.
+    if v_rol_ok then
+        begin
+            set local role authenticated;
+            perform set_config('request.jwt.claims',
+                json_build_object('sub', v_tra2, 'role', 'authenticated')::text, true);
+            insert into public.postulaciones (solicitud_id, trabajador_id)
+            values (v_sol2, v_tra2);
+            reset role;
+            insert into resultado_prueba values (10, 'no se puede postular a una solicitud no abierta (RLS activo)',
+                '>>> FALLA', 'lo permitio: fn_validar_postulacion no esta viendo la solicitud');
+        exception when others then
+            reset role;
+            insert into resultado_prueba values (10, 'no se puede postular a una solicitud no abierta (RLS activo)',
+                case when sqlerrm like '%abierta%' then 'PASA' else '>>> FALLA' end,
+                left(sqlerrm, 70));
+        end;
+    else
+        insert into resultado_prueba values (10, 'no se puede postular a una solicitud no abierta (RLS activo)',
+            '>>> NO SE PUDO PROBAR', 'este usuario no puede hacer SET ROLE authenticated');
+    end if;
+
+    -- Las claims vuelven al cliente dueno: lo que sigue (fn_abrir_conversacion
+    -- y fn_cerrar_solicitud) resuelve quien es quien con auth.uid().
+    perform set_config('request.jwt.claims',
+        json_build_object('sub', v_cli, 'role', 'authenticated')::text, true);
 
     -- ---- 5. Chat -----------------------------------------------------------
     v_con := public.fn_abrir_conversacion(v_tra, v_sol);
@@ -183,25 +234,78 @@ begin
     insert into resultado_prueba values (11, 'abrir la conversacion dos veces devuelve la misma',
         case when v_con = v_con2 then 'PASA' else '>>> FALLA' end, 'ids iguales: ' || (v_con = v_con2)::text);
 
-    insert into public.mensajes (conversacion_id, emisor_id, contenido)
-    values (v_con, v_cli, 'Buenas, sigue disponible?');
-    insert into public.mensajes (conversacion_id, emisor_id, contenido)
-    values (v_con, v_tra, 'Claro, paso el jueves a las 10');
+    -- Los dos mensajes se mandan con SET ROLE authenticated, cada uno como su
+    -- emisor. Es lo unico que hace util a la prueba 12: conversaciones NO
+    -- tiene politica de UPDATE, asi que si fn_tocar_conversacion perdiera el
+    -- SECURITY DEFINER, su update afectaria CERO filas sin dar error y
+    -- ultimo_mensaje_en se quedaria en nulo. Como postgres eso no se ve,
+    -- porque postgres se salta RLS y el update siempre funciona.
+    if v_rol_ok then
+        begin
+            set local role authenticated;
+            perform set_config('request.jwt.claims',
+                json_build_object('sub', v_cli, 'role', 'authenticated')::text, true);
+            insert into public.mensajes (conversacion_id, emisor_id, contenido)
+            values (v_con, v_cli, 'Buenas, sigue disponible?');
 
-    select ultimo_mensaje_en into v_ts from public.conversaciones where id = v_con;
-    insert into resultado_prueba values (12, 'el trigger actualiza ultimo_mensaje_en',
-        case when v_ts is not null then 'PASA' else '>>> FALLA' end, coalesce(v_ts::text, 'nulo'));
+            perform set_config('request.jwt.claims',
+                json_build_object('sub', v_tra, 'role', 'authenticated')::text, true);
+            insert into public.mensajes (conversacion_id, emisor_id, contenido)
+            values (v_con, v_tra, 'Claro, paso el jueves a las 10');
+            reset role;
+            v_txt := '';
+        exception when others then
+            reset role;
+            v_txt := left(sqlerrm, 70);
+        end;
 
-    -- S-04: un tercero escribiendo en conversacion ajena
-    begin
+        select ultimo_mensaje_en into v_ts from public.conversaciones where id = v_con;
+        insert into resultado_prueba values (12, 'el trigger actualiza ultimo_mensaje_en (RLS activo)',
+            case when v_txt = '' and v_ts is not null then 'PASA' else '>>> FALLA' end,
+            case when v_txt <> '' then 'los mensajes no entraron: ' || v_txt
+                 when v_ts is null then 'nulo: fn_tocar_conversacion no esta escribiendo'
+                 else v_ts::text end);
+    else
         insert into public.mensajes (conversacion_id, emisor_id, contenido)
-        values (v_con, v_ter, 'Me meto a una conversacion ajena');
-        insert into resultado_prueba values (13, 'S-04 nadie escribe en conversacion ajena',
-            '>>> FALLA', 'lo permitio');
-    exception when others then
-        insert into resultado_prueba values (13, 'S-04 nadie escribe en conversacion ajena',
-            'PASA', left(sqlerrm, 70));
-    end;
+        values (v_con, v_cli, 'Buenas, sigue disponible?');
+        insert into public.mensajes (conversacion_id, emisor_id, contenido)
+        values (v_con, v_tra, 'Claro, paso el jueves a las 10');
+        insert into resultado_prueba values (12, 'el trigger actualiza ultimo_mensaje_en (RLS activo)',
+            '>>> NO SE PUDO PROBAR', 'este usuario no puede hacer SET ROLE authenticated');
+    end if;
+
+    -- S-04: un tercero escribiendo en conversacion ajena, tambien con RLS
+    -- activo. Aqui hay dos capas que lo rechazan y el orden importa: los
+    -- triggers BEFORE corren ANTES de que PostgreSQL evalue el WITH CHECK de
+    -- la politica, asi que quien debe rechazarlo es fn_validar_mensaje. Por
+    -- eso se exige su mensaje: sin SECURITY DEFINER la funcion no veria la
+    -- conversacion, no rechazaria nada, y seria la politica la que salvara la
+    -- regla. La prueba pasaria igual y el hueco quedaria tapado.
+    if v_rol_ok then
+        begin
+            set local role authenticated;
+            perform set_config('request.jwt.claims',
+                json_build_object('sub', v_ter, 'role', 'authenticated')::text, true);
+            insert into public.mensajes (conversacion_id, emisor_id, contenido)
+            values (v_con, v_ter, 'Me meto a una conversacion ajena');
+            reset role;
+            insert into resultado_prueba values (13, 'S-04 nadie escribe en conversacion ajena (RLS activo)',
+                '>>> FALLA', 'lo permitio');
+        exception when others then
+            reset role;
+            insert into resultado_prueba values (13, 'S-04 nadie escribe en conversacion ajena (RLS activo)',
+                case when sqlerrm like '%no participa%' then 'PASA' else '>>> FALLA' end,
+                left(sqlerrm, 70));
+        end;
+    else
+        insert into resultado_prueba values (13, 'S-04 nadie escribe en conversacion ajena (RLS activo)',
+            '>>> NO SE PUDO PROBAR', 'este usuario no puede hacer SET ROLE authenticated');
+    end if;
+
+    -- Las claims vuelven al cliente dueno: fn_cerrar_solicitud, aqui abajo,
+    -- comprueba con auth.uid() que quien cierra sea el dueno de la solicitud.
+    perform set_config('request.jwt.claims',
+        json_build_object('sub', v_cli, 'role', 'authenticated')::text, true);
 
     -- ---- 6. Cierre y resena ------------------------------------------------
     begin
@@ -260,14 +364,6 @@ begin
     -- entre ellas y PostgreSQL abortaba con "infinite recursion detected in
     -- policy". Estas cuatro pruebas son las que lo vigilan de ahora en
     -- adelante. Si vuelven a fallar, la recursion regreso.
-    begin
-        set local role authenticated;
-        reset role;
-        v_rol_ok := true;
-    exception when others then
-        v_rol_ok := false;
-    end;
-
     if not v_rol_ok then
         insert into resultado_prueba values (21, 'RLS: pruebas con rol authenticated',
             '>>> NO SE PUDO PROBAR', 'este usuario no puede hacer SET ROLE authenticated');
