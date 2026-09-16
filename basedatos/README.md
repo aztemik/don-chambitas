@@ -113,10 +113,12 @@ equivoque.
 son `security definer` con `search_path` fijo, y eso **no es opcional**: sin
 eso corren con los permisos de quien dispara el trigger, RLS les esconde las
 filas de los demás, el `SELECT` devuelve `NULL`, el `IF` se evalúa a `NULL` y
-la regla no se aplica — en silencio, sin error. Ojo al probarlo:
-`91_prueba_funcional.sql` corre como `postgres`, que se salta RLS, así que
-estas fallas no se ven ahí. Las comprobaciones 37 a 42 de `90_verificacion.sql`
-sí las ven, porque preguntan por la definición y por el permiso.
+la regla no se aplica — en silencio, sin error. Ojo al probarlo: el grueso de
+`91_prueba_funcional.sql` corre como `postgres`, que se salta RLS, así que esas
+fallas **ahí no se ven**. Las que sí las ven son las comprobaciones 37 a 42 de
+`90_verificacion.sql`, que preguntan por la definición y por el permiso, y las
+pruebas 10, 12, 13 y 21 a 24 de `91`, que son las únicas que hacen
+`set role authenticated`.
 
 Las cinco reglas:
 
@@ -173,7 +175,12 @@ proyecto vacío —cubetas incluidas— y `01` a `04` corrieron sin un error.
 Los cinco arreglos de la revisión previa están confirmados en vivo por las
 comprobaciones 37 a 42, no solo escritos en el archivo.
 
-Lo que **falta** y sigue siendo `S1-T03`: probar RLS con la `anon key` y dos
-sesiones reales contra PostgREST, y mover las pruebas 10, 12 y 13 de `91` al
-bloque de `set role authenticated` —hoy corren como `postgres`, que se salta
-RLS, así que pasan siempre y no demuestran nada—.
+**Las pruebas 10, 12 y 13 ya corren con `set role authenticated`**, desde el
+2026-09-16. Antes corrían como `postgres`, que se salta RLS, y no demostraban
+nada sobre lo que vigilan. Ese cambio **todavía no se ha corrido contra la
+base**: está escrito, no verificado.
+
+Lo que **falta** y sigue siendo `S1-T03`: correr `91` otra vez y, sobre todo,
+probar RLS con la `anon key` y dos sesiones reales contra PostgREST. El
+`set role authenticated` de dentro de una transacción es buena aproximación,
+pero no pasa por el JWT ni por la capa de postgrest.
