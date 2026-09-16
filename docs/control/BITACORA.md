@@ -1,7 +1,8 @@
 # Bitácora
 
-> Archivo **vivo** y de solo agregar. Nunca se edita ni se borra un renglón
-> anterior. Quien termina una tarea agrega el suyo al final.
+> Archivo **vivo**. Quien termina una tarea agrega su renglón al final, y ese
+> renglón queda a su cargo: cuando abre el pull request vuelve y le pone el
+> número. Los renglones de otros no se tocan y ninguno se borra.
 >
 > Sirve para dos cosas: que nadie rehaga algo ya hecho, y que el avance del
 > proyecto sea auditable de un vistazo.
