@@ -24,3 +24,6 @@ secretos.properties
 *.keystore
 *.jks
 /app/release
+
+# La unica excepcion: la plantilla sin valores, que si se comparte.
+!.env.ejemplo

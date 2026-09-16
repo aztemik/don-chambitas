@@ -25,6 +25,49 @@ Y dos que **no** crean nada, para comprobar que lo de arriba quedó bien:
 Los dos devuelven una tabla donde **todo tiene que decir `PASA`**. Cualquier
 renglón con `>>> FALLA` dice exactamente qué quedó mal y con qué valor.
 
+Y dos para el paso 2c de `S1-T03`, que prueba lo que desde el SQL Editor no se
+puede probar:
+
+| Archivo | Qué hace |
+|---|---|
+| `92_usuarios_prueba.sql` | Crea las cuatro cuentas de prueba, confirmadas y con contraseña |
+| `92_prueba_rls_anon.py` | Inicia sesión con ellas y comprueba que un usuario no alcanza los datos de otro |
+
+```bash
+# 1. pega 92_usuarios_prueba.sql en el SQL Editor y correlo
+# 2.
+cp .env.ejemplo .env      # y pon SUPABASE_URL y SUPABASE_ANON_KEY
+python3 basedatos/92_prueba_rls_anon.py
+```
+
+**Por qué las cuentas se crean por SQL y no desde el guion.** Porque por la API
+no se puede: el alta las rechaza con `email_address_invalid`. Supabase valida
+que el dominio del correo exista, y `@prueba.donchambitas.mx` es ficticio
+—`donchambitas.mx` no tiene registro A ni MX—. El dominio se eligió cuando solo
+se usaba desde SQL, en `91`, que inserta directo en `auth.users` y por eso
+nunca se topó con la validación.
+
+No debilita la prueba: lo único que se saltan esas cuentas es el formulario de
+registro. El guion inicia sesión de verdad y cada lectura va con un JWT real
+contra PostgREST, que es justo lo que el paso 2c tiene que demostrar.
+
+> Si algún día hace falta probar el **registro** desde la API —y hará falta en
+> `S2-T07`— ese dominio no sirve. Es cosa de `S2-T07`, no de aquí.
+
+**Por qué hace falta, si `91` ya prueba RLS.** `91` usa `set role authenticated`
+dentro de una transacción. Eso no pasa por el JWT, ni por el rol `anon` sin
+sesión, ni por PostgREST, y ahí es donde vive el riesgo: la `anon key` va
+dentro del APK y cualquiera la saca. Este guion lee como leería esa persona.
+
+**Escribe y no limpia.** Registra cuatro cuentas `@prueba.donchambitas.mx` con
+su perfil, su solicitud, sus postulaciones y una conversación. Borrarlas
+necesita la `service_role`, que no entra al repositorio, así que al terminar
+imprime el `DELETE` que hay que pegar en el SQL Editor.
+
+`.env` está en `.gitignore`; `.env.ejemplo` es la plantilla sin valores y esa
+sí se comparte. La `service_role` y la llave de OpenAI **no van en ninguno de
+los dos**.
+
 ### Empezar de cero
 
 `00_reinicio.sql` borra todo —tablas, funciones, tipos, políticas y **todas las
@@ -164,8 +207,8 @@ ni al APK, por ningún motivo.
 
 ## Estado
 
-**Levantado y verificado el 2026-09-15.** Reinstalación desde cero: `00` dejó el
-proyecto vacío —cubetas incluidas— y `01` a `04` corrieron sin un error.
+**Levantado y verificado el 2026-09-16**, la segunda vez. `01` a `04`
+corrieron sin un error.
 
 | Verificación | Resultado |
 |---|---|
@@ -176,11 +219,21 @@ Los cinco arreglos de la revisión previa están confirmados en vivo por las
 comprobaciones 37 a 42, no solo escritos en el archivo.
 
 **Las pruebas 10, 12 y 13 ya corren con `set role authenticated`**, desde el
-2026-09-16. Antes corrían como `postgres`, que se salta RLS, y no demostraban
-nada sobre lo que vigilan. Ese cambio **todavía no se ha corrido contra la
-base**: está escrito, no verificado.
+2026-09-16, y pasaron. Antes corrían como `postgres`, que se salta RLS, y no
+demostraban nada sobre lo que vigilan. Que pasaran **por la razón correcta** se
+comprueba en el detalle que devuelven: las tres traen el mensaje de su trigger,
+no el de una política. El desglose está en `MODELO-ER.md`.
 
-Lo que **falta** y sigue siendo `S1-T03`: correr `91` otra vez y, sobre todo,
-probar RLS con la `anon key` y dos sesiones reales contra PostgREST. El
-`set role authenticated` de dentro de una transacción es buena aproximación,
-pero no pasa por el JWT ni por la capa de postgrest.
+**El paso 2c también pasó: 10 de 10**, con `92_prueba_rls_anon.py` y cuatro
+sesiones reales contra PostgREST. Un usuario no alcanza la ficha de otro
+cliente, ni las postulaciones de su competidor, ni una conversación ajena, ni
+`ia_cache`. Y lo que sí debe verse, se ve.
+
+`ia_cache` responde `HTTP 403`, no una lista vacía: el `revoke all` quita el
+permiso sobre la tabla antes de que RLS entre a filtrar. Es más estricto que
+lo que pedía el ticket, no menos.
+
+`91` **no cubre dos de los cinco triggers**: cerrar una solicitud sin
+trabajador asignado, que se probó a mano y falla por las dos vías, y
+postularse a la propia solicitud, que no puede ocurrir porque los roles
+excluyentes lo impiden antes. Es el hueco `H-08` de `MODELO-ER.md`.

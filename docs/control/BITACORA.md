@@ -11,6 +11,7 @@
 |---|---|---|---|---|---|
 | 2026-09-15 | S1-T01 | GRI | docs/S1-T01-analisis-requerimientos | #1 | 33 historias, 9 módulos, 93 criterios. Las 19 pantallas cubiertas |
 | 2026-09-15 | S1-T02 | BCJL | docs/S1-T02-alcance-mvp-pantallas | #2 | Cruce limpio: 19/19 pantallas con historia, 33/33 historias con pantalla, 0 choques con FUERA del MVP. Cuatro hallazgos para el líder al final de PANTALLAS.md; H-01 conviene cerrarlo antes de S4-T05 |
+| 2026-09-16 | S1-T03 | LMM | docs/S1-T03-validacion-modelo-er | | 90 dio 42/42, 91 25/25 y el paso 2c 10/10 con la anon key contra PostgREST. Diagrama ER y cruce de las 33 historias contra las tablas. Cuatro huecos para el líder, H-05 a H-08; H-08 toca un criterio de aceptación de este mismo ticket |
 
 ---
 

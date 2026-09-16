@@ -406,6 +406,40 @@ eso hoy no está escrito en ningún lado.
 **A quién le llega.** A `S3-T08` y `S2-T12`, los contratos que deben decirlo, y
 a `S2-T14` y `S3-T09`, que lo implementan. No bloquea a nadie hoy.
 
+### H-08 · Uno de los cinco triggers del paso 2 no se puede probar
+
+**Qué pide el ticket.** El paso 2 de `S1-T03`: probar a mano los cinco
+triggers, entre ellos *"postularte a tu propia solicitud"*, y que los cinco
+fallen.
+
+**Qué cubre `91`.** Tres de los cinco: postularse a una solicitud no abierta
+(prueba 10), reseñar una sin cerrar (14) y escribir en una conversación ajena
+(13). El cuarto —cerrar una solicitud sin trabajador asignado— se probó a mano
+el 2026-09-16 y **quedó demostrado por las dos vías**, que son capas distintas
+y las dos importan: `fn_cerrar_solicitud` responde *"Solo se puede cerrar una
+solicitud asignada"*, que es la que usa la aplicación, y un `update` suelto a
+`estatus` choca contra `fn_validar_transicion_solicitud` con *"No se puede
+cerrar una solicitud sin trabajador asignado"*, que es la que aguanta si
+alguien se salta la RPC. `91` solo recorría el camino feliz, en la prueba 15.
+
+**El quinto no se puede probar, porque no puede ocurrir.** Para postularse a
+la propia solicitud haría falta un uuid que fuera cliente y trabajador a la
+vez, y el esquema lo impide por tres lados: `solicitudes.cliente_id` va con
+`rol_cliente = 'cliente'` contra `usuarios(id, rol)`,
+`postulaciones.trabajador_id` apunta a `perfiles_trabajador`, cuyo `rol` está
+fijo en `'trabajador'` por `CHECK` y también amarrado a `usuarios(id, rol)`, y
+`usuarios` tiene **una sola** columna `rol`. La comparación
+`v_cliente = new.trabajador_id` dentro de `fn_validar_postulacion` es código
+defensivo que nunca se va a ejecutar.
+
+No es un defecto: un trigger que sobrevive a que le quiten la llave foránea de
+debajo está bien puesto. Pero el ticket pide demostrarlo y no se puede, así que
+o el criterio se ajusta a cuatro triggers, o se anota que el quinto lo sostiene
+el esquema y no el trigger.
+
+**A quién le llega.** Al líder, para cerrar el criterio de aceptación de
+`S1-T03`. No afecta a ninguna tarea posterior.
+
 ### H-07 · "Postulaciones sin revisar" no existe como dato
 
 **Qué dice la historia.** HU-13, segundo criterio: *"Dado que una solicitud
@@ -464,17 +498,41 @@ recursión.
 - **El cruce contra las 33 historias de `S1-T01`**, arriba, con tres huecos
   documentados: `H-05`, `H-06` y `H-07`.
 
-**Lo que todavía no está probado:**
+**Corrida del 2026-09-16, contra el proyecto real.** `01` a `04` sin error,
+`90_verificacion.sql` **42 de 42** y `91_prueba_funcional.sql` **25 de 25**.
 
-- **El script modificado no se ha corrido.** Las pruebas 10, 12 y 13 se
-  reescribieron sin base contra la cual ejecutarlas. Hasta que `91` vuelva a
-  dar sus 25 renglones en `PASA` dentro del SQL Editor, el cambio está escrito
-  pero no verificado.
-- RLS **con la `anon key` y dos sesiones reales**. Las pruebas 10, 12, 13 y 21
-  a 24 usan `set role authenticated` dentro de una transacción, que es una
-  buena aproximación y ya detecta lo que antes no detectaba, pero **no es lo
-  mismo** que dos clientes contra PostgREST: no pasa por el JWT, ni por el
-  `anon` sin sesión, ni por la capa de postgrest.
-- Los pasos 1, 2 y 2b del ticket —levantar los cuatro archivos, probar los
-  cinco triggers a mano y probar la baja de cuenta— siguen respaldados por la
-  corrida del 2026-09-15, no por una nueva.
+Las tres pruebas reescritas pasaron **por la razón correcta**, que era lo que
+estaba en duda. Lo dice el detalle que devolvió cada una:
+
+| # | Detalle | Qué demuestra |
+|---|---|---|
+| 10 | `Solo se puede postular a una solicitud abierta` | Es el mensaje de `fn_validar_postulacion`, no el de la política. Con RLS activo la función alcanzó a leer una solicitud cancelada ajena: el `security definer` está aplicándose |
+| 12 | `2026-09-16 21:58:52.029248+00` | Los dos mensajes entraron con rol `authenticated` y `fn_tocar_conversacion` escribió en `conversaciones`, que no tiene política de `UPDATE`. Sin `security definer` esto habría quedado nulo, en silencio |
+| 13 | `El emisor no participa en esta conversacion` | Es el mensaje de `fn_validar_mensaje`. El trigger `BEFORE` lo rechazó antes de que el `with check` de la política llegara a evaluarse, que era justo el riesgo de tapar el hueco |
+
+Ninguna devolvió `>>> NO SE PUDO PROBAR`: el `SET ROLE authenticated` funciona
+en el SQL Editor de Supabase.
+
+**RLS con la `anon key`, contra PostgREST: 10 de 10.** Es el paso 2c, y lo
+corre `basedatos/92_prueba_rls_anon.py` con cuatro sesiones reales. No es lo
+mismo que el `set role authenticated` de `91`: aquí cada lectura lleva un JWT
+y pasa por postgrest, que es por donde entraría alguien con la llave sacada
+del APK.
+
+Cuatro de las diez comprobaciones son controles, y hacen falta: si las tablas
+estuvieran rotas del todo, **todo** volvería vacío y las seis primeras darían
+`PASA` sin que nada funcionara. Por eso también se exige que lo que sí debe
+verse, se vea: la ficha de un trabajador para cualquier usuario con sesión
+(`DEC-19`), la conversación propia para su cliente, y los catálogos sin sesión
+para que P-05 pueda pintarse.
+
+Un detalle donde la realidad es **más estricta que el ticket**: `ia_cache` no
+devuelve vacío, devuelve `HTTP 403`. El ticket pedía vacío. Es el `revoke all`
+de `02_politicas_rls.sql`, que quita el permiso sobre la tabla antes de que
+RLS tenga nada que filtrar. Cerrado por permiso es mejor que cerrado por
+política, así que se deja y se anota aquí para que nadie lo lea como un
+desvío.
+
+**El paso 2 quedó completo**: cuatro de los cinco triggers están demostrados
+—tres en `91` y el cuarto a mano— y el quinto no se puede demostrar porque el
+esquema no deja que ocurra (`H-08`).
