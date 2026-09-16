@@ -53,18 +53,21 @@ terminada: le faltan las pruebas que exigen el proyecto de Supabase en vivo.
   que es la prueba de que pasaron por la razón correcta. El desglose está en
   `MODELO-ER.md`.
 
+- **El paso 2 quedó completo el 2026-09-16.** Cerrar una solicitud sin
+  trabajador asignado se probó a mano y falló por las dos vías, como debe:
+  `fn_cerrar_solicitud` con *"Solo se puede cerrar una solicitud asignada"* y
+  un `update` suelto con *"No se puede cerrar una solicitud sin trabajador
+  asignado"*. Con eso son cuatro de los cinco triggers demostrados; el quinto
+  no se puede demostrar (`H-08`).
+
 **Lo que falta:**
 
-- **El paso 2c: RLS con la `anon key` y dos sesiones reales contra PostgREST.**
-  Es lo único de peso que queda. Necesita la URL del proyecto y la `anon key`,
-  que no están en el repositorio —`local.properties` solo trae `sdk.dir`— y no
-  deben estarlo.
-- **Un caso del paso 2:** cerrar una solicitud sin trabajador asignado. `91`
-  cubre tres de los cinco triggers; este cuarto se prueba en dos minutos desde
-  el SQL Editor y el quinto no se puede probar (ver `H-08`).
+- **El paso 2c, y nada más: RLS con la `anon key` y dos sesiones reales contra
+  PostgREST.** Necesita la URL del proyecto y la `anon key`, que no están en el
+  repositorio —`local.properties` solo trae `sdk.dir`— y no deben estarlo.
 
-De los siete criterios de aceptación, **cinco están cumplidos**, uno a medias
-—los cinco triggers— y uno sin empezar —la `anon key`—.
+De los siete criterios de aceptación, **seis están cumplidos**. El séptimo —la
+`anon key`— es el único que queda, más la decisión del líder sobre `H-08`.
 
 ## Tres huecos nuevos para el líder
 

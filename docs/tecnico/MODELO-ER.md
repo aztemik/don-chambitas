@@ -414,13 +414,15 @@ fallen.
 
 **Qué cubre `91`.** Tres de los cinco: postularse a una solicitud no abierta
 (prueba 10), reseñar una sin cerrar (14) y escribir en una conversación ajena
-(13). Faltan dos.
+(13). El cuarto —cerrar una solicitud sin trabajador asignado— se probó a mano
+el 2026-09-16 y **quedó demostrado por las dos vías**, que son capas distintas
+y las dos importan: `fn_cerrar_solicitud` responde *"Solo se puede cerrar una
+solicitud asignada"*, que es la que usa la aplicación, y un `update` suelto a
+`estatus` choca contra `fn_validar_transicion_solicitud` con *"No se puede
+cerrar una solicitud sin trabajador asignado"*, que es la que aguanta si
+alguien se salta la RPC. `91` solo recorría el camino feliz, en la prueba 15.
 
-**El primero que falta sí se puede probar, y conviene hacerlo:** cerrar una
-solicitud sin trabajador asignado. `fn_validar_transicion_solicitud` lo rechaza
-y `91` solo recorre el camino feliz, en la prueba 15.
-
-**El segundo no se puede probar, porque no puede ocurrir.** Para postularse a
+**El quinto no se puede probar, porque no puede ocurrir.** Para postularse a
 la propia solicitud haría falta un uuid que fuera cliente y trabajador a la
 vez, y el esquema lo impide por tres lados: `solicitudes.cliente_id` va con
 `rol_cliente = 'cliente'` contra `usuarios(id, rol)`,
@@ -519,4 +521,6 @@ en el SQL Editor de Supabase.
   mismo** que dos clientes contra PostgREST: no pasa por el JWT, ni por el
   `anon` sin sesión, ni por la capa de postgrest. Es el paso 2c del ticket y
   lo único que queda de peso.
-- **Dos de los cinco triggers del paso 2 no los cubre `91`.** Ver `H-08`.
+- Nada más. **El paso 2 quedó completo**: cuatro de los cinco triggers están
+  demostrados —tres en `91` y el cuarto a mano— y el quinto no se puede
+  demostrar porque el esquema no deja que ocurra (`H-08`).
