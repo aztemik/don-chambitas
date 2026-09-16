@@ -47,20 +47,24 @@ terminada: le faltan las pruebas que exigen el proyecto de Supabase en vivo.
   apagado, a una función de trigger le puede faltar el `security definer` y
   comportarse igual de bien. Las tres exigen además de qué capa viene el
   rechazo, para que ninguna pueda pasar por la razón equivocada.
+- **Corrido y verificado el 2026-09-16** contra el proyecto real: `01` a `04`
+  sin error, `90` **42 de 42** y `91` **25 de 25**. Las tres pruebas
+  reescritas pasaron trayendo el mensaje de su trigger, no el de una política,
+  que es la prueba de que pasaron por la razón correcta. El desglose está en
+  `MODELO-ER.md`.
 
-**Lo que falta, y por qué no lo hizo el agente:**
+**Lo que falta:**
 
-- **Correr `91` otra vez.** El cambio está escrito, no verificado. Hacen falta
-  el proyecto de Supabase y su SQL Editor.
 - **El paso 2c: RLS con la `anon key` y dos sesiones reales contra PostgREST.**
-  Es el criterio de aceptación más importante del ticket y necesita la URL del
-  proyecto y la `anon key`, que no están en el repositorio —`local.properties`
-  solo trae `sdk.dir`— y no deben estarlo.
-- Los pasos 1, 2 y 2b siguen respaldados por la corrida del 2026-09-15.
+  Es lo único de peso que queda. Necesita la URL del proyecto y la `anon key`,
+  que no están en el repositorio —`local.properties` solo trae `sdk.dir`— y no
+  deben estarlo.
+- **Un caso del paso 2:** cerrar una solicitud sin trabajador asignado. `91`
+  cubre tres de los cinco triggers; este cuarto se prueba en dos minutos desde
+  el SQL Editor y el quinto no se puede probar (ver `H-08`).
 
-De los siete criterios de aceptación, **dos quedan cumplidos y verificables por
-lectura** (el diagrama existe; cada historia tiene sus tablas o su hueco). Los
-otros cinco piden la base en vivo.
+De los siete criterios de aceptación, **cinco están cumplidos**, uno a medias
+—los cinco triggers— y uno sin empezar —la `anon key`—.
 
 ## Tres huecos nuevos para el líder
 
@@ -82,6 +86,13 @@ rediseña en `S1-T03`. Están explicados al final de `MODELO-ER.md`.
   cuenta; la base solo sabe de `enviada`, que es "no decidida", no "no vista".
   Lo más probable es que sea la redacción y no el esquema; si es eso, se
   aclara la historia y no se toca nada.
+- **`H-08` — Uno de los cinco triggers del paso 2 no se puede probar.**
+  "Postularse a tu propia solicitud" exigiría un uuid que fuera cliente y
+  trabajador a la vez, y los roles excluyentes lo impiden antes de que el
+  trigger opine. Esa rama de `fn_validar_postulacion` es código defensivo que
+  nunca se ejecuta. No es un defecto, pero el criterio de aceptación pide
+  demostrarlo y no se puede: o baja a cuatro triggers, o se anota que al
+  quinto lo sostiene el esquema.
 
 ## Última tarea terminada
 
@@ -124,11 +135,15 @@ No se toma hasta que `S1-T03` cierre: una tarea a la vez por persona.
 
 ## Decisiones recientes
 
-**2026-09-16 · `S1-T03` avanzó hasta donde llega sin la base en vivo.** Quedan
-el diagrama, el cruce contra las 33 historias y las pruebas 10, 12 y 13 de `91`
-corriendo por fin con RLS activo. Faltan el paso 2c y volver a correr `91`, que
-piden el proyecto de Supabase. Salieron tres huecos nuevos —`H-05`, `H-06` y
-`H-07`— y ninguno se corrigió: son del líder.
+**2026-09-16 · La base se volvió a levantar y a verificar.** `01` a `04` sin
+error, `90_verificacion.sql` **42 de 42** y `91_prueba_funcional.sql`
+**25 de 25**, ya con las pruebas 10, 12 y 13 corriendo con RLS activo. Las tres
+pasaron por la razón correcta.
+
+**2026-09-16 · `S1-T03` casi cierra.** Quedan hechos el diagrama, el cruce
+contra las 33 historias y las tres pruebas con RLS. Falta el paso 2c —la
+`anon key` con dos sesiones reales— y un caso suelto del paso 2. Salieron
+cuatro huecos nuevos —`H-05` a `H-08`— y ninguno se corrigió: son del líder.
 
 **2026-09-15 · Dos decisiones nuevas: `DEC-23` y `DEC-24`.** Salen de los
 hallazgos que dejó `S1-T02`. La primera amplía los filtros de búsqueda de tres

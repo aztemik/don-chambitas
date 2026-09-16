@@ -164,8 +164,8 @@ ni al APK, por ningún motivo.
 
 ## Estado
 
-**Levantado y verificado el 2026-09-15.** Reinstalación desde cero: `00` dejó el
-proyecto vacío —cubetas incluidas— y `01` a `04` corrieron sin un error.
+**Levantado y verificado el 2026-09-16**, la segunda vez. `01` a `04`
+corrieron sin un error.
 
 | Verificación | Resultado |
 |---|---|
@@ -176,11 +176,17 @@ Los cinco arreglos de la revisión previa están confirmados en vivo por las
 comprobaciones 37 a 42, no solo escritos en el archivo.
 
 **Las pruebas 10, 12 y 13 ya corren con `set role authenticated`**, desde el
-2026-09-16. Antes corrían como `postgres`, que se salta RLS, y no demostraban
-nada sobre lo que vigilan. Ese cambio **todavía no se ha corrido contra la
-base**: está escrito, no verificado.
+2026-09-16, y pasaron. Antes corrían como `postgres`, que se salta RLS, y no
+demostraban nada sobre lo que vigilan. Que pasaran **por la razón correcta** se
+comprueba en el detalle que devuelven: las tres traen el mensaje de su trigger,
+no el de una política. El desglose está en `MODELO-ER.md`.
 
-Lo que **falta** y sigue siendo `S1-T03`: correr `91` otra vez y, sobre todo,
-probar RLS con la `anon key` y dos sesiones reales contra PostgREST. El
-`set role authenticated` de dentro de una transacción es buena aproximación,
-pero no pasa por el JWT ni por la capa de postgrest.
+Lo que **falta** y sigue siendo `S1-T03`: probar RLS con la `anon key` y dos
+sesiones reales contra PostgREST. El `set role authenticated` de dentro de una
+transacción es buena aproximación, pero no pasa por el JWT ni por la capa de
+postgrest.
+
+`91` **no cubre dos de los cinco triggers**: cerrar una solicitud sin
+trabajador asignado, que sí se puede probar, y postularse a la propia
+solicitud, que no puede ocurrir porque los roles excluyentes lo impiden antes.
+Es el hueco `H-08` de `MODELO-ER.md`.
