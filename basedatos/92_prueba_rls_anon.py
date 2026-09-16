@@ -17,21 +17,30 @@
 
  COMO SE CORRE
 
-   cp .env.ejemplo .env      # y pon SUPABASE_URL y SUPABASE_ANON_KEY
-   python3 basedatos/92_prueba_rls_anon.py
+   1. Pega basedatos/92_usuarios_prueba.sql en el SQL Editor y correlo. Crea
+      las cuatro cuentas.
+   2. cp .env.ejemplo .env   # y pon SUPABASE_URL y SUPABASE_ANON_KEY
+   3. python3 basedatos/92_prueba_rls_anon.py
 
    Sin dependencias: solo la biblioteca estandar.
 
+ POR QUE LAS CUENTAS SE CREAN POR SQL Y NO AQUI
+
+   Porque por la API no se puede: el alta las rechaza con
+   "email_address_invalid". Supabase valida que el dominio del correo exista,
+   y @prueba.donchambitas.mx es ficticio. El dominio se eligio cuando solo se
+   usaba desde SQL, en 91, que inserta directo en auth.users.
+
+   No debilita la prueba. Lo unico que se saltan esas cuentas es el formulario
+   de registro; aqui se inicia sesion de verdad y cada lectura va con un JWT
+   real contra PostgREST, que es lo que el paso 2c tiene que demostrar.
+
  QUE ESCRIBE, EXACTAMENTE
 
-   Registra cuatro cuentas @prueba.donchambitas.mx y les crea perfil,
-   solicitud, postulaciones y una conversacion. NO las borra al terminar:
-   darse de baja necesita la service_role, que no entra al repositorio. Al
-   final imprime el DELETE que hay que pegar en el SQL Editor.
-
- SI EL PROYECTO PIDE CONFIRMAR EL CORREO, el registro no devuelve sesion y el
- guion se detiene diciendolo. Se apaga un momento en Authentication ->
- Providers -> Email -> Confirm email.
+   A las cuatro cuentas les crea perfil, solicitud, postulaciones y una
+   conversacion. NO las borra al terminar: darse de baja necesita la
+   service_role, que no entra al repositorio. Al final imprime el DELETE que
+   hay que pegar en el SQL Editor.
 ==============================================================================
 """
 import json
@@ -108,25 +117,21 @@ class Api:
         except urllib.error.URLError as e:
             salir("No se pudo llegar a %s\n%s\nRevisa SUPABASE_URL en .env." % (self.url, e.reason))
 
-    def registra(self, mote):
-        usuario, nombre, apellidos, rol = CUENTAS[mote]
+    def entra(self, mote):
+        usuario = CUENTAS[mote][0]
         correo = usuario + DOMINIO
-        cuerpo = {"email": correo, "password": CLAVE,
-                  "data": {"nombre": nombre, "apellidos": apellidos,
-                           "telefono": "5550000000", "rol": rol}}
-        cod, res = self.pide("POST", "/auth/v1/signup", cuerpo=cuerpo)
+        cod, res = self.pide("POST", "/auth/v1/token?grant_type=password",
+                             cuerpo={"email": correo, "password": CLAVE})
         token = (res or {}).get("access_token")
         if not token:
-            cod, res = self.pide("POST", "/auth/v1/token?grant_type=password",
-                                 cuerpo={"email": correo, "password": CLAVE})
-            token = (res or {}).get("access_token")
-        if not token:
-            salir("No se obtuvo sesion para %s (HTTP %s).\n%s\n\n"
-                  "Lo mas probable es que el proyecto exija confirmar el correo.\n"
-                  "Authentication -> Providers -> Email -> Confirm email, apagalo\n"
-                  "un momento y vuelve a correr esto." % (correo, cod, json.dumps(res)[:300]))
-        uid = (res.get("user") or res).get("id")
-        return token, uid
+            salir("No se pudo iniciar sesion como %s (HTTP %s).\n%s\n\n"
+                  "Casi siempre es que falta el paso 1: pega\n"
+                  "basedatos/92_usuarios_prueba.sql en el SQL Editor y correlo.\n"
+                  "Ese archivo crea las cuatro cuentas, ya confirmadas y con\n"
+                  "contrasena. Por la API no se pueden crear: Supabase rechaza el\n"
+                  "dominio @prueba.donchambitas.mx porque no existe."
+                  % (correo, cod, json.dumps(res)[:300]))
+        return token, (res.get("user") or {}).get("id")
 
 
 def main():
@@ -135,10 +140,10 @@ def main():
     print("Proyecto: %s\n" % url)
 
     # ---- preparacion ------------------------------------------------------
-    print("Registrando las cuatro cuentas de prueba...")
+    print("Iniciando sesion con las cuatro cuentas de prueba...")
     tok, uid = {}, {}
     for mote in CUENTAS:
-        tok[mote], uid[mote] = api.registra(mote)
+        tok[mote], uid[mote] = api.entra(mote)
         print("  %-6s %s" % (mote, uid[mote]))
 
     cod, cats = api.pide("GET", "/rest/v1/categorias?select=id&nombre=eq.Plomeria",

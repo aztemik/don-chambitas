@@ -25,17 +25,34 @@ Y dos que **no** crean nada, para comprobar que lo de arriba quedó bien:
 Los dos devuelven una tabla donde **todo tiene que decir `PASA`**. Cualquier
 renglón con `>>> FALLA` dice exactamente qué quedó mal y con qué valor.
 
-Y uno que no se pega en el SQL Editor, porque prueba justo lo que desde ahí no
-se puede probar:
+Y dos para el paso 2c de `S1-T03`, que prueba lo que desde el SQL Editor no se
+puede probar:
 
 | Archivo | Qué hace |
 |---|---|
-| `92_prueba_rls_anon.py` | Abre sesiones reales contra la API y comprueba que un usuario no alcanza los datos de otro |
+| `92_usuarios_prueba.sql` | Crea las cuatro cuentas de prueba, confirmadas y con contraseña |
+| `92_prueba_rls_anon.py` | Inicia sesión con ellas y comprueba que un usuario no alcanza los datos de otro |
 
 ```bash
+# 1. pega 92_usuarios_prueba.sql en el SQL Editor y correlo
+# 2.
 cp .env.ejemplo .env      # y pon SUPABASE_URL y SUPABASE_ANON_KEY
 python3 basedatos/92_prueba_rls_anon.py
 ```
+
+**Por qué las cuentas se crean por SQL y no desde el guion.** Porque por la API
+no se puede: el alta las rechaza con `email_address_invalid`. Supabase valida
+que el dominio del correo exista, y `@prueba.donchambitas.mx` es ficticio
+—`donchambitas.mx` no tiene registro A ni MX—. El dominio se eligió cuando solo
+se usaba desde SQL, en `91`, que inserta directo en `auth.users` y por eso
+nunca se topó con la validación.
+
+No debilita la prueba: lo único que se saltan esas cuentas es el formulario de
+registro. El guion inicia sesión de verdad y cada lectura va con un JWT real
+contra PostgREST, que es justo lo que el paso 2c tiene que demostrar.
+
+> Si algún día hace falta probar el **registro** desde la API —y hará falta en
+> `S2-T07`— ese dominio no sirve. Es cosa de `S2-T07`, no de aquí.
 
 **Por qué hace falta, si `91` ya prueba RLS.** `91` usa `set role authenticated`
 dentro de una transacción. Eso no pasa por el JWT, ni por el rol `anon` sin
