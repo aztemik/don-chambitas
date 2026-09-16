@@ -14,13 +14,13 @@
 | Sprint | 1 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 0 |
+| Terminadas | 1 |
 | En curso | 0 |
 | Bloqueadas | 0 |
 
 ## Tarea en curso
 
-_Ninguna. No se ha tomado todavía ninguna tarea de la cola._
+_Ninguna._
 
 | Campo | Valor |
 |---|---|
@@ -32,11 +32,19 @@ _Ninguna. No se ha tomado todavía ninguna tarea de la cola._
 
 ## Última tarea terminada
 
-_Ninguna._
+**`S1-T01` — Análisis de requerimientos e historias de usuario.** 2026-09-15.
+Rama `docs/S1-T01-analisis-requerimientos`, pull request **sin abrir todavía**.
+
+Deja `docs/producto/HISTORIAS.md` con 33 historias en los 9 módulos y 93
+criterios en dado-cuando-entonces. Las 19 pantallas están cubiertas y ninguna
+depende solo de una historia `OPCIONAL`. Trae además dos tablas de cobertura
+—pantalla por historia y los 7 pasos de `PRODUCTO.md` por historia— que son con
+lo que `S1-T02` va a hacer su cruce.
 
 ## Siguiente en la cola
 
-`S1-T01` — Análisis de requerimientos e historias de usuario
+`S1-T02` — Definición del alcance del MVP y lista completa de pantallas
+(prioridad 970, depende de `S1-T01`, que ya está hecha)
 
 ## Decisiones recientes
 
