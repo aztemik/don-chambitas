@@ -224,12 +224,16 @@ demostraban nada sobre lo que vigilan. Que pasaran **por la razón correcta** se
 comprueba en el detalle que devuelven: las tres traen el mensaje de su trigger,
 no el de una política. El desglose está en `MODELO-ER.md`.
 
-Lo que **falta** y sigue siendo `S1-T03`: probar RLS con la `anon key` y dos
-sesiones reales contra PostgREST. El `set role authenticated` de dentro de una
-transacción es buena aproximación, pero no pasa por el JWT ni por la capa de
-postgrest.
+**El paso 2c también pasó: 10 de 10**, con `92_prueba_rls_anon.py` y cuatro
+sesiones reales contra PostgREST. Un usuario no alcanza la ficha de otro
+cliente, ni las postulaciones de su competidor, ni una conversación ajena, ni
+`ia_cache`. Y lo que sí debe verse, se ve.
+
+`ia_cache` responde `HTTP 403`, no una lista vacía: el `revoke all` quita el
+permiso sobre la tabla antes de que RLS entre a filtrar. Es más estricto que
+lo que pedía el ticket, no menos.
 
 `91` **no cubre dos de los cinco triggers**: cerrar una solicitud sin
-trabajador asignado, que sí se puede probar, y postularse a la propia
-solicitud, que no puede ocurrir porque los roles excluyentes lo impiden antes.
-Es el hueco `H-08` de `MODELO-ER.md`.
+trabajador asignado, que se probó a mano y falla por las dos vías, y
+postularse a la propia solicitud, que no puede ocurrir porque los roles
+excluyentes lo impiden antes. Es el hueco `H-08` de `MODELO-ER.md`.

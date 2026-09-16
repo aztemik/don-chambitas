@@ -513,14 +513,26 @@ estaba en duda. Lo dice el detalle que devolvió cada una:
 Ninguna devolvió `>>> NO SE PUDO PROBAR`: el `SET ROLE authenticated` funciona
 en el SQL Editor de Supabase.
 
-**Lo que todavía no está probado:**
+**RLS con la `anon key`, contra PostgREST: 10 de 10.** Es el paso 2c, y lo
+corre `basedatos/92_prueba_rls_anon.py` con cuatro sesiones reales. No es lo
+mismo que el `set role authenticated` de `91`: aquí cada lectura lleva un JWT
+y pasa por postgrest, que es por donde entraría alguien con la llave sacada
+del APK.
 
-- **RLS con la `anon key` y dos sesiones reales.** Las pruebas 10, 12, 13 y 21
-  a 24 usan `set role authenticated` dentro de una transacción, que es una
-  buena aproximación y ya detecta lo que antes no detectaba, pero **no es lo
-  mismo** que dos clientes contra PostgREST: no pasa por el JWT, ni por el
-  `anon` sin sesión, ni por la capa de postgrest. Es el paso 2c del ticket y
-  lo único que queda de peso.
-- Nada más. **El paso 2 quedó completo**: cuatro de los cinco triggers están
-  demostrados —tres en `91` y el cuarto a mano— y el quinto no se puede
-  demostrar porque el esquema no deja que ocurra (`H-08`).
+Cuatro de las diez comprobaciones son controles, y hacen falta: si las tablas
+estuvieran rotas del todo, **todo** volvería vacío y las seis primeras darían
+`PASA` sin que nada funcionara. Por eso también se exige que lo que sí debe
+verse, se vea: la ficha de un trabajador para cualquier usuario con sesión
+(`DEC-19`), la conversación propia para su cliente, y los catálogos sin sesión
+para que P-05 pueda pintarse.
+
+Un detalle donde la realidad es **más estricta que el ticket**: `ia_cache` no
+devuelve vacío, devuelve `HTTP 403`. El ticket pedía vacío. Es el `revoke all`
+de `02_politicas_rls.sql`, que quita el permiso sobre la tabla antes de que
+RLS tenga nada que filtrar. Cerrado por permiso es mejor que cerrado por
+política, así que se deja y se anota aquí para que nadie lo lea como un
+desvío.
+
+**El paso 2 quedó completo**: cuatro de los cinco triggers están demostrados
+—tres en `91` y el cuarto a mano— y el quinto no se puede demostrar porque el
+esquema no deja que ocurra (`H-08`).
