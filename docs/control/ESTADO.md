@@ -3,7 +3,7 @@
 > Archivo **vivo**. Quien termina una tarea lo actualiza. Es la primera cosa
 > que lee el agente y la única fuente confiable sobre qué está pasando hoy.
 
-**Última actualización:** 2026-09-15
+**Última actualización:** 2026-09-16
 
 ---
 
@@ -15,20 +15,73 @@
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
 | Terminadas | 2 |
-| En curso | 0 |
+| En curso | 1 |
 | Bloqueadas | 0 |
 
 ## Tarea en curso
 
-_Ninguna._
+**`S1-T03` — Modelo entidad-relación (ER) completo del sistema.** No está
+terminada: le faltan las pruebas que exigen el proyecto de Supabase en vivo.
 
 | Campo | Valor |
 |---|---|
-| ID | — |
-| Título | — |
-| Quién la tomó | — |
-| Rama | — |
-| Desde | — |
+| ID | `S1-T03` |
+| Título | Modelo entidad-relación (ER) completo del sistema |
+| Quién la tomó | LMM |
+| Rama | `docs/S1-T03-validacion-modelo-er` |
+| Desde | 2026-09-16 |
+
+**Lo que ya está hecho, y se puede revisar leyendo:**
+
+- **El diagrama**, en `docs/tecnico/diagrama-er.png`: las 15 tablas de `public`
+  más `auth.users`, con llaves y cardinalidades. Lo dibuja
+  `docs/tecnico/diagrama-er.py`, para que la próxima vez que cambie el esquema
+  se regenere en vez de retocarse a mano. *Ese generador no lo pedía el ticket:
+  si el líder lo prefiere fuera, se borra y la imagen se queda.*
+- **El cruce de las 33 historias de `S1-T01` contra las tablas**, historia por
+  historia, en `MODELO-ER.md` → "Cobertura de las historias". Ninguna historia
+  pide una tabla que no exista. **Tres quedan con hueco.**
+- **Las pruebas 10, 12 y 13 de `91_prueba_funcional.sql` ya corren con
+  `set role authenticated`**, que era lo que pedía el ticket. Antes corrían
+  como `postgres`, que se salta RLS, y por eso no demostraban nada: con RLS
+  apagado, a una función de trigger le puede faltar el `security definer` y
+  comportarse igual de bien. Las tres exigen además de qué capa viene el
+  rechazo, para que ninguna pueda pasar por la razón equivocada.
+
+**Lo que falta, y por qué no lo hizo el agente:**
+
+- **Correr `91` otra vez.** El cambio está escrito, no verificado. Hacen falta
+  el proyecto de Supabase y su SQL Editor.
+- **El paso 2c: RLS con la `anon key` y dos sesiones reales contra PostgREST.**
+  Es el criterio de aceptación más importante del ticket y necesita la URL del
+  proyecto y la `anon key`, que no están en el repositorio —`local.properties`
+  solo trae `sdk.dir`— y no deben estarlo.
+- Los pasos 1, 2 y 2b siguen respaldados por la corrida del 2026-09-15.
+
+De los siete criterios de aceptación, **dos quedan cumplidos y verificables por
+lectura** (el diagrama existe; cada historia tiene sus tablas o su hueco). Los
+otros cinco piden la base en vivo.
+
+## Tres huecos nuevos para el líder
+
+Salen del cruce contra las historias. **Ninguno se corrigió**: el esquema no se
+rediseña en `S1-T03`. Están explicados al final de `MODELO-ER.md`.
+
+- **`H-05` — La búsqueda por texto no ignora los acentos.** HU-17 promete que
+  "plomeria" encuentre "plomería". `pg_trgm` acelera el `ilike`, no cambia lo
+  que el `ilike` considera igual, y `unaccent` no está instalado; el contrato
+  de `buscarTrabajadores` busca justamente con `ilike`. Es el más serio de los
+  tres y **conviene cerrarlo antes de `S4-T04`**, porque decide si hace falta
+  un índice sobre `unaccent(titulo)`, una columna normalizada o una RPC.
+- **`H-06` — Nada borra el archivo de Storage cuando desaparece su fila.**
+  HU-11 promete que no queden archivos huérfanos. Las filas se limpian solas
+  por cascada; los objetos de las cubetas no los toca nadie, y la cascada se
+  lleva la URL antes de que alguien pueda usarla. Es un orden de operaciones
+  que ningún contrato dice todavía: le toca a `S3-T08` y `S2-T12`.
+- **`H-07` — "Postulaciones sin revisar" no existe como dato.** HU-13 las
+  cuenta; la base solo sabe de `enviada`, que es "no decidida", no "no vista".
+  Lo más probable es que sea la redacción y no el esquema; si es eso, se
+  aclara la historia y no se toca nada.
 
 ## Última tarea terminada
 
@@ -64,10 +117,18 @@ tocó.
 
 ## Siguiente en la cola
 
-`S1-T03` — Modelo entidad-relación (ER) completo del sistema
-(prioridad 950, depende de `S1-T01`, que ya está hecha)
+`S1-T04` — Configuración del proyecto Android (Gradle, Kotlin, Compose, Hilt)
+(prioridad 900, sin dependencias)
+
+No se toma hasta que `S1-T03` cierre: una tarea a la vez por persona.
 
 ## Decisiones recientes
+
+**2026-09-16 · `S1-T03` avanzó hasta donde llega sin la base en vivo.** Quedan
+el diagrama, el cruce contra las 33 historias y las pruebas 10, 12 y 13 de `91`
+corriendo por fin con RLS activo. Faltan el paso 2c y volver a correr `91`, que
+piden el proyecto de Supabase. Salieron tres huecos nuevos —`H-05`, `H-06` y
+`H-07`— y ninguno se corrigió: son del líder.
 
 **2026-09-15 · Dos decisiones nuevas: `DEC-23` y `DEC-24`.** Salen de los
 hallazgos que dejó `S1-T02`. La primera amplía los filtros de búsqueda de tres

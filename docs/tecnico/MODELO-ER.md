@@ -5,6 +5,11 @@ documento explica el porqué; si los dos se contradicen, gana el SQL.
 
 Motor: PostgreSQL 15 o superior, sobre Supabase (DEC-16).
 
+El diagrama completo está en `docs/tecnico/diagrama-er.png`: las 15 tablas de
+`public` más `auth.users`, con sus llaves primarias, sus llaves foráneas y la
+cardinalidad de cada relación. Lo dibuja `docs/tecnico/diagrama-er.py`; si el
+esquema cambia, se corre otra vez en vez de retocar la imagen a mano.
+
 | Archivo | Qué deja |
 |---|---|
 | `01_esquema.sql` | Tablas, tipos, triggers, vistas y funciones RPC |
@@ -104,9 +109,12 @@ Un `UPDATE` en esa situación afecta cero filas y tampoco avisa: así es como
 `ultimo_mensaje_en` se quedaba en `NULL` para siempre y la bandeja de P-15 se
 quedaba sin criterio de orden.
 
-Ojo al probarlo: `91_prueba_funcional.sql` corre como `postgres`, que se salta
-RLS, así que estas fallas **no se ven ahí**. Quien agregue un trigger que lea o
-escriba una fila ajena tiene que repetir el `security definer`.
+Ojo al probarlo: el grueso de `91_prueba_funcional.sql` corre como `postgres`,
+que se salta RLS, así que estas fallas **ahí no se ven**. Las que las ven son
+las pruebas 10, 12, 13 y 21 a 24, que hacen `set role authenticated`, y las
+comprobaciones 37 a 42 de `90_verificacion.sql`. Quien agregue un trigger que
+lea o escriba una fila ajena tiene que repetir el `security definer`, y quien
+agregue una prueba de esa regla tiene que correrla con el rol puesto.
 
 La quinta merece explicación. `solicitudes.trabajador_id` es `ON DELETE SET
 NULL`, y el `CHECK` que exige trabajador aplica **solo a `asignada`**, no a
@@ -117,10 +125,13 @@ trabajador lo impone `fn_validar_transicion_solicitud`, sobre la transición y n
 sobre la fila.
 
 **Búsqueda con `pg_trgm`.** Índices GIN sobre los títulos de perfiles,
-servicios y solicitudes. Eso hace que "plomeria" encuentre "plomería" y que un
-`ilike '%plom%'` no se arrastre. En Supabase la extensión vive en el esquema
-`extensions`, por eso los índices califican el operador:
-`extensions.gin_trgm_ops`.
+servicios y solicitudes. Eso hace que un `ilike '%plom%'` no se arrastre.
+**No** hace que "plomeria" encuentre "plomería": `pg_trgm` acelera el `ilike`,
+no cambia lo que el `ilike` considera igual, y `unaccent` no está instalado.
+Es el hueco `H-05`, al final de este documento.
+
+En Supabase la extensión vive en el esquema `extensions`, por eso los índices
+califican el operador: `extensions.gin_trgm_ops`.
 
 **Máximo 3 fotos por servicio** por restricción de posición entre 1 y 3 más un
 único por servicio y posición. No es una regla de la aplicación, es de la base.
@@ -251,6 +262,171 @@ Quien agregue una política nueva que mire otra tabla tiene que comprobar que
 no cierra un ciclo. Las pruebas 21 a 24 de `91_prueba_funcional.sql` lo
 vigilan: hacen 30 lecturas cruzadas con tres usuarios distintos.
 
+## Cobertura de las historias
+
+Cruce de las 33 historias de `S1-T01` contra las tablas, una por una. Es el
+paso 3 de `S1-T03`. Lo que aquí dice "sin tabla" no es un hueco: es trabajo que
+resuelve Supabase Auth o la aplicación, y está anotado como tal.
+
+**Resultado: 30 historias sostenidas sin reserva, 3 con hueco** (`H-05`, `H-06`
+y `H-07`, abajo). Ninguna historia pide una tabla que no exista.
+
+### 1 · Autenticación
+
+| HU | Lo que exige | Qué lo sostiene |
+|---|---|---|
+| HU-01 | Registro con rol, correo único, rol definitivo | `auth.users` + `tg_auth_usuario_creado` → `usuarios`; `usuarios.correo unique`; `uq_usuario_rol(id, rol)` y las dos llaves foráneas compuestas |
+| HU-02 | Iniciar sesión y entrar según el rol | Supabase Auth; `usuarios.rol` decide el destino. Sin tabla propia, a propósito |
+| HU-03 | Sesión recordada y expiración | Supabase Auth. Sin tabla |
+| HU-04 | Enlace de recuperación, mismo aviso exista o no el correo | Supabase Auth. Sin tabla, y por eso la fuga que la historia teme es imposible desde la base |
+| HU-05 | Editar nombre, apellidos y teléfono; nunca correo ni rol | `grant update (nombre, apellidos, telefono, foto_url)` sobre `usuarios` tras el `revoke update` completo. El correo y el rol no están en el grant: no hay forma de tocarlos con la `anon key` |
+
+### 2 · Perfil del trabajador
+
+| HU | Lo que exige | Qué lo sostiene |
+|---|---|---|
+| HU-06 | Título, descripción, habilidades, experiencia, teléfono, estado y municipio; municipios filtrados por estado; marcarse no disponible | `perfiles_trabajador` (`titulo`, `descripcion`, `experiencia_anios`, `telefono_contacto`, `estado_id`, `municipio_id`, `disponible`) y `perfil_habilidades`; `municipios.estado_id` para la cascada; `vw_busqueda_trabajadores` expone `disponible`, así que la tarjeta puede decirlo |
+| HU-07 | Foto de perfil; rechazar más de 5 MB o formato distinto de JPG, PNG y WebP | `usuarios.foto_url` y la cubeta `perfiles` con `file_size_limit = 5242880` y `allowed_mime_types` en `03_almacenamiento.sql`. Borrar el archivo viejo es `H-06` |
+| HU-08 | Vista previa del perfil público con estados vacíos | `fn_perfil_publico_trabajador(uuid)` devuelve perfil, habilidades, servicios con fotos, calificación y reseñas en un viaje; los arreglos vacíos son los que la pantalla pinta como vacío |
+
+### 3 · Servicios
+
+| HU | Lo que exige | Qué lo sostiene |
+|---|---|---|
+| HU-09 | Título, descripción, categoría y precio; las 16 categorías y ninguna más; rechazar `desde > hasta`; precio opcional | `servicios` con `ck_servicio_rango_precio` y `ck_servicio_precios_positivos`; `categorias.activa`; `precio_desde` y `precio_hasta` son nulables |
+| HU-10 | Pausar sin perder, eliminar con sus fotos | `servicios.activo`; `servicio_fotos.servicio_id` es `on delete cascade` |
+| HU-11 | Hasta 3 fotos, borrar la foto y su archivo | `ck_foto_posicion` (1 a 3) más `uq_foto_posicion_unica (servicio_id, posicion)`. El archivo de Storage es `H-06` |
+
+### 4 · Solicitudes
+
+| HU | Lo que exige | Qué lo sostiene |
+|---|---|---|
+| HU-12 | Publicar con presupuesto opcional; un trabajador no publica solicitudes | `solicitudes`; `presupuesto` nulable; `fk_solicitud_cliente` contra `usuarios(id, rol)` con `ck_solicitud_rol_cliente` |
+| HU-13 | Ver cada solicitud con su estado y cuántas postulaciones sin revisar | `solicitudes.estatus`; el conteo sale de `postulaciones` gracias a `fn_es_mi_solicitud`. "Sin revisar" es `H-07` |
+| HU-14 | Detalle, cancelar, y que el trabajador asignado vea el trabajo | `estatus = 'cancelada'` corta las postulaciones nuevas por `fn_validar_postulacion`; la política `trabajador ve las solicitudes en las que participa` le abre la fila al asignado |
+| HU-15 | Cerrar solo si hay trabajador; guardar la fecha | `fn_cerrar_solicitud` y `fn_validar_transicion_solicitud`, que sella `cerrada_en` y rechaza el cierre sin trabajador |
+
+### 5 · Búsqueda
+
+| HU | Lo que exige | Qué lo sostiene |
+|---|---|---|
+| HU-16 | Las 16 categorías y los mejor calificados; al tocar una, solo quien ofrece servicios activos de ella | `categorias`; `vw_busqueda_trabajadores.categorias` es un arreglo agregado **solo con los servicios activos**, y lleva `promedio` para ordenar |
+| HU-17 | Que "plomeria" encuentre "plomería" | **Hueco `H-05`.** Los índices GIN de `pg_trgm` están, pero el contrato busca con `ilike` y `unaccent` no está instalado |
+| HU-18 | Filtrar por categoría, estado, municipio, precio y calificación; ordenar; paginar | `vw_busqueda_trabajadores` expone `categorias`, `estado_id`, `municipio_id`, `precio_desde`, `promedio`, `total_resenas` y `creado_en`: los cinco filtros de `DEC-23` y los tres órdenes salen de ahí, y la paginación es `limit`/`offset` de postgrest |
+| HU-19 | Perfil completo en una pantalla y botón de contacto | `fn_perfil_publico_trabajador` y `fn_abrir_conversacion` |
+
+### 6 · Postulaciones
+
+| HU | Lo que exige | Qué lo sostiene |
+|---|---|---|
+| HU-20 | Solicitudes abiertas, más recientes primero, filtrables por categoría | Política `trabajador ve las solicitudes abiertas`; `creado_en` y `categoria_id` |
+| HU-21 | Una sola postulación por solicitud; nada si no está abierta | `uq_una_postulacion_por_solicitud` y `fn_validar_postulacion` |
+| HU-22 | Los cuatro estados, retirar, y no ver a la competencia | `postulaciones.estatus` (`enviada`, `aceptada`, `rechazada`, `retirada`); política `trabajador retira su postulacion`; `trabajador ve sus postulaciones` filtra por `trabajador_id = auth.uid()` |
+| HU-23 | Comparar con nombre y calificación; aceptar una y rechazar el resto, todo junto | `fn_aceptar_postulacion` hace las tres escrituras en una transacción; `DEC-19` abre la ficha del trabajador; `vw_trabajador_calificacion` da el promedio; la política `cliente rechaza postulaciones a sus solicitudes` cubre el rechazo suelto |
+
+### 7 · Chat
+
+| HU | Lo que exige | Qué lo sostiene |
+|---|---|---|
+| HU-24 | Un hilo por cliente-trabajador-solicitud y uno suelto por pareja; el trabajador no lo abre | El índice único sobre `(cliente_id, trabajador_id, coalesce(solicitud_id, uuid cero))` es exactamente `DEC-24`; `fn_abrir_conversacion` fija `cliente_id = auth.uid()`, y `conversaciones.trabajador_id` apunta a `perfiles_trabajador`, así que a un trabajador lo rechaza la llave foránea (`DEC-20`) |
+| HU-25 | Hilos ordenados por el más reciente; distinguir los no leídos | `conversaciones.ultimo_mensaje_en`, que mantiene `fn_tocar_conversacion`, con índice por `(cliente_id, ultimo_mensaje_en desc)` y su gemelo para el trabajador; `mensajes.leido_en` |
+| HU-26 | Mensaje que llega sin actualizar; marcar leídos; solo texto | `mensajes` está en la publicación `supabase_realtime`; la política `marcar leidos los mensajes recibidos` más el `grant update (leido_en)`; no hay columna de adjunto, así que `DEC-04` lo sostiene la tabla |
+
+### 8 · Reseñas
+
+| HU | Lo que exige | Qué lo sostiene |
+|---|---|---|
+| HU-27 | De 1 a 5; solo si está cerrada; una por solicitud y definitiva | `ck_resena_calificacion`, `fn_validar_resena`, `resenas.solicitud_id` es `unique`, y `resenas` no tiene políticas de `update` ni de `delete` |
+| HU-28 | Promedio recalculado y visible en perfil y resultados | `vw_trabajador_calificacion`, que `vw_busqueda_trabajadores` ya trae unida; `total_resenas` para el desempate |
+
+### 9 · Inteligencia artificial
+
+| HU | Lo que exige | Qué lo sostiene |
+|---|---|---|
+| HU-29 | Redactar el perfil | `funcion_ia = 'redactar_perfil'` en `ia_consumo` e `ia_cache` |
+| HU-30 | Redactar el servicio | `funcion_ia = 'redactar_servicio'` |
+| HU-31 | Tope de 10 al día en total; caché que no consume uso | `fn_ia_registrar_llamada` suma las cuatro funciones y devuelve `-1` en la llamada 11 (`DEC-18`); `ia_cache(funcion, entrada_hash)` se consulta antes de registrar nada |
+| HU-32 | `OPCIONAL` Categoría sugerida | `funcion_ia = 'categorizar'` y `solicitudes.categorizada_por_ia` |
+| HU-33 | `OPCIONAL` Trabajadores sugeridos | `funcion_ia = 'sugerir'`; el respaldo por calificación sale de `vw_busqueda_trabajadores` |
+
+---
+
+## Huecos detectados
+
+Los tres salen del cruce de arriba. **Ninguno se corrigió**: el esquema no se
+rediseña en `S1-T03` y las tres decisiones son del líder (`AGENTS.md` §5 y §9).
+La numeración sigue la de los hallazgos de `S1-T02`, que llegaron hasta `H-04`.
+
+### H-05 · La búsqueda por texto no ignora los acentos
+
+**Qué dice la historia.** HU-17, primer criterio: *"Dado que escribo 'plomeria'
+sin acento, cuando busco, entonces los resultados incluyen a quienes escribieron
+'plomería' con acento."*
+
+**Qué hay.** `01_esquema.sql` instala `pg_trgm` y crea tres índices GIN sobre
+los títulos. `CONTRATOS-API.md` define el filtro de `buscarTrabajadores` como
+*"texto libre contra `titulo` (`ilike`)"*.
+
+**Por qué no se cumple.** `pg_trgm` hace que un `ilike '%plom%'` use índice en
+vez de recorrer la tabla; **no cambia qué considera igual el `ilike`**, que
+compara carácter por carácter. `'plomería' ilike '%plomeria%'` es falso, con
+índice y sin él. La extensión `unaccent`, que es la que normaliza los acentos,
+no está instalada: `01_esquema.sql` solo crea `pg_trgm`.
+
+Con el operador de similitud sí funcionaría —`titulo % 'plomeria'` da 0.5 y el
+umbral de `pg_trgm` es 0.3—, pero ese operador no es el que pide el contrato y
+postgrest no lo expone como filtro.
+
+**A quién le llega.** A `S4-T04` (buscador por texto) y a `S4-T09`
+(implementación real). Conviene cerrarlo antes de `S4-T04`, porque decide si
+hace falta columna normalizada, índice nuevo o una función RPC de búsqueda.
+
+**Las salidas, para que el líder elija:** instalar `unaccent` y colgar el índice
+de `unaccent(titulo)`; o guardar una columna generada ya normalizada; o cambiar
+el contrato al operador de similitud con una RPC. Las tres tocan `01_esquema.sql`
+y la primera y la tercera tocan además `CONTRATOS-API.md`.
+
+### H-06 · Nada borra el archivo de Storage cuando desaparece su fila
+
+**Qué dicen las historias.** HU-11: *"cuando confirmo, entonces se borra el
+archivo además del registro: no quedan archivos huérfanos."* Y HU-07: la foto
+nueva *"reemplaza a la anterior."*
+
+**Qué hay.** `servicio_fotos.servicio_id` es `on delete cascade`, y
+`usuarios.foto_url` se va con la cuenta. Las filas se limpian solas. **Los
+archivos de las cubetas `perfiles` y `servicios` no**: ninguna política, ningún
+trigger y ninguna función los toca.
+
+**Por qué importa el orden.** Borrar el servicio primero arrastra las filas de
+`servicio_fotos` por cascada, y con ellas la única copia de la URL. A partir de
+ahí el archivo queda en la cubeta para siempre y ya nadie sabe que existía. La
+aplicación tiene que borrar el objeto de Storage **antes** de borrar la fila, y
+eso hoy no está escrito en ningún lado.
+
+**A quién le llega.** A `S3-T08` y `S2-T12`, los contratos que deben decirlo, y
+a `S2-T14` y `S3-T09`, que lo implementan. No bloquea a nadie hoy.
+
+### H-07 · "Postulaciones sin revisar" no existe como dato
+
+**Qué dice la historia.** HU-13, segundo criterio: *"Dado que una solicitud
+tiene postulaciones sin revisar, cuando la veo en la lista, entonces se
+distingue cuántas hay."*
+
+**Qué hay.** `postulaciones.estatus` con `enviada`, `aceptada`, `rechazada` y
+`retirada`. No hay marca de vista ni de leída.
+
+**Por qué no es lo mismo.** `enviada` significa "todavía no la acepté ni la
+rechacé", no "todavía no la vi". Un cliente que abrió P-19, leyó las cinco
+postulaciones y salió sin decidir sigue viendo las cinco como pendientes.
+
+**Lo más probable es que no sea un hueco del esquema sino de la redacción**: si
+"sin revisar" quiere decir `enviada`, la historia se sostiene tal cual y basta
+con decirlo. Si quiere decir "sin ver", hace falta una columna. Es del líder
+decidir cuál de las dos, y es la más barata de las tres.
+
+**A quién le llega.** A `S5-T03` (bandeja de postulaciones) y a `S4-T06` (panel
+del cliente).
+
 ## Lo que queda pendiente
 
 **Catálogo completo de municipios.** Hoy hay 26 de zonas de prueba. Los 2,469
@@ -271,13 +447,34 @@ trabajador con historial deja la solicitud cerrada con `trabajador_id` nulo, y
 las 30 lecturas cruzadas de las pruebas 21 a 24 no vuelven a entrar en
 recursión.
 
-**Lo que todavía no está probado** y sigue siendo `S1-T03`:
+**Lo que `S1-T03` cerró el 2026-09-16:**
 
-- RLS **con la `anon key` y dos sesiones reales**. Las pruebas 21 a 24 usan
-  `set role authenticated` dentro de una transacción, que es una buena
-  aproximación, pero no es lo mismo que dos clientes contra PostgREST.
-- Las pruebas 10, 12 y 13 de `91` corren como `postgres`, que se salta RLS, así
-  que **pasan siempre**: no demuestran nada sobre las reglas que vigilan.
-  Moverlas al bloque de `set role authenticated` es trabajo pendiente.
-- El diagrama `docs/tecnico/diagrama-er.png`.
-- El cruce contra las historias de `S1-T01`.
+- **Las pruebas 10, 12 y 13 de `91` ya corren con `set role authenticated`.**
+  Antes corrían como `postgres`, que se salta RLS, y por eso no demostraban
+  nada sobre lo que vigilan: con RLS apagado, una función de trigger a la que
+  le falte el `security definer` se comporta igual de bien que una que lo
+  tenga. Ahora las tres se apoyan justo en eso, y además exigen **de qué capa**
+  viene el rechazo, no solo que lo haya: la 10 pide el mensaje de
+  `fn_validar_postulacion` y la 13 el de `fn_validar_mensaje`. Sin eso la 13
+  pasaría igual aunque el trigger callara, porque el `with check` de la
+  política la rescataría por detrás.
+  Si quien corre el script no puede hacer `set role authenticated`, las tres
+  dicen `>>> NO SE PUDO PROBAR` en vez de mentir con un `PASA`.
+- **El diagrama** `docs/tecnico/diagrama-er.png`, con su generador al lado.
+- **El cruce contra las 33 historias de `S1-T01`**, arriba, con tres huecos
+  documentados: `H-05`, `H-06` y `H-07`.
+
+**Lo que todavía no está probado:**
+
+- **El script modificado no se ha corrido.** Las pruebas 10, 12 y 13 se
+  reescribieron sin base contra la cual ejecutarlas. Hasta que `91` vuelva a
+  dar sus 25 renglones en `PASA` dentro del SQL Editor, el cambio está escrito
+  pero no verificado.
+- RLS **con la `anon key` y dos sesiones reales**. Las pruebas 10, 12, 13 y 21
+  a 24 usan `set role authenticated` dentro de una transacción, que es una
+  buena aproximación y ya detecta lo que antes no detectaba, pero **no es lo
+  mismo** que dos clientes contra PostgREST: no pasa por el JWT, ni por el
+  `anon` sin sesión, ni por la capa de postgrest.
+- Los pasos 1, 2 y 2b del ticket —levantar los cuatro archivos, probar los
+  cinco triggers a mano y probar la baja de cuenta— siguen respaldados por la
+  corrida del 2026-09-15, no por una nueva.
