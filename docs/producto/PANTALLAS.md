@@ -22,7 +22,7 @@ de describir la pantalla otra vez.
 | ID | Pantalla | Qué hace |
 |---|---|---|
 | P-05 | Inicio cliente | Buscador, cuadrícula de categorías y trabajadores mejor calificados |
-| P-06 | Resultados | Lista de trabajadores con filtros de categoría, precio y calificación |
+| P-06 | Resultados | Lista de trabajadores con filtros de categoría, estado, municipio, precio y calificación. Se ordena por calificación, precio o más recientes, y se carga por páginas |
 | P-07 | Perfil público del trabajador | Datos, habilidades, **sus servicios**, **sus reseñas** y botón de contactar |
 | P-08 | Publicar solicitud | Título, descripción, categoría, presupuesto y ubicación. Botón de redactar con IA |
 | P-09 | Mis solicitudes | Lista de las solicitudes del cliente con su estado |
@@ -143,43 +143,40 @@ quede escrito para que nadie los vuelva a discutir:
 
 ### Hallazgos para el líder
 
-Ninguno se resolvió aquí. `PRODUCTO.md` no se tocó.
+Los cuatro salieron del cruce de `S1-T02` y **los cuatro los resolvió el líder
+el 2026-09-15**. Quedan aquí con lo que se decidió, para que el que llegue a
+`S4-T05` o a `S5-T06` no los vuelva a abrir.
 
-**H-01 · El número de filtros de búsqueda no coincide en cuatro documentos.**
-HU-18 pide filtrar por **categoría, estado, municipio, precio máximo y
-calificación mínima** —cinco—, y HU-17 lo refuerza al sugerir "revisar la
-ubicación" en su estado vacío. Pero `PRODUCTO.md` dice "filtros por categoría,
-precio y calificación", el renglón P-06 de este archivo dice lo mismo, y
-`S4-T05` en `INDICE.md` se titula "Filtros de búsqueda (categoría, precio,
-calificación)". Son tres, no cinco. Por la regla de `HISTORIAS.md`, gana
-`PRODUCTO.md`. **Decisión:** o se amplía el alcance a cinco filtros y se
-corrigen P-06 y el título de `S4-T05`, o se recortan estado y municipio de
-HU-18 y el estado vacío de HU-17. Conviene cerrarlo antes de `S4-T05`, y
-notar que HU-06 ya obliga al trabajador a capturar estado y municipio, así que
-el dato existe de cualquier forma.
+**H-01 · El número de filtros de búsqueda no coincidía en cuatro documentos.**
+HU-18 pedía filtrar por categoría, estado, municipio, precio y calificación
+—cinco—, y HU-17 lo reforzaba al sugerir "revisar la ubicación" en su estado
+vacío, pero `PRODUCTO.md`, el renglón de P-06 y el título de `S4-T05` decían
+tres. **Resuelto: se amplía el alcance a los cinco.** El dato ya existe sin
+costo extra, porque HU-06 obliga al trabajador a capturar estado y municipio, y
+filtrar por catálogo no es "mapas y geolocalización", que es lo que quedó
+fuera. Se corrigieron `PRODUCTO.md`, el renglón de P-06 y el título de `S4-T05`
+en `INDICE.md`; HU-18 y HU-17 se quedaron como estaban. Ojo al implementar:
+`PEND-02` sigue abierto, así que hoy solo hay 26 municipios sembrados.
 
-**H-02 · P-06 no menciona el ordenamiento ni la paginación que HU-18 exige.**
-HU-18 pide ordenar por calificación, precio o más recientes conservando los
-filtros, y cargar la página siguiente al llegar al final. `S4-T07` cubre las
-dos cosas como tarea, así que no es alcance nuevo; es la descripción de P-06 en
-este archivo la que quedó corta. **Decisión:** autorizar que el renglón de P-06
-mencione orden y paginación. No se editó porque toca el mismo renglón que
-H-01 y conviene resolverlos juntos.
+**H-02 · P-06 no mencionaba el ordenamiento ni la paginación que HU-18 exige.**
+No era alcance nuevo —`S4-T07` ya los cubre como tarea—, era la descripción de
+la pantalla que había quedado corta. **Resuelto: se actualizó el renglón de
+P-06**, que ahora dice que se ordena por calificación, precio o más recientes y
+que se carga por páginas.
 
-**H-03 · "Notificaciones locales" está DENTRO del MVP y no tiene historia
-propia.** Aparece en la lista de `PRODUCTO.md` y tiene tarea (`S5-T10`), pero
-en las historias solo vive como un criterio suelto dentro de HU-22
-(postulación aceptada) y otro dentro de HU-26 (mensaje con la aplicación
-cerrada). No se cae ninguna pantalla por esto —las notificaciones no son
-pantalla— y por eso el cruce da limpio. **Decisión:** o se acepta la cobertura
-como está, o `S5-T10` arranca escribiendo una HU-34 que junte los dos casos y
-diga qué pasa al tocar la notificación.
+**H-03 · "Notificaciones locales" está DENTRO del MVP sin historia propia.**
+Vive como criterio suelto dentro de HU-22 (postulación aceptada) y HU-26
+(mensaje con la aplicación cerrada). **Resuelto: se acepta así, no se escribe
+una HU-34.** No rompe la cobertura porque las notificaciones no son pantalla.
+Lo que falta —qué pasa al tocar la notificación— lo define el ticket de
+`S5-T10` cuando se redacte el Sprint 5.
 
-**H-04 · HU-24 ata la conversación a un trabajo, pero desde P-07 no hay
-trabajo.** El segundo criterio dice "ya había escrito antes a esa persona **por
-ese mismo trabajo** … entro al hilo existente". Desde P-19 eso se entiende: hay
-solicitud. Desde P-07 el cliente contacta a un trabajador sin solicitud de por
-medio, y ahí el criterio no dice si el hilo es uno solo por pareja de usuarios
-o uno por solicitud. **Decisión:** definir la regla de unicidad del hilo y
-verificarla contra `MODELO-ER.md`, que no se abrió en esta tarea. Toca a
-`S5-T06` y a `S5-T05`.
+**H-04 · HU-24 ataba el hilo de chat a un trabajo que desde P-07 no existe.**
+Resultó no ser una decisión de diseño: `basedatos/01_esquema.sql` ya la había
+tomado. `conversaciones.solicitud_id` es nulable y el índice único
+`uq_conversacion_unica` va sobre `(cliente_id, trabajador_id,
+coalesce(solicitud_id, uuid-cero))`, y `fn_crear_conversacion` recibe
+`p_solicitud_id` con valor por omisión nulo. Es decir: un hilo por cliente,
+trabajador y solicitud, más un hilo suelto para el contacto que nace en P-07.
+**Resuelto: se escribió esa regla en HU-24**, que ahora tiene un criterio para
+cada caso, los dos marcados como regla de la base. El esquema no se tocó.

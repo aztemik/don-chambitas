@@ -47,7 +47,8 @@ tienen los dos a la vez.
   teléfono y ubicación por catálogo.
 - Publicación de servicios con categoría, precio y hasta 3 fotos.
 - Publicación de solicitudes de trabajo.
-- Búsqueda por texto y filtros por categoría, precio y calificación.
+- Búsqueda por texto y filtros por categoría, estado, municipio, precio y
+  calificación.
 - Sistema de postulaciones con aceptar y rechazar.
 - Chat interno de texto plano.
 - Reseñas y calificación promedio.
