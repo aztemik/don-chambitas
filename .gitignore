@@ -1,0 +1,26 @@
+# Android / Gradle
+*.iml
+.gradle/
+.kotlin/
+/build
+/app/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Android Studio
+/.idea/
+
+# Sistema
+.DS_Store
+
+# Credenciales: NADA de esto entra al repositorio.
+# Aqui viven la URL del proyecto de Supabase y la anon key.
+local.properties
+local.defaults.properties
+secretos.properties
+.env
+.env.*
+*.keystore
+*.jks
+/app/release

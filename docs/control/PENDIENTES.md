@@ -1,0 +1,87 @@
+# Decisiones pendientes
+
+> **Este archivo lo escribe únicamente el líder.** El agente lo lee y lo
+> reporta, nunca lo edita.
+>
+> Una tarea que depende de un pendiente **no se implementa**, ni siquiera
+> parcialmente, ni siquiera si la decisión parece obvia.
+
+---
+
+## PEND-01 · Backend y base de datos
+
+**Estado:** resuelto — 2026-09-14
+**Quién decidió:** GRI (líder)
+**Resultado:** **Supabase.** Ver `DEC-16` y `DEC-17` en
+`docs/control/DECISIONES.md`.
+
+### Qué se decidió
+
+Supabase, no backend propio. El cliente de la aplicación es `supabase-kt`, que
+cubre Postgrest, Auth, Storage, Realtime y Functions; Retrofit y OkHttp salen
+del stack.
+
+El requisito académico de implementar backend se cubre con el esquema
+PostgreSQL, las políticas RLS y las Edge Functions: eso es trabajo de servidor,
+no configuración.
+
+### Qué se desbloquea
+
+Las seis tareas que este pendiente congelaba pasan a `pendiente`:
+
+| ID | Tarea |
+|---|---|
+| S2-T07 | Implementación real de autenticación con Supabase Auth |
+| S2-T14 | Almacenamiento real de imágenes en Supabase Storage |
+| S3-T09 | Persistencia real de perfiles y servicios en Supabase |
+| S4-T09 | Implementación real de la búsqueda y el filtrado en Supabase |
+| S5-T07 | Implementación real de la mensajería en tiempo real |
+| S6-T05 | Despliegue del proyecto de Supabase en producción |
+
+> Antes del 2026-09-14 este bloque nombraba `S3-T10` y `S4-T10`, que son las
+> dos tareas de inteligencia artificial. Los IDs correctos son `S3-T09` y
+> `S4-T09`, y así quedaron.
+
+Las políticas RLS **dejaron de estar congeladas y ya están escritas**, en
+`basedatos/02_politicas_rls.sql`. No son un extra: la `anon key` que lleva la
+aplicación es pública, así que son lo único que protege los datos. Las valida
+S1-T03.
+
+### Qué no cambia
+
+Toda la aplicación sigue hablando contra interfaces de repositorio, y la
+implementación activa sigue siendo `FuenteDatosFalsa` hasta que cada tarea real
+aterrice. La decisión no autoriza a saltarse ese diseño: lo único que cambia el
+día que una implementación real entra es el enlace en `ModuloRepositorios`.
+
+---
+
+## PEND-02 · Catálogo completo de municipios
+
+**Estado:** abierto
+**Quién decide:** GRI (líder)
+**Bloquea:** nada
+
+`04_datos_semilla.sql` siembra 26 municipios de zonas de prueba. Los 2,469 del
+país se cargan del catálogo abierto del INEGI con un `COPY` desde CSV. No
+bloquea a nadie; se resuelve cuando convenga.
+
+---
+
+## Plantilla para pendientes nuevos
+
+```
+## PEND-NN · Título
+
+**Estado:** abierto | resuelto
+**Quién decide:** 
+**Bloquea:** N tareas
+
+### La disyuntiva
+
+### Qué ya se hizo para que esto no frene a nadie
+
+### Tareas bloqueadas por esto
+
+### Fecha límite recomendada
+```
