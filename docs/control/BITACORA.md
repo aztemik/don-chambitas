@@ -9,6 +9,7 @@
 | Fecha | Tarea | Quién | Rama | Pull request | Nota |
 |---|---|---|---|---|---|
 | 2026-09-15 | S1-T01 | GRI | docs/S1-T01-analisis-requerimientos | _sin abrir_ | 33 historias, 9 módulos, 93 criterios. Las 19 pantallas cubiertas |
+| 2026-09-15 | S1-T02 | BCJL | docs/S1-T02-alcance-mvp-pantallas | _sin abrir_ | Cruce limpio: 19/19 pantallas con historia, 33/33 historias con pantalla, 0 choques con FUERA del MVP. Cuatro hallazgos para el líder al final de PANTALLAS.md; H-01 conviene cerrarlo antes de S4-T05 |
 
 ---
 
