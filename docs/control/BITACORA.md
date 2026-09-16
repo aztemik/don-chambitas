@@ -8,7 +8,7 @@
 
 | Fecha | Tarea | Quién | Rama | Pull request | Nota |
 |---|---|---|---|---|---|
-| _(sin registros)_ | | | | | |
+| 2026-09-15 | S1-T01 | GRI | docs/S1-T01-analisis-requerimientos | _sin abrir_ | 33 historias, 9 módulos, 93 criterios. Las 19 pantallas cubiertas |
 
 ---
 
