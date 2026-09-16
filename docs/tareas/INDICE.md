@@ -110,7 +110,7 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 | `S4-T02` | 970 | Pantalla de publicación de una solicitud de trabajo | GRI | pendiente | S3-T02 |
 | `S4-T03` | 950 | Listado de resultados y perfil público del trabajador | BCJL | pendiente | S1-T10 |
 | `S4-T04` | 900 | Buscador simple por texto | LMM | pendiente | — |
-| `S4-T05` | 850 | Filtros de búsqueda (categoría, precio, calificación) | RRC | pendiente | — |
+| `S4-T05` | 850 | Filtros de búsqueda (categoría, estado, municipio, precio, calificación) | RRC | pendiente | — |
 | `S4-T06` | 800 | Panel del cliente: mis solicitudes y su estado | GRI | pendiente | S4-T03 |
 | `S4-T07` | 750 | ViewModels, paginación y ordenamiento de resultados | BCJL | pendiente | — |
 | `S4-T08` | 700 | Contrato de la API de solicitudes, búsqueda y filtros | LMM | pendiente | S4-T03 |

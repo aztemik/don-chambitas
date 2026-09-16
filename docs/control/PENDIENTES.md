@@ -66,6 +66,12 @@ día que una implementación real entra es el enlace en `ModuloRepositorios`.
 país se cargan del catálogo abierto del INEGI con un `COPY` desde CSV. No
 bloquea a nadie; se resuelve cuando convenga.
 
+Sigue sin bloquear, pero **pesa más desde `DEC-23`**: el municipio dejó de ser
+un dato del perfil y ahora es filtro de búsqueda en P-06. Con 26 municipios,
+`S4-T05` se puede construir y probar igual, pero la búsqueda solo se siente
+real dentro de las zonas de prueba. Conviene cargar el catálogo antes de
+`S6-T10`, las pruebas cerradas.
+
 ---
 
 ## Plantilla para pendientes nuevos

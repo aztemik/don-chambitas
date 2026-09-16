@@ -45,19 +45,22 @@ Queda documentado en `PANTALLAS.md`, en la sección nueva "Verificación de
 cobertura". No se agregó ni se quitó ninguna pantalla y `PRODUCTO.md` no se
 tocó.
 
-**Lo que sí encontró, y espera al líder.** Cuatro hallazgos anotados al final
-de `PANTALLAS.md`, ninguno resuelto por cuenta propia:
+**Los cuatro hallazgos que dejó, ya resueltos.** El líder los cerró el
+2026-09-15, fuera del alcance de `S1-T02`. Quedan explicados al final de
+`PANTALLAS.md`:
 
-- **H-01** — Los filtros de búsqueda no coinciden: HU-18 pide cinco (categoría,
-  estado, municipio, precio, calificación) y `PRODUCTO.md`, el renglón de P-06
-  y el título de `S4-T05` dicen tres. Es el único que bloquea trabajo futuro;
-  conviene cerrarlo **antes de `S4-T05`**.
-- **H-02** — P-06 no menciona el ordenamiento ni la paginación que HU-18 exige,
-  aunque `S4-T07` ya los cubre como tarea.
-- **H-03** — "Notificaciones locales" está DENTRO del MVP sin historia propia:
-  vive como criterio suelto en HU-22 y HU-26.
-- **H-04** — HU-24 ata el hilo de chat a "ese mismo trabajo", pero desde P-07 se
-  contacta sin solicitud de por medio. Falta la regla de unicidad del hilo.
+- **H-01** — Los filtros de búsqueda eran cinco en HU-18 y tres en
+  `PRODUCTO.md`, P-06 y `S4-T05`. **Se amplió el alcance a cinco:** categoría,
+  estado, municipio, precio y calificación. El dato ya existía porque HU-06
+  obliga a capturar estado y municipio.
+- **H-02** — **Se actualizó el renglón de P-06** con el ordenamiento y la
+  paginación que HU-18 exige y que `S4-T07` ya cubría como tarea.
+- **H-03** — Las notificaciones locales **se quedan sin historia propia**,
+  cubiertas por los criterios de HU-22 y HU-26. Qué pasa al tocarlas lo define
+  el ticket de `S5-T10`.
+- **H-04** — No era decisión: el esquema ya la tenía tomada. **Se escribió la
+  regla en HU-24**, un hilo por cliente-trabajador-solicitud más uno suelto
+  para el contacto que nace en P-07.
 
 ## Siguiente en la cola
 
@@ -65,6 +68,19 @@ de `PANTALLAS.md`, ninguno resuelto por cuenta propia:
 (prioridad 950, depende de `S1-T01`, que ya está hecha)
 
 ## Decisiones recientes
+
+**2026-09-15 · Dos decisiones nuevas: `DEC-23` y `DEC-24`.** Salen de los
+hallazgos que dejó `S1-T02`. La primera amplía los filtros de búsqueda de tres
+a cinco —se agregan estado y municipio— y con eso cambia `PRODUCTO.md`, el
+renglón de P-06 y el título de `S4-T05`. La segunda pone por escrito la regla
+de unicidad del hilo de chat que el esquema ya aplicaba, y que HU-24 no
+describía para el caso de P-07.
+
+Los otros dos hallazgos no necesitaron número: H-02 era la descripción de P-06,
+que había quedado corta frente a HU-18, y H-03 se cerró aceptando que las
+notificaciones locales sigan cubiertas por los criterios de HU-22 y HU-26 en
+vez de tener historia propia. Los cuatro están explicados al final de
+`PANTALLAS.md`.
 
 **2026-09-15 · La base de datos está levantada y verificada.** Reinstalación
 desde cero contra el proyecto de Supabase: `00_reinicio.sql` dejó todo en cero

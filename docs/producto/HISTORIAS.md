@@ -414,8 +414,13 @@ Dos marcas:
 
 - Dado que estoy en P-07 o en P-19, cuando toco contactar, entonces se abre la
   conversación en P-16.
-- Dado que ya había escrito antes a esa persona por ese mismo trabajo, cuando
-  vuelvo a contactarla, entonces entro al hilo existente y no se crea uno nuevo.
+- Dado que contacto desde P-19, cuando ya le había escrito a esa persona por
+  ese mismo trabajo, entonces entro al hilo existente y no se crea uno nuevo:
+  hay un hilo por cliente, trabajador y solicitud. **Regla de la base.**
+- Dado que contacto desde P-07, donde no hay ninguna solicitud de por medio,
+  cuando ya le había escrito así antes, entonces entro a ese mismo hilo suelto,
+  que es uno solo por pareja y no se mezcla con los de las solicitudes.
+  **Regla de la base.**
 - Dado que soy trabajador, cuando busco cómo iniciar una conversación, entonces
   no existe: el hilo lo abre siempre el cliente y yo respondo (`DEC-20`).
 
