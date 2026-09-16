@@ -14,7 +14,7 @@
 | Sprint | 1 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 1 |
+| Terminadas | 2 |
 | En curso | 0 |
 | Bloqueadas | 0 |
 
@@ -32,19 +32,37 @@ _Ninguna._
 
 ## Última tarea terminada
 
-**`S1-T01` — Análisis de requerimientos e historias de usuario.** 2026-09-15.
-Rama `docs/S1-T01-analisis-requerimientos`, pull request **sin abrir todavía**.
+**`S1-T02` — Definición del alcance del MVP y lista completa de pantallas.**
+2026-09-15. Rama `docs/S1-T02-alcance-mvp-pantallas`, salida de `main`, pull
+request **sin abrir todavía**. `S1-T01` se integró a `main` en el pull request
+**#1**.
 
-Deja `docs/producto/HISTORIAS.md` con 33 historias en los 9 módulos y 93
-criterios en dado-cuando-entonces. Las 19 pantallas están cubiertas y ninguna
-depende solo de una historia `OPCIONAL`. Trae además dos tablas de cobertura
-—pantalla por historia y los 7 pasos de `PRODUCTO.md` por historia— que son con
-lo que `S1-T02` va a hacer su cruce.
+El cruce de las 33 historias contra las 19 pantallas **dio limpio en las tres
+revisiones del ticket**: ninguna historia sin pantalla, ninguna pantalla sin
+historia, y ninguna historia que exija algo de la lista "FUERA del MVP". El
+mapa se reconstruyó historia por historia y coincide con el que dejó `S1-T01`.
+Queda documentado en `PANTALLAS.md`, en la sección nueva "Verificación de
+cobertura". No se agregó ni se quitó ninguna pantalla y `PRODUCTO.md` no se
+tocó.
+
+**Lo que sí encontró, y espera al líder.** Cuatro hallazgos anotados al final
+de `PANTALLAS.md`, ninguno resuelto por cuenta propia:
+
+- **H-01** — Los filtros de búsqueda no coinciden: HU-18 pide cinco (categoría,
+  estado, municipio, precio, calificación) y `PRODUCTO.md`, el renglón de P-06
+  y el título de `S4-T05` dicen tres. Es el único que bloquea trabajo futuro;
+  conviene cerrarlo **antes de `S4-T05`**.
+- **H-02** — P-06 no menciona el ordenamiento ni la paginación que HU-18 exige,
+  aunque `S4-T07` ya los cubre como tarea.
+- **H-03** — "Notificaciones locales" está DENTRO del MVP sin historia propia:
+  vive como criterio suelto en HU-22 y HU-26.
+- **H-04** — HU-24 ata el hilo de chat a "ese mismo trabajo", pero desde P-07 se
+  contacta sin solicitud de por medio. Falta la regla de unicidad del hilo.
 
 ## Siguiente en la cola
 
-`S1-T02` — Definición del alcance del MVP y lista completa de pantallas
-(prioridad 970, depende de `S1-T01`, que ya está hecha)
+`S1-T03` — Modelo entidad-relación (ER) completo del sistema
+(prioridad 950, depende de `S1-T01`, que ya está hecha)
 
 ## Decisiones recientes
 

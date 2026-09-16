@@ -19,13 +19,13 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 
 | Sprint | Tareas | Pendientes | Bloqueadas | Opcionales | Hechas |
 |---|---|---|---|---|---|
-| 1 | 16 | 15 | 0 | 0 | 1 |
+| 1 | 16 | 14 | 0 | 0 | 2 |
 | 2 | 16 | 16 | 0 | 0 | 0 |
 | 3 | 15 | 15 | 0 | 0 | 0 |
 | 4 | 15 | 13 | 0 | 2 | 0 |
 | 5 | 12 | 12 | 0 | 0 | 0 |
 | 6 | 12 | 12 | 0 | 0 | 0 |
-| **Total** | **86** | **83** | **0** | **2** | **1** |
+| **Total** | **86** | **82** | **0** | **2** | **2** |
 
 > **No queda ninguna tarea bloqueada.** PEND-01 se resolvió el 2026-09-14 a
 > favor de Supabase (`DEC-16`). PEND-02 sigue abierto y no bloquea a nadie.
@@ -39,7 +39,7 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 | ID | Prio | Tarea | Resp. | Estado | Depende de |
 |---|---|---|---|---|---|
 | `S1-T01` | 1000 | Análisis de requerimientos e historias de usuario (documento en .md) | GRI | hecha | — |
-| `S1-T02` | 970 | Definición del alcance del MVP y lista completa de pantallas | BCJL | pendiente | S1-T01 |
+| `S1-T02` | 970 | Definición del alcance del MVP y lista completa de pantallas | BCJL | hecha | S1-T01 |
 | `S1-T03` | 950 | Modelo entidad-relación (ER) completo del sistema | LMM | pendiente | S1-T01 |
 | `S1-T04` | 900 | Configuración del proyecto Android (Gradle, Kotlin, Compose, Hilt) | RRC | pendiente | — |
 | `S1-T05` | 850 | Configuración del repositorio en GitHub: ramas, plantilla de PR y .gitignore | GRI | pendiente | — |
