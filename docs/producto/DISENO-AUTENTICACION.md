@@ -493,3 +493,233 @@ vuelve a P-02 y se entra otra vez a P-04. Es alcance que ningún criterio de
 HU-04 pide, y agregarlo aquí sería inventarlo.
 
 ---
+
+## 5. Validaciones
+
+Las implementa `S2-T04` como funciones puras de dominio, sin Android, para que
+`S2-T16` las pueda probar sin emulador. Cada una devuelve `Int?`: el recurso
+del mensaje, o `null` si el campo está bien.
+
+### 5.1 El correo
+
+La expresión regular es **la misma del esquema**, para que la interfaz y la
+base nunca discrepen:
+
+```kotlin
+// Espejo de ck_usuario_correo_valido en basedatos/01_esquema.sql.
+// Si aquella cambia, esta cambia el mismo dia, o la base rechaza
+// registros que la aplicacion dio por buenos.
+private val CORREO_VALIDO = Regex("^[^@\\s]+@[^@\\s]+\\.[a-zA-Z]{2,}$")
+```
+
+No se usa `android.util.Patterns.EMAIL_ADDRESS`: acepta cosas que la base
+rechaza, y el rechazo llegaría hasta el final del registro.
+
+### 5.2 Tabla de reglas
+
+| Campo | Regla | Mensaje | Clave |
+|---|---|---|---|
+| Correo | No vacío | Escribe tu correo electrónico | `validacion_correo_vacio` |
+| Correo | Cumple `CORREO_VALIDO` | Ese correo no se ve bien, revísalo | `validacion_correo_formato` |
+| Correo | Máximo 160 caracteres | El correo es demasiado largo | `validacion_correo_largo` |
+| Contraseña (P-02) | No vacía | Escribe tu contraseña | `validacion_contrasena_vacia` |
+| Contraseña (P-03) | Mínimo 8 caracteres | Usa al menos 8 caracteres | `validacion_contrasena_corta` |
+| Rol (P-03) | Elegido | Elige si vienes a contratar o a trabajar | `validacion_rol_sin_elegir` |
+| Nombre | No vacío tras `trim()` | Escribe tu nombre | `validacion_nombre_vacio` |
+| Nombre | Máximo 80 caracteres | El nombre es demasiado largo | `validacion_nombre_largo` |
+| Apellidos | No vacío tras `trim()` | Escribe tus apellidos | `validacion_apellidos_vacio` |
+| Apellidos | Máximo 120 caracteres | Los apellidos son demasiado largos | `validacion_apellidos_largo` |
+| Teléfono | No vacío | Escribe tu teléfono | `validacion_telefono_vacio` |
+| Teléfono | Exactamente 10 dígitos | El teléfono lleva 10 dígitos | `validacion_telefono_digitos` |
+
+**La contraseña no valida nada más.** Ni mayúscula obligatoria, ni número, ni
+símbolo. `PRODUCTO.md` no lo pide, y una regla de complejidad inventada aquí
+manda a un plomero en obra a pelear con el teclado del teléfono.
+
+**En P-02 la contraseña solo se valida "no vacía".** Exigir 8 caracteres al
+entrar delataría la longitud mínima a quien está probando contraseñas, y
+sobre todo dejaría fuera a quien se registró antes de que la regla existiera.
+Quien se equivoca, recibe "Correo o contraseña incorrectos" y nada más.
+
+### 5.3 El teléfono es obligatorio en la interfaz, opcional en la base
+
+`public.usuarios.telefono` es `varchar(20)` **nulable** y
+`RepositorioAuth.registrar` lo recibe como `String?`. Aun así, P-03 lo exige.
+
+No es una contradicción: HU-01 lo lista entre los campos que van completos al
+confirmar el registro, y la columna es nulable porque otros caminos —el
+trigger, una carga administrativa— pueden no tenerlo. La regla de la interfaz
+es más estricta que la de la base, que es la dirección correcta.
+
+### 5.4 Qué pasa si fallan varios campos a la vez
+
+Se marcan **todos** los que fallaron, no el primero. El foco salta al primero
+en orden visual y la pantalla hace scroll hasta él si quedó fuera de vista.
+No se llama al repositorio.
+
+---
+
+## 6. De `TipoError` a lo que ve el usuario
+
+`S1-T11` ya dejó los mensajes por tipo en `strings.xml` y el mapeo en
+`Estados.kt` (`obtenerMensajeErrorRes`, `obtenerTituloErrorRes`). Las tres
+pantallas **reutilizan ese mapeo**; no se escribe uno nuevo.
+
+La única sustitución es en P-02: el mensaje genérico de `AUTENTICACION` es
+"Inicia sesión de nuevo para continuar", que no dice nada útil en la pantalla
+de inicio de sesión. Ahí se pinta `error_credenciales_invalidas`.
+
+| Pantalla | `TipoError` | Qué se pinta |
+|---|---|---|
+| P-02 | `AUTENTICACION` | `error_credenciales_invalidas` — "Correo o contraseña incorrectos" |
+| P-02, P-03, P-04 | `RED`, `SERVIDOR`, `DESCONOCIDO` | El mensaje de `S1-T11` para ese tipo |
+| P-03 | `VALIDACION` | El `mensaje` que traiga el `Resultado.Error`, tal cual (3.3) |
+| P-02, P-04 | `VALIDACION` | El mensaje de `S1-T11`. No debería llegar |
+| Todas | `LIMITE_IA` | No aplica. Si llega, `DESCONOCIDO` |
+
+El botón "Reintentar" aparece en `RED`, `SERVIDOR` y `DESCONOCIDO`, que es
+donde volver a intentar puede servir de algo. En `AUTENTICACION` y
+`VALIDACION` no aparece: lo que hay que cambiar es lo que está escrito.
+
+---
+
+## 7. Cadenas nuevas de `strings.xml`
+
+Las agrega la tarea que construye cada pantalla, no esta. Se listan con su
+clave definitiva para que las tres tareas no inventen tres nombres distintos
+para lo mismo.
+
+```xml
+<!-- Autenticación · común (S2-T01) -->
+<string name="auth_correo">Correo electrónico</string>
+<string name="auth_contrasena">Contraseña</string>
+
+<!-- P-02 Iniciar sesión -->
+<string name="iniciar_sesion_titulo">Iniciar sesión</string>
+<string name="iniciar_sesion_accion">Iniciar sesión</string>
+<string name="iniciar_sesion_olvide">¿Olvidaste tu contraseña?</string>
+<string name="iniciar_sesion_ir_registro">¿No tienes cuenta? Regístrate</string>
+<string name="error_credenciales_invalidas">Correo o contraseña incorrectos</string>
+
+<!-- P-03 Registro -->
+<string name="registro_titulo">Crear cuenta</string>
+<string name="registro_pregunta_rol">¿Qué vienes a hacer?</string>
+<string name="registro_rol_cliente">Quiero contratar</string>
+<string name="registro_rol_trabajador">Ofrezco mi trabajo</string>
+<string name="registro_rol_definitivo">El rol no se puede cambiar después</string>
+<string name="registro_nombre">Nombre(s)</string>
+<string name="registro_apellidos">Apellidos</string>
+<string name="registro_telefono">Teléfono celular</string>
+<string name="registro_ayuda_contrasena">Mínimo 8 caracteres</string>
+<string name="registro_accion">Crear cuenta</string>
+<string name="registro_ir_iniciar_sesion">¿Ya tienes cuenta? Inicia sesión</string>
+<string name="registro_cuenta_creada">Tu cuenta quedó creada, inicia sesión</string>
+
+<!-- P-04 Recuperar contraseña -->
+<string name="recuperar_titulo">Recuperar contraseña</string>
+<string name="recuperar_explicacion">Escribe tu correo y te enviamos un enlace para crear una contraseña nueva</string>
+<string name="recuperar_accion">Enviar enlace</string>
+<string name="recuperar_volver">Volver a iniciar sesión</string>
+<string name="recuperar_enviado_titulo">Revisa tu correo</string>
+<string name="recuperar_enviado_mensaje">Si ese correo está registrado, te enviamos un enlace para crear una contraseña nueva</string>
+<string name="recuperar_vigencia">El enlace vence en 24 horas</string>
+<string name="recuperar_enviado_descripcion">Correo enviado</string>
+
+<!-- Validaciones (S2-T04) -->
+<string name="validacion_correo_vacio">Escribe tu correo electrónico</string>
+<string name="validacion_correo_formato">Ese correo no se ve bien, revísalo</string>
+<string name="validacion_correo_largo">El correo es demasiado largo</string>
+<string name="validacion_contrasena_vacia">Escribe tu contraseña</string>
+<string name="validacion_contrasena_corta">Usa al menos 8 caracteres</string>
+<string name="validacion_rol_sin_elegir">Elige si vienes a contratar o a trabajar</string>
+<string name="validacion_nombre_vacio">Escribe tu nombre</string>
+<string name="validacion_nombre_largo">El nombre es demasiado largo</string>
+<string name="validacion_apellidos_vacio">Escribe tus apellidos</string>
+<string name="validacion_apellidos_largo">Los apellidos son demasiado largos</string>
+<string name="validacion_telefono_vacio">Escribe tu teléfono</string>
+<string name="validacion_telefono_digitos">El teléfono lleva 10 dígitos</string>
+```
+
+Todos tutean y dicen qué hacer, que es la regla de `DISENO.md`.
+
+---
+
+## 8. Navegación entre las tres
+
+El mapa de `PANTALLAS.md` es `P-01 → P-02 ↔ P-03 ↔ P-04`. En términos de la
+pila:
+
+| Desde | Acción | A dónde | Cómo |
+|---|---|---|---|
+| P-01 | Sin sesión | P-02 | `popUpTo(Ruta.Splash) { inclusive = true }` — ya hecho en `S1-T15` |
+| P-02 | "Regístrate" | P-03 | `navigate`, se apila |
+| P-02 | "¿Olvidaste tu contraseña?" | P-04 | `navigate`, se apila |
+| P-03 | Flecha, atrás o "Inicia sesión" | P-02 | `popBackStack()`, no `navigate` |
+| P-04 | Flecha, atrás o "Volver" | P-02 | `popBackStack()`, no `navigate` |
+| P-02 | Sesión iniciada | P-05 o P-10 | `popUpTo(Subgrafo.Autenticacion) { inclusive = true }` |
+| P-03 | Cuenta creada con sesión | P-05 o P-10 | Igual |
+
+**Los regresos usan `popBackStack`, no `navigate`.** Si P-03 navegara a P-02,
+la pila crecería P-02 → P-03 → P-02 y el botón atrás recorrería el formulario
+de registro hacia atrás. Es el error clásico de este trío de pantallas.
+
+Las guardas de `S1-T12` ya mandan cualquier ruta privada a P-02 sin sesión, y
+`RUTAS_AUTENTICACION` ya contiene las tres. **Esta tarea no toca `Rutas.kt`**;
+`S2-T15` es la que reemplaza el marcador temporal de sesión por el real.
+
+---
+
+## 9. Qué consume cada tarea del Sprint 2
+
+| Tarea | Qué toma de aquí |
+|---|---|
+| `S2-T02` Registro | Secciones 1, 3 y 7 |
+| `S2-T03` Inicio de sesión | Secciones 1, 2 y 7 |
+| `S2-T04` Validaciones | Secciones 1.5, 5 y 7 |
+| `S2-T05` ViewModels | Contratos de estado de 2.2, 3.3 y 4.3, y los eventos |
+| `S2-T10` Recuperar contraseña | Secciones 1, 4 y 7 |
+| `S2-T16` Pruebas | 5.2 como tabla de casos, y 2.4, 3.5 y 4.4 como matriz de resultados |
+
+### Criterios de aceptación de `S2-T01`
+
+- [x] Las tres pantallas tienen anatomía con medidas, en orden visual.
+- [x] Las tres tienen contrato de estado y de eventos, con nombres que siguen
+      `CONVENCIONES.md`.
+- [x] Está dicho qué estado de pantalla aplica a cada una y cuál no, con el
+      porqué.
+- [x] Cada resultado posible de `RepositorioAuth` tiene una fila que dice qué
+      ve el usuario.
+- [x] Las reglas de validación están campo por campo, con mensaje y clave.
+- [x] No se usa ni un componente fuera de `DISENO.md`.
+- [x] No se agregó ninguna pantalla: siguen siendo 19.
+- [x] Lo que no cuadró se reporta al líder en vez de resolverse (sección 10).
+
+---
+
+## 10. Hallazgos para el líder
+
+Los dos salen de cruzar HU-01 y HU-04 contra `CONTRATOS-API.md` y
+`RepositorioAuth`. **Ninguno se resolvió aquí**, conforme a AGENTS.md §9.
+
+**`H-09` · El segundo tramo de HU-04 no tiene pantalla, y puede que no la
+necesite.** HU-04 pide que al abrir el enlace del correo se pueda definir una
+contraseña nueva. `PANTALLAS.md` tiene 19 pantallas y ninguna es esa: P-04
+solo pide el enlace. Hay dos salidas y las dos son del líder: que el enlace
+abra la página alojada de Supabase Auth, con lo cual no hace falta pantalla y
+conviene anotarlo en HU-04 para que nadie la busque; o que el enlace abra la
+aplicación por *deep link*, con lo cual hace falta una pantalla nueva, una
+tarea nueva en el Sprint 2 y tocar `PANTALLAS.md`. **Conviene cerrarlo antes
+de `S2-T07`**, que es quien implementa `recuperarContrasena` de verdad.
+
+**`H-10` · No está decidido si el registro deja sesión abierta.** HU-01 dice
+que al confirmar el registro se entra directo a la pantalla del rol, lo que
+supone sesión inmediata. Pero `registrar` devuelve `Resultado<Usuario>`, no
+`Sesion`, y si Supabase Auth tiene activada la confirmación por correo, el
+`signUp` **no** abre sesión y HU-01 no se puede cumplir tal como está escrita.
+La sección 3.5 contempla las dos ramas para no frenar a `S2-T02`, pero la
+decisión —confirmación por correo sí o no— es de producto y de seguridad, no
+de la pantalla. **Le toca a `S2-T06` recogerla y a `S2-T07` implementarla.**
+Ojo, además, con lo que ya dejó anotado `S1-T03`: el dominio de prueba
+`@prueba.donchambitas.mx` no pasa la validación de dominio de Supabase, así
+que si la confirmación se deja activa, las cuentas de prueba necesitan correos
+de un dominio que exista.
