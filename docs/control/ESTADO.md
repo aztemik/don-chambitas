@@ -14,7 +14,7 @@
 | Sprint | 1 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 6 |
+| Terminadas | 7 |
 | En curso | 0 |
 | Bloqueadas | 0 |
 
@@ -32,10 +32,10 @@ _Ninguna._
 
 ## Última tarea terminada
 
-**`S1-T06` — Arquitectura de capas y carpetas documentada.** 2026-09-20.
-Rama `feat/S1-T06-arquitectura-capas`, pull request **sin abrir todavía**.
+**`S1-T07` — Diccionario de datos y modelado de entidades en Kotlin (data classes).** 2026-09-20.
+Rama `feat/S1-T07-modelado-entidades`, pull request **sin abrir todavía**.
 
-Estructura completa de paquetes creada bajo `mx.donchambitas.app` siguiendo el árbol de `ARQUITECTURA.md`: `di`, `dominio` (`modelo`, `repositorio`), `datos` (`remoto/supabase`, `remoto/dto`, `local`, `falso`, `repositorio`), `ui` (`tema`, `componentes`, `navegacion`, `pantallas/autenticacion`, `pantallas/cliente`, `pantallas/trabajador`, `pantallas/compartidas`) y `util`. Archivos `.gitkeep` colocados para preservar directorios vacíos. Implementadas `Resultado<T>` y `TipoError` en `mx.donchambitas.app.util`. Creados `ModuloRepositorios` y `ModuloSupabase` vacíos y debidamente anotados con Hilt (`@Module`, `@InstallIn(SingletonComponent::class)`). Ningún archivo de `dominio` importa de `android.*`. Compilación (`./gradlew assembleDebug`), pruebas unitarias (`./gradlew testDebugUnitTest`) e instalación y ejecución en emulador Pixel 8 Pro exitosas.
+Modelado completo de las entidades del esquema relacional en Kotlin dentro de `mx.donchambitas.app.dominio.modelo` (`Usuario`, `PerfilTrabajador`, `PerfilHabilidad`, `Servicio`, `ServicioFoto`, `Solicitud`, `Postulacion`, `Conversacion`, `Mensaje`, `Resena`, `Estado`, `Municipio`, `Categoria`) y los 4 tipos enumerados exactos (`RolUsuario`, `EstadoSolicitud`, `EstadoPostulacion`, `FuncionIa`). Mapeo estricto de tipos (`UUID` a `String`, `TIMESTAMPTZ` a `Instant`, `NUMERIC(10,2)` a `BigDecimal`, `SMALLINT`/`SERIAL` a `Int`) y nulabilidad correspondiente. Sin anotaciones de serialización ni dependencias de `supabase-kt` o `android.*`. Documentado en `docs/tecnico/DICCIONARIO-DATOS.md`. Pruebas unitarias en `ModelosTest.kt`. Compilación (`./gradlew assembleDebug`), pruebas unitarias (`./gradlew testDebugUnitTest`) e instalación y ejecución en emulador Pixel 8 Pro exitosas.
 
 
 - **El diagrama**, en `docs/tecnico/diagrama-er.png`, con su generador al lado.
@@ -93,8 +93,8 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S1-T07` — Diccionario de datos y modelado de entidades en Kotlin (data classes)
-(prioridad 750, depende de S1-T03, S1-T04)
+`S1-T08` — Identidad visual: paleta de colores, tipografía e iconografia
+(prioridad 700, sin dependencias)
 
 
 ## Decisiones recientes

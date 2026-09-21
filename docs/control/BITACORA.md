@@ -15,6 +15,7 @@
 | 2026-09-20 | S1-T04 | RRC | feat/S1-T04-configuracion-proyecto-android |  | Proyecto configurado en mx.donchambitas.app con AGP 9.2.1, Kotlin 2.2.10, Hilt 2.60.1 con KSP 2.2.10-2.0.2 y supabase-kt 3.1.1 en libs.versions.toml. Compila, pasa pruebas unitarias y corre en emulador Pixel 8 Pro |
 | 2026-09-20 | S1-T05 | GRI | chore/S1-T05-configuracion-repositorio-github |  | Repositorio documentado (aztemik/don-chambitas), CODEOWNERS asigna al líder (@aztemik), plantilla de PR en .github/pull_request_template.md, gitignore unificado y reglas de protección para main |
 | 2026-09-20 | S1-T06 | BCJL | feat/S1-T06-arquitectura-capas |  | Estructura de paquetes completa bajo mx.donchambitas.app (.gitkeep), Resultado<T> y TipoError en util/, ModuloRepositorios y ModuloSupabase anotados con Hilt en di/. Pruebas unitarias pasando |
+| 2026-09-20 | S1-T07 | LMM | feat/S1-T07-modelado-entidades |  | Modelado completo de entidades en Kotlin (data classes y 4 enums) en dominio/modelo, sin serializacion ni dependencias de framework. Diccionario de datos documentado en docs/tecnico/DICCIONARIO-DATOS.md. Compila y pasa pruebas unitarias |
 
 ---
 
