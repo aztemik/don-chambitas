@@ -19,6 +19,7 @@
 | 2026-09-20 | S1-T08 | RRC | feat/S1-T08-identidad-visual |  | Identidad visual cerrada: contrastes WCAG documentados (Carbon/Mostaza 7.09:1 pasa AAA), logo SVG a 48 dp, muestra-paleta.png, 16 categorias mapeadas a Material Icons y actualizadas en semillero SQL, icono adaptativo y mipmaps en todas las densidades verificados en emulador |
 | 2026-09-20 | S1-T09 | GRI | feat/S1-T09-sistema-diseno |  | Sistema de diseno Compose implementado: paleta Taller con onPrimary en Carbon, escala tipografica de 6 niveles, escala base 4 en Espaciado, Formas y MainActivity envuelta en DonChambitasTema. Pruebas unitarias pasando |
 | 2026-09-20 | S1-T10 | BCJL | feat/S1-T10-componentes-base |  | Los 14 componentes base reutilizables implementados con @Preview segun DISENO.md (Botones, Campos, Tarjetas, Chips, Estrellas, Barras). Cero colores literales, modifier al final, contrastes WCAG verificados y pruebas unitarias pasando |
+| 2026-09-20 | S1-T11 | LMM | feat/S1-T11-componentes-estado |  | Componentes de estado (Cargando, EstadoVacio, EstadoError) y patron ContenedorEstado con orden de precedencia estricto. Mensajes de accion por TipoError, cadenas en strings.xml y previews para todos los estados. 8 pruebas unitarias pasando |
 
 ---
 

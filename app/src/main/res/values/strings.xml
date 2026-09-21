@@ -24,4 +24,25 @@
     <string name="estado_asignada">Asignada</string>
     <string name="estado_cerrada">Cerrada</string>
     <string name="estado_cancelada">Cancelada</string>
+
+    <!-- Componentes de estado (S1-T11) -->
+    <string name="reintentar">Reintentar</string>
+    <string name="estado_vacio_titulo">Sin resultados</string>
+    <string name="estado_vacio_mensaje">No hay elementos disponibles para mostrar en este momento.</string>
+
+    <!-- Títulos de error -->
+    <string name="error_titulo_red">Sin conexión</string>
+    <string name="error_titulo_autenticacion">Sesión requerida</string>
+    <string name="error_titulo_validacion">Datos incorrectos</string>
+    <string name="error_titulo_limite_ia">Límite alcanzado</string>
+    <string name="error_titulo_servidor">Error del servidor</string>
+    <string name="error_titulo_desconocido">Algo salió mal</string>
+
+    <!-- Mensajes de error por TipoError (dicen qué hacer) -->
+    <string name="error_red">Revisa tu conexión e intenta de nuevo.</string>
+    <string name="error_autenticacion">Inicia sesión de nuevo para continuar.</string>
+    <string name="error_validacion">Revisa los campos y corrige los datos ingresados.</string>
+    <string name="error_limite_ia">Alcanzaste el límite de hoy, vuelve a intentarlo mañana.</string>
+    <string name="error_servidor">Ocurrió un problema en el servidor. Intenta de nuevo más tarde.</string>
+    <string name="error_desconocido">Ocurrió un error inesperado. Intenta de nuevo más tarde.</string>
 </resources>

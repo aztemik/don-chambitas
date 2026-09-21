@@ -14,7 +14,7 @@
 | Sprint | 1 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 10 |
+| Terminadas | 11 |
 | En curso | 0 |
 | Bloqueadas | 0 |
 
@@ -31,6 +31,20 @@ _Ninguna._
 | Desde | — |
 
 ## Última tarea terminada
+
+**`S1-T11` — Componentes de estado: carga, vacío, error y mensajes al usuario.** 2026-09-20.
+Rama `feat/S1-T11-componentes-estado`, pull request **sin abrir todavía**.
+
+Construcción completa de los componentes de estado y el patrón de pantalla con datos según `DISENO.md` y `ARQUITECTURA.md`:
+- `Estados.kt`:
+  - `Cargando`: Indicador circular centrado en color Mostaza (48 dp) y mensaje opcional, con descripción semántica de accesibilidad.
+  - `EstadoVacio`: Icono grande (56 dp en color Cafe), título (subtítulo en Carbon), mensaje (cuerpo en Cafe) y botón opcional (`BotonPrincipal`). Soporta valores por defecto desde `strings.xml`.
+  - `EstadoError`: Icono de advertencia en color Error, título (subtítulo en Carbon), mensaje de error que dice qué hacer derivado de cada `TipoError` (o mensaje personalizado) y botón de reintentar opcional (`BotonPrincipal` con texto "Reintentar").
+  - Mapeo de `TipoError` a recursos de cadenas (`obtenerMensajeErrorRes` y `obtenerTituloErrorRes`), garantizando mensajes distintos orientados a la acción para `RED`, `AUTENTICACION`, `VALIDACION`, `LIMITE_IA`, `SERVIDOR` y `DESCONOCIDO`.
+- `ContenedorEstado.kt`:
+  - `ContenedorEstado`: Patrón de pantalla con datos que recibe `cargando`, `error` (`TipoError?`), `vacio`, `alReintentar` y `contenido`. Utiliza `resolverEstadoVisual` para garantizar orden de precedencia estricto (cargando > error > vacío > contenido) asegurando que ningún estado se pinte encima de otro. Permite personalización total mediante slots de vista.
+- `strings.xml`: Cadenas agregadas para reintentar, títulos de error y mensajes explicativos por `TipoError` centrados en la acción.
+- 8 pruebas unitarias nuevas en `EstadosTest.kt` (25 pruebas totales en el proyecto pasando limpiamente), compilación (`./gradlew assembleDebug`), instalación y verificación en emulador.
 
 **`S1-T10` — Componentes reutilizables base (botones, campos de texto, tarjetas, chips).** 2026-09-20.
 Rama `feat/S1-T10-componentes-base`, pull request **sin abrir todavía**.
@@ -123,8 +137,8 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S1-T11` — Componentes de estado: carga, vacío, error y mensajes al usuario
-(prioridad 550, depende de S1-T09)
+`S1-T12` — Navegación con Navigation Compose y definición del grafo de rutas
+(prioridad 500, depende de S1-T06)
 
 
 ## Decisiones recientes
