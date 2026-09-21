@@ -21,6 +21,7 @@
 | 2026-09-20 | S1-T10 | BCJL | feat/S1-T10-componentes-base |  | Los 14 componentes base reutilizables implementados con @Preview segun DISENO.md (Botones, Campos, Tarjetas, Chips, Estrellas, Barras). Cero colores literales, modifier al final, contrastes WCAG verificados y pruebas unitarias pasando |
 | 2026-09-20 | S1-T11 | LMM | feat/S1-T11-componentes-estado |  | Componentes de estado (Cargando, EstadoVacio, EstadoError) y patron ContenedorEstado con orden de precedencia estricto. Mensajes de accion por TipoError, cadenas en strings.xml y previews para todos los estados. 8 pruebas unitarias pasando |
 | 2026-09-20 | S1-T12 | RRC | feat/S1-T12-navegacion-compose |  | Grafo completo con 3 subgrafos y 19 pantallas en Rutas.kt sin cadenas sueltas. Barras inferiores de 4 destinos para Cliente y Trabajador, boton flotante en P-05 hacia P-08, guardas reactivas por rol/sesion y 8 pantallas superiores sin barra. 9 pruebas unitarias pasando y verificado en emulador |
+| 2026-09-20 | S1-T13 | GRI | feat/S1-T13-repositorios-falsos |  | 10 interfaces de repositorio en dominio/repositorio, modelos de soporte, FuenteDatosFalsa en memoria con 8 trabajadores, 5 solicitudes, 3 chats, catalogos de datos semilla, 10 falsas con retraso de 300 ms y error forzado, enlazadas en ModuloRepositorios. 10 pruebas unitarias pasando y verificado en emulador |
 
 ---
 

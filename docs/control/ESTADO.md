@@ -14,7 +14,7 @@
 | Sprint | 1 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 12 |
+| Terminadas | 13 |
 | En curso | 0 |
 | Bloqueadas | 0 |
 
@@ -31,6 +31,23 @@ _Ninguna._
 | Desde | — |
 
 ## Última tarea terminada
+
+**`S1-T13` — Interfaces de repositorio y fuente de datos falsa (fake) para desbloquear la UI.** 2026-09-20.
+Rama `feat/S1-T13-repositorios-falsos`, pull request **sin abrir todavía**.
+
+Implementación completa de la capa de datos en memoria y contratos de repositorio según `ARQUITECTURA.md` y `CONTRATOS-API.md`:
+- `dominio/repositorio/`:
+  - 10 interfaces de dominio puras (`RepositorioAuth`, `RepositorioUsuario`, `RepositorioTrabajador`, `RepositorioServicios`, `RepositorioSolicitudes`, `RepositorioPostulaciones`, `RepositorioChat`, `RepositorioResenas`, `RepositorioCatalogos`, `RepositorioIa`) con métodos `suspend` devolviendo `Resultado<T>` y `Flow` reactivo para sesiones y mensajes. Cero dependencias de Android o Supabase.
+- `dominio/modelo/ModelosRepositorio.kt`:
+  - Modelos de soporte de dominio (`Sesion`, `PerfilPublicoTrabajador`, `CalificacionTrabajador`, `ServicioPublico`, `ResenaPublica`, `FiltrosBusquedaTrabajadores`, `ResumenTrabajadorBusqueda`, `DetalleSolicitud`, `ResultadoIa`).
+- `datos/falso/`:
+  - `FuenteDatosFalsa.kt`: Singleton en memoria con semillero coherente de `04_datos_semilla.sql` (16 categorías, 32 estados, 26 municipios, 8 trabajadores completos con servicios y fotos, 2 clientes, 5 solicitudes en estados abierta/asignada/cerrada/cancelada, 3 chats con mensajes y reseñas válidas respetando las restricciones relacionales del esquema).
+  - 10 implementaciones falsas correspondientes (`Repositorio*Falso`) aplicando simulación de latencia de red (300 ms) y propiedad `errorForzado: TipoError?` para pruebas de `EstadoError`.
+- `di/ModuloRepositorios.kt`:
+  - Módulo de Hilt vinculando las 10 interfaces de dominio a sus implementaciones falsas con `@Binds` en `SingletonComponent`. Único archivo a modificar cuando entren las implementaciones reales.
+- Pruebas unitarias:
+  - 10 pruebas unitarias nuevas en `RepositoriosFalsosTest.kt` cubriendo las 10 implementaciones, validaciones de negocio, operaciones atómicas (aceptar postulación) y control de errores (44 pruebas totales en el proyecto pasando limpiamente).
+  - Compilación (`./gradlew assembleDebug`), instalación y ejecución limpia en emulador Pixel 8 Pro.
 
 **`S1-T12` — Navegación con Navigation Compose y definición del grafo de rutas.** 2026-09-20.
 Rama `feat/S1-T12-navegacion-compose`, pull request **sin abrir todavía**.
@@ -160,8 +177,8 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S1-T13` — Interfaces de repositorio y fuente de datos falsa (fake) para desbloquear la UI
-(prioridad 450, depende de S1-T07)
+`S1-T14` — Wireframes de las pantallas de autenticación e inicio
+(prioridad 400, depende de S1-T08)
 
 
 ## Decisiones recientes
