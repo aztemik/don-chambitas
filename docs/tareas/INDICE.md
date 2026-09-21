@@ -19,13 +19,13 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 
 | Sprint | Tareas | Pendientes | Bloqueadas | Opcionales | Hechas |
 |---|---|---|---|---|---|
-| 1 | 16 | 9 | 0 | 0 | 7 |
+| 1 | 16 | 8 | 0 | 0 | 8 |
 | 2 | 16 | 16 | 0 | 0 | 0 |
 | 3 | 15 | 15 | 0 | 0 | 0 |
 | 4 | 15 | 13 | 0 | 2 | 0 |
 | 5 | 12 | 12 | 0 | 0 | 0 |
 | 6 | 12 | 12 | 0 | 0 | 0 |
-| **Total** | **86** | **77** | **0** | **2** | **7** |
+| **Total** | **86** | **76** | **0** | **2** | **8** |
 
 > **No queda ninguna tarea bloqueada.** PEND-01 se resolvió el 2026-09-14 a
 > favor de Supabase (`DEC-16`). PEND-02 sigue abierto y no bloquea a nadie.
@@ -45,7 +45,7 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 | `S1-T05` | 850 | Configuración del repositorio en GitHub: ramas, plantilla de PR y .gitignore | GRI | hecha | — |
 | `S1-T06` | 800 | Arquitectura de capas y carpetas (data / domain / ui) documentada en .md | BCJL | hecha | S1-T04 |
 | `S1-T07` | 750 | Diccionario de datos y modelado de entidades en Kotlin (data classes) | LMM | hecha | S1-T03, S1-T04 |
-| `S1-T08` | 700 | Identidad visual: paleta de colores, tipografía e iconografia | RRC | pendiente | — |
+| `S1-T08` | 700 | Identidad visual: paleta de colores, tipografía e iconografia | RRC | hecha | — |
 | `S1-T09` | 650 | Sistema de diseño en Jetpack Compose (Theme, Color, Typography, Shape) | GRI | pendiente | S1-T04, S1-T08 |
 | `S1-T10` | 600 | Componentes reutilizables base (botones, campos de texto, tarjetas, chips) | BCJL | pendiente | S1-T09 |
 | `S1-T11` | 550 | Componentes de estado: carga, vacío, error y mensajes al usuario | LMM | pendiente | S1-T09 |

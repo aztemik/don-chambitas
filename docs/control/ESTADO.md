@@ -14,7 +14,7 @@
 | Sprint | 1 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 7 |
+| Terminadas | 8 |
 | En curso | 0 |
 | Bloqueadas | 0 |
 
@@ -31,6 +31,11 @@ _Ninguna._
 | Desde | — |
 
 ## Última tarea terminada
+
+**`S1-T08` — Identidad visual: paleta de colores, tipografía e iconografia.** 2026-09-20.
+Rama `feat/S1-T08-identidad-visual`, pull request **sin abrir todavía**.
+
+Cierre y documentación completa de la identidad visual de la aplicación. Tabla exhaustiva de relaciones de contraste WCAG 2.1 (Carbon sobre Mostaza 7.09:1 pasa AAA, Blanco sobre Mostaza 2.26:1 falla y queda prohibido). Diseño del logotipo vectorial legible a 48 dp en `docs/tecnico/recursos/logo.svg`. Lámina visual de la paleta Taller y reglas de aplicación en `docs/tecnico/recursos/muestra-paleta.png`. Asignación formal de los 16 iconos de oficios con Material Icons Outlined en `docs/tecnico/DISENO.md` y reemplazo total de los nombres provisionales Tabler en `basedatos/04_datos_semilla.sql`. Icono adaptativo vectorial (background y foreground con casco de seguridad en Mostaza) e iconos rasterizados en todas las densidades de mipmap (mdpi, hdpi, xhdpi, xxhdpi, xxxhdpi) para versión estándar y redonda. Probado e inspeccionado exitosamente en emulador Pixel 8 Pro (lanzador, cajón de apps y ajustes del sistema). Compilación (`./gradlew assembleDebug`) y pruebas unitarias (`./gradlew testDebugUnitTest`) exitosas.
 
 **`S1-T07` — Diccionario de datos y modelado de entidades en Kotlin (data classes).** 2026-09-20.
 Rama `feat/S1-T07-modelado-entidades`, pull request **sin abrir todavía**.
@@ -93,8 +98,8 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S1-T08` — Identidad visual: paleta de colores, tipografía e iconografia
-(prioridad 700, sin dependencias)
+`S1-T09` — Sistema de diseño en Jetpack Compose (Theme, Color, Typography, Shape)
+(prioridad 650, depende de S1-T04 y S1-T08)
 
 
 ## Decisiones recientes

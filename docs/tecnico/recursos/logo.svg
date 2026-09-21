@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 48" width="240" height="48">
+  <defs>
+    <!-- Gradiente suave para volumen del casco sin perder solidez -->
+    <linearGradient id="cascoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFBF36" />
+      <stop offset="100%" stop-color="#E0A11B" />
+    </linearGradient>
+    <linearGradient id="crestaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFE082" />
+      <stop offset="100%" stop-color="#B37D08" />
+    </linearGradient>
+  </defs>
+
+  <!-- Símbolo: Casco de Seguridad Don Chambitas (Mostaza, Terracota y Carbon) -->
+  <g id="simbolo-casco" transform="translate(4, 2)">
+    <!-- Cúpula del casco estilizada -->
+    <path d="M 6 30 C 6 13, 14 5, 23 5 C 32 5, 40 13, 40 30 Z" fill="url(#cascoGrad)" />
+    
+    <!-- Cresta o nervadura central de refuerzo -->
+    <path d="M 21 5 C 21 5, 21.8 18, 20 30 L 26 30 C 24.2 18, 25 5, 25 5 Z" fill="url(#crestaGrad)" />
+    
+    <!-- Sombra / contorno base de la visera -->
+    <path d="M 2 29.5 C 2 28, 5 27, 9 27 L 37 27 C 41 27, 44 28, 44 29.5 C 44 32, 41 33.5, 36 33.5 L 10 33.5 C 5 33.5, 2 32, 2 29.5 Z" fill="#B37D08" />
+    <!-- Visera frontal y ala perimetral -->
+    <path d="M 3 29 C 3 28, 6 27.5, 9.5 27.5 L 36.5 27.5 C 40 27.5, 43 28, 43 29 C 43 30.5, 40 32, 36 32 L 10 32 C 6 32, 3 30.5, 3 29 Z" fill="#E0A11B" />
+    
+    <!-- Acento frontal de seguridad en Terracota -->
+    <rect x="20.5" y="20" width="5" height="5" rx="1.5" fill="#C1440E" />
+  </g>
+
+  <!-- Tipografía de la marca: Carbon (#2B1F14) -->
+  <!-- Legible y balanceada a 48 dp de alto -->
+  <text x="56" y="27" font-family="system-ui, -apple-system, 'Roboto', 'Segoe UI', sans-serif" font-size="20" font-weight="800" fill="#2B1F14" letter-spacing="-0.4">Don Chambitas</text>
+  <text x="56.5" y="39" font-family="system-ui, -apple-system, 'Roboto', 'Segoe UI', sans-serif" font-size="8.5" font-weight="700" fill="#7A6A58" letter-spacing="1.2">OFICIOS Y SERVICIOS</text>
+</svg>
