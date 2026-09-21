@@ -18,6 +18,10 @@
     <string name="navegacion_buscar">Buscar</string>
     <string name="navegacion_solicitudes">Solicitudes</string>
     <string name="navegacion_perfil">Perfil</string>
+    <string name="navegacion_servicios">Servicios</string>
+    <string name="navegacion_chats">Chats</string>
+    <string name="navegacion_cuenta">Cuenta</string>
+    <string name="boton_publicar_solicitud">Publicar solicitud</string>
 
     <!-- Estados de solicitud -->
     <string name="estado_abierta">Abierta</string>

@@ -19,13 +19,13 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 
 | Sprint | Tareas | Pendientes | Bloqueadas | Opcionales | Hechas |
 |---|---|---|---|---|---|
-| 1 | 16 | 5 | 0 | 0 | 11 |
+| 1 | 16 | 4 | 0 | 0 | 12 |
 | 2 | 16 | 16 | 0 | 0 | 0 |
 | 3 | 15 | 15 | 0 | 0 | 0 |
 | 4 | 15 | 13 | 0 | 2 | 0 |
 | 5 | 12 | 12 | 0 | 0 | 0 |
 | 6 | 12 | 12 | 0 | 0 | 0 |
-| **Total** | **86** | **73** | **0** | **2** | **11** |
+| **Total** | **86** | **72** | **0** | **2** | **12** |
 
 > **No queda ninguna tarea bloqueada.** PEND-01 se resolvió el 2026-09-14 a
 > favor de Supabase (`DEC-16`). PEND-02 sigue abierto y no bloquea a nadie.
@@ -49,7 +49,7 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 | `S1-T09` | 650 | Sistema de diseño en Jetpack Compose (Theme, Color, Typography, Shape) | GRI | hecha | S1-T04, S1-T08 |
 | `S1-T10` | 600 | Componentes reutilizables base (botones, campos de texto, tarjetas, chips) | BCJL | hecha | S1-T09 |
 | `S1-T11` | 550 | Componentes de estado: carga, vacío, error y mensajes al usuario | LMM | hecha | S1-T09 |
-| `S1-T12` | 500 | Navegación con Navigation Compose y definición del grafo de rutas | RRC | pendiente | S1-T06 |
+| `S1-T12` | 500 | Navegación con Navigation Compose y definición del grafo de rutas | RRC | hecha | S1-T06 |
 | `S1-T13` | 450 | Interfaces de repositorio y fuente de datos falsa (fake) para desbloquear la UI | GRI | pendiente | S1-T07 |
 | `S1-T14` | 400 | Wireframes de las pantallas de autenticación e inicio | BCJL | pendiente | S1-T08 |
 | `S1-T15` | 300 | Pantalla de bienvenida (splash) | LMM | pendiente | S1-T10, S1-T12 |

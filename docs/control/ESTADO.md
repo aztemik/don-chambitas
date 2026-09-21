@@ -14,7 +14,7 @@
 | Sprint | 1 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 11 |
+| Terminadas | 12 |
 | En curso | 0 |
 | Bloqueadas | 0 |
 
@@ -31,6 +31,29 @@ _Ninguna._
 | Desde | — |
 
 ## Última tarea terminada
+
+**`S1-T12` — Navegación con Navigation Compose y definición del grafo de rutas.** 2026-09-20.
+Rama `feat/S1-T12-navegacion-compose`, pull request **sin abrir todavía**.
+
+Implementación completa de la arquitectura de navegación en Jetpack Compose según `ARQUITECTURA.md`, `PANTALLAS.md` y `DISENO.md`:
+- `Rutas.kt`:
+  - Las 19 rutas del sistema modeladas con la clase sellada `Ruta` (`P-01` a `P-19`), con identificadores únicos, títulos y argumentos fuertemente tipados (`NavType.StringType`, nulabilidad y valores por defecto).
+  - Subgrafos definidos en `Subgrafo`: `Autenticacion`, `Cliente`, `Trabajador`.
+  - Cero cadenas de ruta sueltas fuera de `Rutas.kt` (verificado con `grep` y pruebas unitarias).
+  - Las 8 pantallas que se abren encima y no muestran barra inferior registradas en `PANTALLAS_ENCIMA`.
+  - Sistema de guardas de navegación reactivo (`resolverGuarda` y `MarcadorSesionTemporal`) con control temporal de rol (Sin sesión, Cliente, Trabajador):
+    - Sin sesión: cualquier ruta privada redirige a `P-02` (Iniciar sesión).
+    - Con sesión Cliente: las rutas de trabajador redirigen a `P-05` (Inicio cliente).
+    - Con sesión Trabajador: las rutas de cliente redirigen a `P-10` (Inicio trabajador).
+- `BarraInferiorCliente.kt`: Barra inferior con exactamente 4 destinos para Cliente (`Inicio` P-05, `Solicitudes` P-09, `Chats` P-15, `Cuenta` P-18) con indicador Mostaza e iconos Carbon/Cafe.
+- `BarraInferiorTrabajador.kt`: Barra inferior con exactamente 4 destinos para Trabajador (`Inicio` P-10, `Servicios` P-12, `Chats` P-15, `Cuenta` P-18).
+- `GrafoNavegacion.kt`:
+  - Grafo completo con tres subgrafos y pantallas compartidas.
+  - Botón flotante (+) en `P-05` (Inicio cliente) que navega a `P-08` (Publicar solicitud).
+  - Marcador interactivo para las 19 pantallas con información de ruta, argumentos recibidos, conmutador de sesión en tiempo real, pruebas de guardas y mapa completo de navegación.
+  - Botón de regreso del sistema integrado con `Scaffold` y `BarraSuperior`.
+- `MainActivity.kt`: Envoltorio limpio llamando a `GrafoNavegacion()` dentro de `DonChambitasTema`.
+- 9 pruebas unitarias nuevas en `NavegacionTest.kt` (34 pruebas totales en el proyecto pasando limpiamente), compilación (`./gradlew assembleDebug`), instalación y verificación interactiva en emulador (`emulator-5554`).
 
 **`S1-T11` — Componentes de estado: carga, vacío, error y mensajes al usuario.** 2026-09-20.
 Rama `feat/S1-T11-componentes-estado`, pull request **sin abrir todavía**.
@@ -137,8 +160,8 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S1-T12` — Navegación con Navigation Compose y definición del grafo de rutas
-(prioridad 500, depende de S1-T06)
+`S1-T13` — Interfaces de repositorio y fuente de datos falsa (fake) para desbloquear la UI
+(prioridad 450, depende de S1-T07)
 
 
 ## Decisiones recientes
