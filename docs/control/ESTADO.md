@@ -3,7 +3,7 @@
 > Archivo **vivo**. Quien termina una tarea lo actualiza. Es la primera cosa
 > que lee el agente y la única fuente confiable sobre qué está pasando hoy.
 
-**Última actualización:** 2026-09-20
+**Última actualización:** 2026-09-21
 
 ---
 
@@ -11,24 +11,29 @@
 
 | Campo | Valor |
 |---|---|
-| Sprint | 1 |
+| Sprint | 2 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 16 |
-| En curso | 0 |
+| Terminadas | 0 |
+| En curso | 1 |
 | Bloqueadas | 0 |
+
+> Sprint 1 cerrado el 2026-09-20 con sus 16 tareas en `hecha`.
 
 ## Tarea en curso
 
-_Ninguna._
-
 | Campo | Valor |
 |---|---|
-| ID | — |
-| Título | — |
-| Quién la tomó | — |
-| Rama | — |
-| Desde | — |
+| ID | `S2-T01` |
+| Título | Diseño de las pantallas de registro, inicio de sesión y recuperación |
+| Quién la tomó | BCJL |
+| Rama | `docs/S2-T01-diseno-pantallas-autenticacion` |
+| Desde | 2026-09-21 |
+
+> **Esta tarea se trabaja sin ticket.** `docs/tareas/S2-T01.md` no existe: los
+> tickets del Sprint 2 no se han redactado. El líder autorizó avanzar sin él
+> el 2026-09-21. El alcance acordado queda escrito al inicio de
+> `docs/producto/DISENO-AUTENTICACION.md` y hace las veces de ticket.
 
 ## Última tarea terminada
 
