@@ -1,3 +1,27 @@
 <resources>
     <string name="app_name">don-chambitas</string>
+
+    <!-- Accesibilidad y componentes base -->
+    <string name="cargando">Cargando…</string>
+    <string name="mostrar_contrasena">Mostrar contraseña</string>
+    <string name="ocultar_contrasena">Ocultar contraseña</string>
+    <string name="regresar">Regresar</string>
+    <string name="foto_perfil">Foto de perfil</string>
+    <string name="foto_servicio">Foto del servicio</string>
+    <string name="sin_calificaciones">Sin calificaciones</string>
+    <string name="formato_calificacion">%1$.1f (%2$d)</string>
+    <string name="formato_calificacion_simple">%1$.1f</string>
+    <string name="formato_estrellas_descripcion">Calificación %1$.1f de 5 estrellas</string>
+
+    <!-- Destinos de barra inferior -->
+    <string name="navegacion_inicio">Inicio</string>
+    <string name="navegacion_buscar">Buscar</string>
+    <string name="navegacion_solicitudes">Solicitudes</string>
+    <string name="navegacion_perfil">Perfil</string>
+
+    <!-- Estados de solicitud -->
+    <string name="estado_abierta">Abierta</string>
+    <string name="estado_asignada">Asignada</string>
+    <string name="estado_cerrada">Cerrada</string>
+    <string name="estado_cancelada">Cancelada</string>
 </resources>

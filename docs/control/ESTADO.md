@@ -14,7 +14,7 @@
 | Sprint | 1 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 9 |
+| Terminadas | 10 |
 | En curso | 0 |
 | Bloqueadas | 0 |
 
@@ -31,6 +31,19 @@ _Ninguna._
 | Desde | — |
 
 ## Última tarea terminada
+
+**`S1-T10` — Componentes reutilizables base (botones, campos de texto, tarjetas, chips).** 2026-09-20.
+Rama `feat/S1-T10-componentes-base`, pull request **sin abrir todavía**.
+
+Construcción completa de los 14 componentes reutilizables base de la tabla de `DISENO.md` dentro de `mx.donchambitas.app.ui.componentes`:
+- `Botones.kt`: `BotonPrincipal` (Mostaza con texto Carbon 7.09:1 WCAG AAA), `BotonSecundario` (contorno Mostaza Oscuro), `BotonDestacado` (Terracota con texto blanco 5.12:1 WCAG AA) y `BotonTexto` (sin fondo, texto Mostaza Oscuro). Soportan estados `habilitado` y `cargando` con indicador de progreso y bloqueo táctil.
+- `Campos.kt`: `CampoTexto` (fondo Arena, contorno Borde/Mostaza Oscuro y texto de error en color Error) y `CampoContrasena` (con alternador de visibilidad e iconos de ojo).
+- `Estrellas.kt`: `Estrellas` en color Terracota permitiendo media estrella en modo lectura con iconos vectoriales y descripción de accesibilidad.
+- `Chips.kt`: `ChipCategoria` (Mostaza activo con texto Carbon, Arena inactivo con borde) y `EtiquetaEstado` con los cuatro colores de estado (`abierta` en Exito, `asignada` en Advertencia con texto Carbon, `cerrada` en Cafe, `cancelada` en Error con texto blanco).
+- `Barras.kt`: `BarraSuperior` (fondo Mostaza, texto Carbon, flecha de regreso opcional) y `BarraInferior` (4 destinos: Inicio, Buscar, Solicitudes, Perfil con indicador en Mostaza e iconos Carbon/Cafe).
+- `Tarjetas.kt`: `TarjetaTrabajador` (foto, nombre, oficio, estrellas, municipio), `TarjetaServicio` (foto, titulo, categoria, precio) y `TarjetaSolicitud` (titulo, categoria, presupuesto, estado, fecha).
+- Cada componente acepta `modifier: Modifier = Modifier` como último parámetro con valor por defecto, no importa capas de repositorio ni datos, no contiene colores literales y cuenta con su `@Preview` funcional.
+- 17 pruebas unitarias pasando (`./gradlew testDebugUnitTest`), compilación (`./gradlew assembleDebug`) e instalación/ejecución limpia en emulador Pixel 8 Pro.
 
 **`S1-T09` — Sistema de diseño en Jetpack Compose (Theme, Color, Typography, Shape).** 2026-09-20.
 Rama `feat/S1-T09-sistema-diseno`, pull request **sin abrir todavía**.
@@ -110,8 +123,8 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S1-T10` — Componentes reutilizables base (botones, campos de texto, tarjetas, chips)
-(prioridad 600, depende de S1-T09)
+`S1-T11` — Componentes de estado: carga, vacío, error y mensajes al usuario
+(prioridad 550, depende de S1-T09)
 
 
 ## Decisiones recientes

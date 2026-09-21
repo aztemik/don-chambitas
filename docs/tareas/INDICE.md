@@ -19,13 +19,13 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 
 | Sprint | Tareas | Pendientes | Bloqueadas | Opcionales | Hechas |
 |---|---|---|---|---|---|
-| 1 | 16 | 7 | 0 | 0 | 9 |
+| 1 | 16 | 6 | 0 | 0 | 10 |
 | 2 | 16 | 16 | 0 | 0 | 0 |
 | 3 | 15 | 15 | 0 | 0 | 0 |
 | 4 | 15 | 13 | 0 | 2 | 0 |
 | 5 | 12 | 12 | 0 | 0 | 0 |
 | 6 | 12 | 12 | 0 | 0 | 0 |
-| **Total** | **86** | **75** | **0** | **2** | **9** |
+| **Total** | **86** | **74** | **0** | **2** | **10** |
 
 > **No queda ninguna tarea bloqueada.** PEND-01 se resolvió el 2026-09-14 a
 > favor de Supabase (`DEC-16`). PEND-02 sigue abierto y no bloquea a nadie.
@@ -47,7 +47,7 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 | `S1-T07` | 750 | Diccionario de datos y modelado de entidades en Kotlin (data classes) | LMM | hecha | S1-T03, S1-T04 |
 | `S1-T08` | 700 | Identidad visual: paleta de colores, tipografía e iconografia | RRC | hecha | — |
 | `S1-T09` | 650 | Sistema de diseño en Jetpack Compose (Theme, Color, Typography, Shape) | GRI | hecha | S1-T04, S1-T08 |
-| `S1-T10` | 600 | Componentes reutilizables base (botones, campos de texto, tarjetas, chips) | BCJL | pendiente | S1-T09 |
+| `S1-T10` | 600 | Componentes reutilizables base (botones, campos de texto, tarjetas, chips) | BCJL | hecha | S1-T09 |
 | `S1-T11` | 550 | Componentes de estado: carga, vacío, error y mensajes al usuario | LMM | pendiente | S1-T09 |
 | `S1-T12` | 500 | Navegación con Navigation Compose y definición del grafo de rutas | RRC | pendiente | S1-T06 |
 | `S1-T13` | 450 | Interfaces de repositorio y fuente de datos falsa (fake) para desbloquear la UI | GRI | pendiente | S1-T07 |
