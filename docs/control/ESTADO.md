@@ -14,7 +14,7 @@
 | Sprint | 2 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 1 |
+| Terminadas | 2 |
 | En curso | 0 |
 | Bloqueadas | 0 |
 
@@ -33,6 +33,24 @@ _Ninguna._
 | Desde | — |
 
 ## Última tarea terminada
+
+**`S2-T02` — Pantalla de registro con selección de rol (cliente / trabajador).** 2026-09-21.
+Rama `docs/S2-T01-diseno-pantallas-autenticacion`, pull request **sin abrir todavía**.
+
+**También se trabajó sin ticket**, con la misma autorización del líder del 2026-09-21. El alcance se tomó de las secciones 1, 3 y 7 de `docs/producto/DISENO-AUTENTICACION.md`.
+
+Implementación de P-03 conforme a esa especificación:
+- `ui/pantallas/EstadoRegistro.kt`: estado inmutable con los seis valores de captura, el rol y un identificador de recurso por cada error de campo. Los mensajes viajan como `@StringRes Int?` y no como texto, para que ninguna cadena de interfaz viva fuera de `strings.xml`. `LimitesRegistro` fija los topes de captura con los de `public.usuarios` (80, 120, 160 y 10 dígitos).
+- `ui/pantallas/RegistroPantalla.kt`: `RegistroPantalla` con el estado local —provisional hasta que `S2-T05` traiga el ViewModel— y `RegistroContenido`, el contenido visual puro. Selector de rol de dos `ChipCategoria` sin preselección (`DEC-22`), los cinco campos con su teclado y su acción de avance, ayuda de contraseña siempre visible, error en línea que no tapa el formulario, y `rememberSaveable` que conserva lo capturado al girar el dispositivo. Cuatro `@Preview`: vacío, con errores, cargando y correo duplicado.
+- `ui/navegacion/GrafoNavegacion.kt`: sustitución del marcador de P-03 por la pantalla real. El alta marca la sesión con el mecanismo temporal de `S1-T12` y navega a P-05 o P-10 limpiando la pila del subgrafo de autenticación.
+- `strings.xml`: 24 cadenas nuevas con las claves que fijó `S2-T01`.
+- Verificación del proyecto:
+  - Compilación exitosa (`./gradlew assembleDebug`).
+  - 57 pruebas unitarias pasando (`./gradlew testDebugUnitTest`).
+  - 16 pruebas instrumentadas pasando, 0 fallas (`./gradlew connectedDebugAndroidTest`): las 5 de `S1-T16` y 11 nuevas en `RegistroPantallaTest`.
+  - Recorrido a mano en emulador `emulator-5554`: confirmar sin rol reclama el rol, elegirlo limpia el mensaje, el teléfono descarta lo que no sea dígito y corta en 10 (`477-12ab34x5678901` quedó en `4771234567`), y el alta como trabajador entra a P-10 con el botón atrás cerrando la aplicación. Sin excepciones en logcat.
+- **Lo que esta tarea NO trae, por estar en la cola aparte:** las reglas de validación de formato y longitud con sus mensajes son `S2-T04`, y el ViewModel contra `RepositorioAuth` es `S2-T05`. Lo único que la pantalla decide hoy es exigir el rol, que es el título de la tarea.
+- **Se actualizó Espresso de 3.6.1 a 3.7.0 y `androidx.test.ext:junit` de 1.2.1 a 1.3.0.** No es parte de la tarea: las 5 pruebas instrumentadas de `S1-T16` ya venían fallando en la imagen actual del emulador porque Espresso 3.6.1 llama por reflexión a `InputManager.getInstance`, que ya no existe. Con la actualización las 16 pasan.
 
 **`S2-T01` — Diseño de las pantallas de registro, inicio de sesión y recuperación.** 2026-09-21.
 Rama `docs/S2-T01-diseno-pantallas-autenticacion`, pull request **sin abrir todavía**.
@@ -259,10 +277,10 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S2-T02` — Pantalla de registro con selección de rol (cliente / trabajador)
-(prioridad 970, sprint 2, depende de: S1-T10, S1-T12, las dos hechas)
+`S2-T03` — Pantalla de inicio de sesión
+(prioridad 950, sprint 2, depende de: S1-T10, S1-T12, las dos hechas)
 
-Su diseño ya está escrito: secciones 1, 3 y 7 de
+Su diseño ya está escrito: secciones 1, 2 y 7 de
 `docs/producto/DISENO-AUTENTICACION.md`. **Tampoco tiene ticket.**
 
 ## Dos huecos nuevos que esperan al líder

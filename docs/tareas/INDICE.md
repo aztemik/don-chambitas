@@ -20,12 +20,12 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 | Sprint | Tareas | Pendientes | Bloqueadas | Opcionales | Hechas |
 |---|---|---|---|---|---|
 | 1 | 16 | 0 | 0 | 0 | 16 |
-| 2 | 16 | 15 | 0 | 0 | 1 |
+| 2 | 16 | 14 | 0 | 0 | 2 |
 | 3 | 15 | 15 | 0 | 0 | 0 |
 | 4 | 15 | 13 | 0 | 2 | 0 |
 | 5 | 12 | 12 | 0 | 0 | 0 |
 | 6 | 12 | 12 | 0 | 0 | 0 |
-| **Total** | **86** | **67** | **0** | **2** | **17** |
+| **Total** | **86** | **66** | **0** | **2** | **18** |
 
 > **No queda ninguna tarea bloqueada.** PEND-01 se resolvió el 2026-09-14 a
 > favor de Supabase (`DEC-16`). PEND-02 sigue abierto y no bloquea a nadie.
@@ -62,7 +62,7 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 | ID | Prio | Tarea | Resp. | Estado | Depende de |
 |---|---|---|---|---|---|
 | `S2-T01` | 1000 | Diseño de las pantallas de registro, inicio de sesión y recuperación | BCJL | hecha | — |
-| `S2-T02` | 970 | Pantalla de registro con selección de rol (cliente / trabajador) | LMM | pendiente | S1-T10, S1-T12 |
+| `S2-T02` | 970 | Pantalla de registro con selección de rol (cliente / trabajador) | LMM | hecha | S1-T10, S1-T12 |
 | `S2-T03` | 950 | Pantalla de inicio de sesión | RRC | pendiente | S1-T10, S1-T12 |
 | `S2-T04` | 900 | Validaciones de formularios y mensajes de error | GRI | pendiente | S2-T02, S2-T03 |
 | `S2-T05` | 850 | ViewModels y estados de UI del flujo de autenticación | BCJL | pendiente | S1-T13 |
