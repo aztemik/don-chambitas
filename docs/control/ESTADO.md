@@ -3,7 +3,7 @@
 > Archivo **vivo**. Quien termina una tarea lo actualiza. Es la primera cosa
 > que lee el agente y la única fuente confiable sobre qué está pasando hoy.
 
-**Última actualización:** 2026-09-16
+**Última actualización:** 2026-09-20
 
 ---
 
@@ -14,7 +14,7 @@
 | Sprint | 1 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 3 |
+| Terminadas | 4 |
 | En curso | 0 |
 | Bloqueadas | 0 |
 
@@ -32,16 +32,13 @@ _Ninguna._
 
 ## Última tarea terminada
 
-**`S1-T03` — Modelo entidad-relación (ER) completo del sistema.** 2026-09-16.
-Rama `docs/S1-T03-validacion-modelo-er`, pull request **sin abrir todavía**.
+**`S1-T04` — Configuración del proyecto Android (Gradle, Kotlin, Compose, Hilt).** 2026-09-20.
+Rama `feat/S1-T04-configuracion-proyecto-android`, pull request **sin abrir todavía**.
 
-**Verificado contra el proyecto real, no solo escrito.** `01` a `04` sin error,
-`90_verificacion.sql` **42 de 42**, `91_prueba_funcional.sql` **25 de 25** y el
-paso 2c **10 de 10** con la `anon key` y cuatro sesiones reales contra
-PostgREST. El proyecto compila y la prueba unitaria pasa; no se tocó ni una
-línea de Kotlin.
+Proyecto Android configurado con `applicationId` `mx.donchambitas.app`, `minSdk` 26, `targetSdk` 35, Jetpack Compose Material 3, Hilt 2.60.1 con KSP 2.2.10-2.0.2, Navigation Compose, `supabase-kt` 3.1.1 (módulos `postgrest`, `auth`, `storage`, `realtime` y `functions`), DataStore, Coil, Coroutines, JUnit, MockK y Compose UI Test. Todas las dependencias viven en `gradle/libs.versions.toml`.
 
-Lo que deja:
+Las credenciales de Supabase (`SUPABASE_URL` y `SUPABASE_ANON_KEY`) se leen desde `local.properties` e ingresan vía `BuildConfig`. `DonChambitasApp` anotada con `@HiltAndroidApp` y `MainActivity` con `@AndroidEntryPoint` mostrando pantalla de marcador. Compilación limpia (`./gradlew clean assembleDebug`), pruebas unitarias (`./gradlew testDebugUnitTest`), e instalación y arranque verificado en emulador Pixel 8 Pro.
+
 
 - **El diagrama**, en `docs/tecnico/diagrama-er.png`, con su generador al lado.
 - **El cruce de las 33 historias contra las tablas**, en `MODELO-ER.md`.
@@ -98,8 +95,9 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S1-T04` — Configuración del proyecto Android (Gradle, Kotlin, Compose, Hilt)
-(prioridad 900, sin dependencias)
+`S1-T05` — Configuración del repositorio en GitHub: ramas, plantilla de PR y .gitignore
+(prioridad 850, sin dependencias)
+
 
 ## Decisiones recientes
 

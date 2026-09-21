@@ -27,3 +27,6 @@ secretos.properties
 
 # La unica excepcion: la plantilla sin valores, que si se comparte.
 !.env.ejemplo
+
+/.agents
+skills-lock.json
