@@ -14,7 +14,7 @@
 | Sprint | 1 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 5 |
+| Terminadas | 6 |
 | En curso | 0 |
 | Bloqueadas | 0 |
 
@@ -32,10 +32,10 @@ _Ninguna._
 
 ## Última tarea terminada
 
-**`S1-T05` — Configuración del repositorio en GitHub: ramas, plantilla de PR y .gitignore.** 2026-09-20.
-Rama `chore/S1-T05-configuracion-repositorio-github`, pull request **sin abrir todavía**.
+**`S1-T06` — Arquitectura de capas y carpetas documentada.** 2026-09-20.
+Rama `feat/S1-T06-arquitectura-capas`, pull request **sin abrir todavía**.
 
-Repositorio documentado (`aztemik/don-chambitas` en `https://github.com/aztemik/don-chambitas`), reglas de protección para `main` especificadas en `PROCESO.md` (1 aprobación requerida, revisión de Code Owners y sin excepciones), archivo `CODEOWNERS` asignando al líder (`@aztemik`) como dueño del repositorio, plantilla estándar de pull request en `.github/pull_request_template.md` alineada a `CONVENCIONES.md`, `.gitignore` unificado (eliminado `.gitignore` redundante en `app/`) y comprobado que protege llaves y credenciales (`local.properties`, `*.keystore`, `*.jks`, `secretos.properties`, `.env`). Compilación (`./gradlew assembleDebug`) y pruebas (`./gradlew testDebugUnitTest`) exitosas.
+Estructura completa de paquetes creada bajo `mx.donchambitas.app` siguiendo el árbol de `ARQUITECTURA.md`: `di`, `dominio` (`modelo`, `repositorio`), `datos` (`remoto/supabase`, `remoto/dto`, `local`, `falso`, `repositorio`), `ui` (`tema`, `componentes`, `navegacion`, `pantallas/autenticacion`, `pantallas/cliente`, `pantallas/trabajador`, `pantallas/compartidas`) y `util`. Archivos `.gitkeep` colocados para preservar directorios vacíos. Implementadas `Resultado<T>` y `TipoError` en `mx.donchambitas.app.util`. Creados `ModuloRepositorios` y `ModuloSupabase` vacíos y debidamente anotados con Hilt (`@Module`, `@InstallIn(SingletonComponent::class)`). Ningún archivo de `dominio` importa de `android.*`. Compilación (`./gradlew assembleDebug`), pruebas unitarias (`./gradlew testDebugUnitTest`) e instalación y ejecución en emulador Pixel 8 Pro exitosas.
 
 
 - **El diagrama**, en `docs/tecnico/diagrama-er.png`, con su generador al lado.
@@ -93,8 +93,8 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S1-T06` — Arquitectura de capas y carpetas (data / domain / ui) documentada en .md
-(prioridad 800, depende de S1-T04)
+`S1-T07` — Diccionario de datos y modelado de entidades en Kotlin (data classes)
+(prioridad 750, depende de S1-T03, S1-T04)
 
 
 ## Decisiones recientes

@@ -14,6 +14,7 @@
 | 2026-09-16 | S1-T03 | LMM | docs/S1-T03-validacion-modelo-er | #6 | 90 dio 42/42, 91 25/25 y el paso 2c 10/10 con la anon key contra PostgREST. Diagrama ER y cruce de las 33 historias contra las tablas. Cuatro huecos para el líder, H-05 a H-08; H-08 toca un criterio de aceptación de este mismo ticket |
 | 2026-09-20 | S1-T04 | RRC | feat/S1-T04-configuracion-proyecto-android |  | Proyecto configurado en mx.donchambitas.app con AGP 9.2.1, Kotlin 2.2.10, Hilt 2.60.1 con KSP 2.2.10-2.0.2 y supabase-kt 3.1.1 en libs.versions.toml. Compila, pasa pruebas unitarias y corre en emulador Pixel 8 Pro |
 | 2026-09-20 | S1-T05 | GRI | chore/S1-T05-configuracion-repositorio-github |  | Repositorio documentado (aztemik/don-chambitas), CODEOWNERS asigna al líder (@aztemik), plantilla de PR en .github/pull_request_template.md, gitignore unificado y reglas de protección para main |
+| 2026-09-20 | S1-T06 | BCJL | feat/S1-T06-arquitectura-capas |  | Estructura de paquetes completa bajo mx.donchambitas.app (.gitkeep), Resultado<T> y TipoError en util/, ModuloRepositorios y ModuloSupabase anotados con Hilt en di/. Pruebas unitarias pasando |
 
 ---
 
