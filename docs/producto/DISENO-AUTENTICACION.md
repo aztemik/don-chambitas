@@ -400,3 +400,96 @@ llena en menos de un minuto y un diálogo de "¿seguro que quieres salir?" en
 una pantalla de alta es fricción sin beneficio. Es una decisión, no un olvido.
 
 ---
+
+## 4. P-04 · Recuperar contraseña
+
+**Ruta:** `Ruta.RecuperarContrasena` · **Historia:** HU-04 ·
+**La construye:** `S2-T10`
+
+Es la única de las tres que tiene **dos vistas**: el formulario y la
+confirmación. No son dos pantallas: es la misma, con `enviado` en `true`.
+
+### 4.1 Vista de formulario
+
+| # | Elemento | Componente | Detalle |
+|---|---|---|---|
+| 1 | Barra superior | `BarraSuperior` | Título "Recuperar contraseña", con flecha de regreso a P-02 |
+| 2 | Explicación | Texto `cuerpo` `Cafe` | "Escribe tu correo y te enviamos un enlace para crear una contraseña nueva" |
+| 3 | Correo | `CampoTexto` | Etiqueta "Correo electrónico" |
+| 4 | Error de pantalla | `EstadoError` | Solo si lo hay (1.4) |
+| 5 | Acción principal | `BotonPrincipal` | "Enviar enlace", ancho completo, 48 dp |
+| 6 | Volver | `BotonTexto` | "Volver a iniciar sesión", centrado |
+
+### 4.2 Vista de confirmación
+
+Sustituye los elementos 2 a 5. La barra superior y el `BotonTexto` de volver
+se quedan donde están.
+
+| # | Elemento | Componente | Detalle |
+|---|---|---|---|
+| 1 | Icono | `Icons.Outlined.MarkEmailRead` a 56 dp | Color `Exito` |
+| 2 | Título | Texto `subtitulo` `Carbon` | "Revisa tu correo" |
+| 3 | Mensaje | Texto `cuerpo` `Cafe` | "Si **ese correo** está registrado, te enviamos un enlace para crear una contraseña nueva" |
+| 4 | Aviso de vigencia | Superficie `Arena`, borde `Borde`, radio 16 dp, relleno 16 dp | "El enlace vence en 24 horas" |
+
+**El mensaje dice "si ese correo está registrado", y eso no es una cortesía.**
+`recuperarContrasena` siempre devuelve `Exito`, exista o no la cuenta
+(`CONTRATOS-API.md`, y HU-04 lo pide con todas sus letras). Un mensaje que
+diga "te enviamos el enlace" en indicativo convierte la pantalla en un
+comprobador de qué correos están dados de alta. El texto **no se suaviza** en
+revisión de pull request.
+
+Por la misma razón, la pantalla **no repite el correo escrito** en la
+confirmación: leer "te enviamos un enlace a juan@ejemplo.mx" en una pantalla
+que no verificó nada refuerza justo la lectura equivocada.
+
+> **Las 24 horas hay que confirmarlas.** El número viene de `WIREFRAMES.md`,
+> no de la configuración real del proyecto. `S2-T07` debe comparar la cadena
+> contra lo que tenga Supabase Auth y, si no coincide, corregir la cadena. Es
+> un solo recurso de `strings.xml`, en un solo lugar.
+
+### 4.3 Contrato de estado
+
+Archivos: `EstadoRecuperarContrasena.kt`, `RecuperarContrasenaViewModel.kt`,
+`RecuperarContrasenaPantalla.kt`.
+
+```kotlin
+data class EstadoRecuperarContrasena(
+    val correo: String = "",
+    val errorCorreo: Int? = null,        // @StringRes
+    val errorPantalla: TipoError? = null,
+    val cargando: Boolean = false,
+    val enviado: Boolean = false
+)
+```
+
+No hay `destino`: esta pantalla no navega sola. Se sale por la flecha de
+regreso o por el `BotonTexto`, y las dos llevan a P-02.
+
+### 4.4 Eventos y resultados
+
+| Evento | Qué hace |
+|---|---|
+| `alCambiarCorreo(valor)` | Actualiza `correo` y limpia `errorCorreo` |
+| `alPerderFocoCorreo()` | Valida el correo si ya fue tocado |
+| `alEnviar()` | Valida el correo. Si pasa, `cargando = true` y llama a `RepositorioAuth.recuperarContrasena(correo.trim().lowercase())` |
+| `alReintentar()` | Limpia `errorPantalla` y repite `alEnviar()` |
+
+| Resultado del repositorio | Qué ve el usuario |
+|---|---|
+| `Exito(Unit)` | `enviado = true`. Se pinta la vista de confirmación |
+| `Error(RED, _)` | `EstadoError` en línea con "Reintentar". Sigue en el formulario, con el correo escrito |
+| `Error(SERVIDOR, _)` o `Error(DESCONOCIDO, _)` | Igual, con el mensaje de su tipo |
+
+Un fallo de red **no** pinta la confirmación. La protección contra enumeración
+de usuarios es sobre si la cuenta existe, no sobre si la petición salió: si no
+salió, el usuario tiene que saberlo, o se queda esperando un correo que nunca
+se pidió.
+
+### 4.5 Volver a enviar
+
+Desde la confirmación no hay botón de "enviar de nuevo". Para reintentar se
+vuelve a P-02 y se entra otra vez a P-04. Es alcance que ningún criterio de
+HU-04 pide, y agregarlo aquí sería inventarlo.
+
+---
