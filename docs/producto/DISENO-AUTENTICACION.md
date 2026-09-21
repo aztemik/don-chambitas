@@ -200,3 +200,91 @@ botón principal **solo si no está en estado de carga**.
   `Mostaza` en el botón principal y en la barra superior.
 
 ---
+
+## 2. P-02 · Iniciar sesión
+
+**Ruta:** `Ruta.IniciarSesion` (ya definida en `Rutas.kt`) ·
+**Historias:** HU-02, y es la salida de HU-01 y HU-04 ·
+**La construye:** `S2-T03`
+
+### 2.1 Anatomía, de arriba hacia abajo
+
+| # | Elemento | Componente | Detalle |
+|---|---|---|---|
+| 1 | Barra superior | `BarraSuperior` | Título "Iniciar sesión". **Sin flecha de regreso**: es la raíz del subgrafo, no hay a dónde volver |
+| 2 | Bloque de marca | — | Isotipo del casco a 72 dp y "Don Chambitas" en `titulo` `Carbon`, centrados. 32 dp de aire arriba y 24 dp abajo |
+| 3 | Correo | `CampoTexto` | Etiqueta "Correo electrónico" |
+| 4 | Contraseña | `CampoContrasena` | Etiqueta "Contraseña" |
+| 5 | Olvidé mi contraseña | `BotonTexto` | "¿Olvidaste tu contraseña?", alineado a la derecha, 8 dp bajo el campo |
+| 6 | Error de pantalla | `EstadoError` | Solo si lo hay. En línea, 16 dp arriba y abajo. Ver 1.4 |
+| 7 | Acción principal | `BotonPrincipal` | "Iniciar sesión", ancho completo, 48 dp |
+| 8 | Ir a registro | `BotonTexto` | "¿No tienes cuenta? Regístrate", centrado, 24 dp bajo el botón |
+
+El bloque de marca reutiliza el isotipo de P-01 (`splash_logo_descripcion`),
+a 72 dp en vez de los 120 dp del splash. No es un componente nuevo: es el
+mismo vector.
+
+### 2.2 Contrato de estado
+
+Archivos, con la nomenclatura de `CONVENCIONES.md`:
+`EstadoIniciarSesion.kt`, `IniciarSesionViewModel.kt`, `IniciarSesionPantalla.kt`.
+
+```kotlin
+data class EstadoIniciarSesion(
+    val correo: String = "",
+    val contrasena: String = "",
+    val errorCorreo: Int? = null,        // @StringRes
+    val errorContrasena: Int? = null,    // @StringRes
+    val errorPantalla: TipoError? = null,
+    val cargando: Boolean = false,
+    val destino: Ruta? = null            // evento de navegacion de un solo uso
+)
+```
+
+**Los errores viajan como `@StringRes Int?`, nunca como `String`.**
+`CONVENCIONES.md` prohíbe cadenas de interfaz fuera de `strings.xml`, y un
+ViewModel que arma texto en español ya es una cadena de interfaz fuera de su
+lugar. La pantalla resuelve el recurso con `stringResource`.
+
+`destino` es un evento de un solo uso: la pantalla navega y llama de inmediato
+a `alConsumirDestino()`, que lo devuelve a `null`. Sin eso, una rotación
+vuelve a navegar.
+
+### 2.3 Eventos
+
+| Evento | Qué hace |
+|---|---|
+| `alCambiarCorreo(valor)` | Actualiza `correo` y limpia `errorCorreo` |
+| `alCambiarContrasena(valor)` | Actualiza `contrasena` y limpia `errorContrasena` |
+| `alPerderFocoCorreo()` | Valida el correo si ya fue tocado (1.5) |
+| `alIniciarSesion()` | Valida los dos campos. Si pasan, `cargando = true`, llama a `RepositorioAuth.iniciarSesion(correo.trim().lowercase(), contrasena)` y resuelve según 2.4 |
+| `alReintentar()` | Limpia `errorPantalla` y repite `alIniciarSesion()` |
+| `alConsumirDestino()` | Pone `destino` en `null` |
+
+Navegar a P-03 y a P-04 **no pasa por el ViewModel**: son `BotonTexto` que
+llaman directo al `NavController`, porque no hay estado que decidir.
+
+### 2.4 Qué pasa al pulsar "Iniciar sesión"
+
+| Resultado del repositorio | Qué ve el usuario |
+|---|---|
+| `Exito(Sesion)` con rol `CLIENTE` | Navega a `P-05` limpiando la pila hasta el subgrafo de autenticación, inclusive |
+| `Exito(Sesion)` con rol `TRABAJADOR` | Navega a `P-10`, misma limpieza de pila |
+| `Error(AUTENTICACION, _)` | `EstadoError` en línea con "Correo o contraseña incorrectos". **Nunca se dice cuál de los dos falló** (HU-02). Los campos conservan lo escrito; la contraseña **no** se borra |
+| `Error(RED, _)` | `EstadoError` en línea con el mensaje de `RED` y botón "Reintentar". Los campos conservan lo escrito (HU-02) |
+| `Error(SERVIDOR, _)` o `Error(DESCONOCIDO, _)` | `EstadoError` en línea con el mensaje del tipo y botón "Reintentar" |
+| `Error(VALIDACION, _)` | No debería ocurrir: la interfaz ya validó. Si llega, se pinta como error de pantalla con el mensaje del tipo |
+
+**La pila se limpia con `popUpTo(Subgrafo.Autenticacion.ruta) { inclusive = true }`.**
+Después de entrar, el botón atrás no puede regresar al formulario de inicio de
+sesión: cierra la aplicación o vuelve al inicio del rol, según dónde esté.
+
+### 2.5 Qué NO tiene esta pantalla
+
+- **No hay "recordarme".** La sesión la sostiene `supabase-kt` y la persiste
+  `S2-T08`; una casilla que prometa otra cosa es alcance inventado.
+- **No hay acceso con Google ni con teléfono.** `PRODUCTO.md` no los incluye.
+- **No hay flecha de regreso.** P-01 sale de la pila (`S1-T15`), así que P-02
+  es la raíz cuando no hay sesión.
+
+---
