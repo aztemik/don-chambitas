@@ -288,3 +288,115 @@ sesión: cierra la aplicación o vuelve al inicio del rol, según dónde esté.
   es la raíz cuando no hay sesión.
 
 ---
+
+## 3. P-03 · Registro con selección de rol
+
+**Ruta:** `Ruta.Registro` · **Historia:** HU-01 · **La construye:** `S2-T02`
+
+### 3.1 Anatomía, de arriba hacia abajo
+
+| # | Elemento | Componente | Detalle |
+|---|---|---|---|
+| 1 | Barra superior | `BarraSuperior` | Título "Crear cuenta", **con flecha de regreso** a P-02 |
+| 2 | Pregunta de rol | Texto `subtitulo` `Carbon` | "¿Qué vienes a hacer?" |
+| 3 | Selector de rol | Dos `ChipCategoria` en fila | "Quiero contratar" y "Ofrezco mi trabajo" |
+| 4 | Aviso del rol | Texto `secundario` `Cafe` | "El rol no se puede cambiar después" (`DEC-22`) |
+| 5 | Nombre(s) | `CampoTexto` | Máximo 80 caracteres |
+| 6 | Apellidos | `CampoTexto` | Máximo 120 caracteres |
+| 7 | Correo electrónico | `CampoTexto` | Máximo 160 caracteres |
+| 8 | Contraseña | `CampoContrasena` | Mínimo 8 caracteres |
+| 9 | Ayuda de contraseña | Texto `pie` `Cafe` | "Mínimo 8 caracteres". Visible siempre, no solo al fallar |
+| 10 | Teléfono celular | `CampoTexto` | Exactamente 10 dígitos |
+| 11 | Error de pantalla | `EstadoError` | Solo si lo hay. En línea (1.4) |
+| 12 | Acción principal | `BotonPrincipal` | "Crear cuenta", ancho completo, 48 dp |
+| 13 | Ir a inicio de sesión | `BotonTexto` | "¿Ya tienes cuenta? Inicia sesión", centrado |
+
+Los topes de longitud **no son decorativos**: son los de
+`public.usuarios` (`varchar(80)`, `varchar(120)`, `varchar(160)`). El campo
+impide escribir de más en lugar de dejar que la base rechace el registro.
+
+### 3.2 El selector de rol
+
+Dos `ChipCategoria` de ancho igual, separados 12 dp. El activo va `Mostaza`
+con texto `Carbon`; el inactivo, `Arena` con borde `Borde` y texto `Cafe`.
+
+**Ninguno viene preseleccionado.** Es deliberado: por `DEC-22` el rol es
+permanente y no se cambia en el MVP, así que la aplicación no lo elige por el
+usuario. Un valor por omisión convierte un descuido en una cuenta con el rol
+equivocado que nadie puede arreglar desde la aplicación.
+
+La consecuencia es que "no elegiste rol" es un error de validación como
+cualquier otro, y se pinta como texto `pie` en color `Error` bajo la fila de
+chips, a 4 dp.
+
+### 3.3 Contrato de estado
+
+Archivos: `EstadoRegistro.kt`, `RegistroViewModel.kt`, `RegistroPantalla.kt`.
+
+```kotlin
+data class EstadoRegistro(
+    val rol: RolUsuario? = null,
+    val nombre: String = "",
+    val apellidos: String = "",
+    val correo: String = "",
+    val contrasena: String = "",
+    val telefono: String = "",
+    val errorRol: Int? = null,           // @StringRes
+    val errorNombre: Int? = null,
+    val errorApellidos: Int? = null,
+    val errorCorreo: Int? = null,
+    val errorContrasena: Int? = null,
+    val errorTelefono: Int? = null,
+    val errorPantalla: TipoError? = null,
+    val mensajePantalla: String? = null, // solo para VALIDACION, ver 3.5
+    val cargando: Boolean = false,
+    val destino: Ruta? = null
+)
+```
+
+`mensajePantalla` es la única excepción a la regla de 2.2, y está acotada:
+`CONTRATOS-API.md` dice que en un error de `VALIDACION` lo que se muestra es
+**el mensaje del trigger, que ya viene escrito en español desde la base**.
+Volver a traducirlo en la aplicación sería duplicar ese texto en dos lugares.
+Para cualquier otro tipo de error, `mensajePantalla` va en `null` y manda
+`errorPantalla`.
+
+### 3.4 Eventos
+
+| Evento | Qué hace |
+|---|---|
+| `alElegirRol(rol)` | Fija `rol` y limpia `errorRol` |
+| `alCambiar<Campo>(valor)` | Actualiza el campo y limpia su error |
+| `alPerderFoco<Campo>()` | Valida ese campo si ya fue tocado |
+| `alRegistrar()` | Valida los seis. Si pasan, `cargando = true` y llama a `RepositorioAuth.registrar(...)` con los valores ya normalizados (1.6) |
+| `alReintentar()` | Limpia el error de pantalla y repite `alRegistrar()` |
+| `alConsumirDestino()` | Pone `destino` en `null` |
+
+El teléfono se filtra al escribir: `alCambiarTelefono` descarta todo lo que no
+sea dígito y corta en 10. No es validación, es no dejar teclear basura.
+
+### 3.5 Qué pasa al pulsar "Crear cuenta"
+
+| Resultado del repositorio | Qué ve el usuario |
+|---|---|
+| `Exito(Usuario)` y aparece sesión en `sesionActual()` | Navega a `P-05` o `P-10` según el rol, limpiando la pila del subgrafo de autenticación |
+| `Exito(Usuario)` sin sesión | Vuelve a `P-02` con el aviso "Tu cuenta quedó creada, inicia sesión". Ver el hallazgo H-10 |
+| `Error(VALIDACION, mensaje)` | `EstadoError` en línea con `mensaje` tal cual llega. Es el caso del correo duplicado: "El correo ya está registrado, inicia sesión", y el `BotonTexto` de abajo es el acceso directo a P-02 que pide HU-01 |
+| `Error(RED, _)` | `EstadoError` en línea, botón "Reintentar", **todo lo capturado se conserva**, incluida la contraseña y el rol elegido |
+| `Error(SERVIDOR, _)` o `Error(DESCONOCIDO, _)` | `EstadoError` en línea con el mensaje del tipo y "Reintentar" |
+| `Error(AUTENTICACION, _)` | No aplica al registro. Si llega, se pinta con el mensaje de su tipo |
+
+**La fila de `public.usuarios` no se inserta desde la aplicación.** La crea el
+trigger `tg_auth_usuario_creado` con el metadata del registro
+(`CONTRATOS-API.md`). La pantalla solo manda los seis valores y el rol; si el
+rol no viaja, la cuenta queda como `cliente`, y por eso 3.2 lo vuelve
+obligatorio antes de enviar.
+
+### 3.6 La flecha de regreso descarta
+
+Volver a P-02 con la flecha o con el botón del sistema **descarta el
+formulario sin preguntar**. No hay diálogo de confirmación: el formulario se
+llena en menos de un minuto y un diálogo de "¿seguro que quieres salir?" en
+una pantalla de alta es fricción sin beneficio. Es una decisión, no un olvido.
+
+---
