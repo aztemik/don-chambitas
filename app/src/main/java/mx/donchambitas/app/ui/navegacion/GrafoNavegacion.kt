@@ -49,6 +49,8 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import mx.donchambitas.app.R
 import mx.donchambitas.app.ui.componentes.BarraSuperior
+import mx.donchambitas.app.dominio.modelo.RolUsuario
+import mx.donchambitas.app.ui.pantallas.RegistroPantalla
 import mx.donchambitas.app.ui.pantallas.SplashPantalla
 import mx.donchambitas.app.ui.componentes.BotonDestacado
 import mx.donchambitas.app.ui.componentes.BotonPrincipal
@@ -240,15 +242,25 @@ private fun NavGraphBuilder.subgrafoAutenticacion(navController: NavHostControll
         }
 
         composable(Ruta.Registro.ruta) {
-            MarcadorPantalla(
-                ruta = Ruta.Registro,
-                descripcion = "Nombre, apellidos, correo, contraseña, teléfono y selección de rol.",
-                navController = navController,
-                acciones = listOf(
-                    AccionNavegacion("Volver a Iniciar sesión (P-02)") {
-                        navController.popBackStack()
+            RegistroPantalla(
+                alRegistrarConRol = { rol ->
+                    // Hasta S2-T05 el alta no pasa por RepositorioAuth: se marca
+                    // la sesion con el mismo mecanismo temporal de S1-T12 para
+                    // poder recorrer el flujo completo en el dispositivo.
+                    MarcadorSesionTemporal.estado = when (rol) {
+                        RolUsuario.CLIENTE -> EstadoSesionTemporal.CLIENTE
+                        RolUsuario.TRABAJADOR -> EstadoSesionTemporal.TRABAJADOR
                     }
-                )
+                    val destino = when (rol) {
+                        RolUsuario.CLIENTE -> Ruta.InicioCliente
+                        RolUsuario.TRABAJADOR -> Ruta.InicioTrabajador
+                    }
+                    navController.navigate(destino.ruta) {
+                        popUpTo(Subgrafo.Autenticacion.ruta) { inclusive = true }
+                    }
+                },
+                alRegresar = { navController.popBackStack() },
+                alIrAIniciarSesion = { navController.popBackStack() }
             )
         }
 
