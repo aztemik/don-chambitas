@@ -55,4 +55,34 @@
     <string name="splash_eslogan">Tu oficio, tu chamba</string>
     <string name="splash_verificando_sesion">Verificando sesión…</string>
     <string name="splash_logo_descripcion">Logotipo Don Chambitas</string>
+
+    <!-- Autenticación · común (S2-T01) -->
+    <string name="auth_correo">Correo electrónico</string>
+    <string name="auth_contrasena">Contraseña</string>
+
+    <!-- Pantalla Registro (P-03) -->
+    <string name="registro_titulo">Crear cuenta</string>
+    <string name="registro_pregunta_rol">¿Qué vienes a hacer?</string>
+    <string name="registro_rol_cliente">Quiero contratar</string>
+    <string name="registro_rol_trabajador">Ofrezco mi trabajo</string>
+    <string name="registro_rol_definitivo">El rol no se puede cambiar después</string>
+    <string name="registro_nombre">Nombre(s)</string>
+    <string name="registro_apellidos">Apellidos</string>
+    <string name="registro_telefono">Teléfono celular</string>
+    <string name="registro_ayuda_contrasena">Mínimo 8 caracteres</string>
+    <string name="registro_accion">Crear cuenta</string>
+    <string name="registro_ir_iniciar_sesion">¿Ya tienes cuenta? Inicia sesión</string>
+
+    <!-- Mensajes de validación de P-03 (los eligen las reglas de S2-T04) -->
+    <string name="validacion_rol_sin_elegir">Elige si vienes a contratar o a trabajar</string>
+    <string name="validacion_nombre_vacio">Escribe tu nombre</string>
+    <string name="validacion_nombre_largo">El nombre es demasiado largo</string>
+    <string name="validacion_apellidos_vacio">Escribe tus apellidos</string>
+    <string name="validacion_apellidos_largo">Los apellidos son demasiado largos</string>
+    <string name="validacion_correo_vacio">Escribe tu correo electrónico</string>
+    <string name="validacion_correo_formato">Ese correo no se ve bien, revísalo</string>
+    <string name="validacion_correo_largo">El correo es demasiado largo</string>
+    <string name="validacion_contrasena_corta">Usa al menos 8 caracteres</string>
+    <string name="validacion_telefono_vacio">Escribe tu teléfono</string>
+    <string name="validacion_telefono_digitos">El teléfono lleva 10 dígitos</string>
 </resources>
