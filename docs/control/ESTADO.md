@@ -14,7 +14,7 @@
 | Sprint | 1 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 15 |
+| Terminadas | 16 |
 | En curso | 0 |
 | Bloqueadas | 0 |
 
@@ -31,6 +31,24 @@ _Ninguna._
 | Desde | — |
 
 ## Última tarea terminada
+
+**`S1-T16` — Estrategia de pruebas y configuración de las pruebas base (JUnit / Compose test).** 2026-09-20.
+Rama `test/S1-T16-estrategia-pruebas`, pull request **sin abrir todavía**.
+
+Configuración completa de la infraestructura, utilidades y documentación de pruebas según `CONVENCIONES.md` y `ARQUITECTURA.md`:
+- `docs/tecnico/PRUEBAS.md`: Documento maestro de estrategia de pruebas definiendo qué se prueba (ViewModels, dominio, repositorios falsos, interacción UI) y qué no (Composables pasivos, código generado), convenciones `debe..._cuando...`, comandos de ejecución y generación de reportes de cobertura JaCoCo.
+- `app/src/test/.../util/ReglaCorrutinas.kt`: Regla de JUnit 4 (`TestWatcher`) para pruebas unitarias que reemplaza `Dispatchers.Main` con `StandardTestDispatcher`, proveyendo `testDispatcher` y `testScope` sin requerir el Looper de Android.
+- `app/src/test/.../util/DatosPrueba.kt`: Fábrica con valores por defecto y argumentos con nombre para todas las entidades principales (`Usuario`, `PerfilTrabajador`, `PerfilHabilidad`, `Servicio`, `ServicioFoto`, `Solicitud`, `Postulacion`, `Conversacion`, `Mensaje`, `Resena`, `Categoria`, `Estado`, `Municipio`, `Sesion`, etc.).
+- `app/src/test/.../util/DatosPruebaTest.kt`: Pruebas unitarias para validar `DatosPrueba` y la ejecución en el despachador principal mediante `ReglaCorrutinas`.
+- `app/src/test/.../ui/pantallas/SplashViewModelTest.kt`: Actualizado para utilizar `ReglaCorrutinas` y la convención de nomenclatura `debe..._cuando...`, funcionando como plantilla oficial para ViewModels con corrutinas.
+- `app/src/androidTest/.../ui/componentes/ComponentesTest.kt`: 4 pruebas instrumentadas en Jetpack Compose (`createComposeRule`) validando renderizado y eventos de `BotonPrincipal`, `CampoTexto` y `EstadoVacio`.
+- `app/build.gradle.kts`: Activación de `enableUnitTestCoverage = true` y `enableAndroidTestCoverage = true` en el build type `debug` para soportar las tareas de reporte JaCoCo (`createDebugUnitTestCoverageReport` y `createDebugCoverageReport`).
+- Verificación del proyecto:
+  - 57 pruebas unitarias pasando (`./gradlew testDebugUnitTest`).
+  - 5 pruebas instrumentadas pasando en emulador (`./gradlew connectedDebugAndroidTest`).
+  - Reporte de cobertura generado exitosamente (`./gradlew createDebugUnitTestCoverageReport`).
+  - Compilación exitosa (`./gradlew assembleDebug`).
+  - Instalación y ejecución interactiva limpia en emulador `emulator-5554` (`Displayed MainActivity`).
 
 **`S1-T15` — Pantalla de bienvenida (splash).** 2026-09-20.
 Rama `feat/S1-T15-pantalla-splash`, pull request **sin abrir todavía**.
@@ -217,8 +235,8 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S1-T16` — Estrategia de pruebas y configuración de las pruebas base (JUnit / Compose test)
-(prioridad 250, depende de S1-T04)
+`S2-T01` — Diseño de las pantallas de registro, inicio de sesión y recuperación
+(prioridad 1000, sprint 2, depende de: —)
 
 
 ## Decisiones recientes

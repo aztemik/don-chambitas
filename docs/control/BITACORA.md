@@ -24,6 +24,7 @@
 | 2026-09-20 | S1-T13 | GRI | feat/S1-T13-repositorios-falsos |  | 10 interfaces de repositorio en dominio/repositorio, modelos de soporte, FuenteDatosFalsa en memoria con 8 trabajadores, 5 solicitudes, 3 chats, catalogos de datos semilla, 10 falsas con retraso de 300 ms y error forzado, enlazadas en ModuloRepositorios. 10 pruebas unitarias pasando y verificado en emulador |
 | 2026-09-20 | S1-T14 | BCJL | docs/S1-T14-wireframes-pantallas |  | 11 wireframes generados a 360x800 dp con paleta Taller y anotaciones exactas de componentes de DISENO.md (P-01, P-02, P-03, P-04, P-05, P-10, P-18 más estados vacío y error de P-05 y P-10). Documento maestro WIREFRAMES.md con índice y comportamiento de cada elemento tocable |
 | 2026-09-20 | S1-T15 | LMM | feat/S1-T15-pantalla-splash |  | Implementación de P-01 Splash: logo Don Chambitas con isotipo de casco, nombre y lema sobre fondo Crema, verificación con 800 ms mínimos hacia P-02, P-05 o P-10, salida de la pila de navegación con botón Atrás y eliminación de destello blanco en arranque de Activity. 7 pruebas unitarias nuevas |
+| 2026-09-20 | S1-T16 | RRC | test/S1-T16-estrategia-pruebas |  | Infraestructura de pruebas lista: ReglaCorrutinas para ViewModels, DatosPrueba para entidades principales, 4 pruebas instrumentadas en ComponentesTest (Compose UI), PRUEBAS.md y cobertura JaCoCo configurada en Gradle. 57 pruebas unitarias y 5 instrumentadas pasando |
 
 ---
 
