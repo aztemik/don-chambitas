@@ -5,6 +5,12 @@
 > exclusivamente los componentes de `DISENO.md` (construidos en S1-T10/S1-T11) y la
 > paleta de colores **Taller** (S1-T08/S1-T09).
 
+> **P-02, P-03 y P-04 tienen especificación de detalle.** Lo que sigue es el
+> dibujo y a dónde lleva cada toque. Las medidas, el contrato de estado, las
+> reglas de validación y las cadenas están en
+> [`DISENO-AUTENTICACION.md`](DISENO-AUTENTICACION.md) (`S2-T01`), que es lo
+> que implementan `S2-T02`, `S2-T03`, `S2-T04`, `S2-T05` y `S2-T10`.
+
 ---
 
 ## Resumen de pantallas dibujadas
