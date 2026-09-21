@@ -360,8 +360,10 @@ private fun SelectorRol(
 }
 
 /**
- * Un chip de rol. La envoltura reetiqueta el chip como opcion de seleccion
- * unica: un lector de pantalla debe anunciar "seleccionado", no "boton".
+ * Un chip de rol. La semantica va sobre el chip, no sobre una envoltura: un
+ * nodo que fusiona a sus descendientes no absorbe a otro que tambien fusiona,
+ * y el chip es uno de esos. Asi el lector de pantalla anuncia la opcion como
+ * seleccionada y no solo como boton.
  */
 @Composable
 private fun OpcionRol(
@@ -371,19 +373,17 @@ private fun OpcionRol(
     alSeleccionar: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier.semantics(mergeDescendants = true) {
-            this.role = Role.RadioButton
-            this.selected = seleccionado
-        }
-    ) {
-        ChipCategoria(
-            texto = texto,
-            seleccionado = seleccionado,
-            alSeleccionar = { if (habilitado) alSeleccionar() },
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
+    ChipCategoria(
+        texto = texto,
+        seleccionado = seleccionado,
+        alSeleccionar = { if (habilitado) alSeleccionar() },
+        modifier = modifier
+            .fillMaxWidth()
+            .semantics {
+                this.role = Role.RadioButton
+                this.selected = seleccionado
+            }
+    )
 }
 
 /**
