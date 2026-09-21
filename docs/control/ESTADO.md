@@ -14,7 +14,7 @@
 | Sprint | 1 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 13 |
+| Terminadas | 14 |
 | En curso | 0 |
 | Bloqueadas | 0 |
 
@@ -31,6 +31,31 @@ _Ninguna._
 | Desde | — |
 
 ## Última tarea terminada
+
+**`S1-T14` — Wireframes de las pantallas de autenticación e inicio.** 2026-09-20.
+Rama `docs/S1-T14-wireframes-pantallas`, pull request **sin abrir todavía**.
+
+Diseño y documentación completa de las pantallas para el arranque del Sprint 2 conforme a `PANTALLAS.md` y `DISENO.md`:
+- `docs/producto/wireframes/`:
+  - 11 wireframes vectorizados a escala móvil estándar **360 × 800 dp** con la paleta oficial **Taller** (Mostaza, MostazaOscuro, Terracota, Carbon, Cafe, Crema, Arena, Borde y semánticos Exito, Advertencia y Error):
+    - `P-01-splash.png`: Splash con casco de seguridad, slogan y widget de carga.
+    - `P-02-iniciar-sesion.png`: Login con campos de captura, visibilidad y enlaces de navegación.
+    - `P-03-registro.png`: Alta de cuenta con selector de rol único (`ChipCategoria`), 5 campos y enlaces.
+    - `P-04-recuperar.png`: Formulario de recuperación de contraseña con aviso de vigencia (24h).
+    - `P-05-inicio-cliente.png`: Inicio cliente con buscador, chips de oficios, tarjetas de trabajadores con estrellas, botón flotante "+ Publicar solicitud" y barra inferior de 4 destinos.
+    - `P-05-vacio.png`: Estado vacío de búsqueda con icono, explicación y acción de limpiar filtros.
+    - `P-05-error.png`: Estado error con icono de advertencia, mensaje explicativo y botón de reintentar.
+    - `P-10-inicio-trabajador.png`: Inicio trabajador con filtro de oficios, tarjetas de solicitudes abiertas, etiqueta de estado y barra inferior.
+    - `P-10-vacio.png`: Estado vacío de solicitudes por categoría con sugerencias y botón de ver todas.
+    - `P-10-error.png`: Estado error con mensaje de reintento.
+    - `P-18-cuenta.png`: Mi cuenta con cabecera de perfil, badge de rol, acciones de configuración y cierre de sesión.
+  - Cada zona cuenta con anotaciones exactas de componentes (`BarraSuperior`, `BarraInferior`, `BotonPrincipal`, `BotonSecundario`, `BotonDestacado`, `BotonTexto`, `CampoTexto`, `CampoContrasena`, `TarjetaTrabajador`, `TarjetaSolicitud`, `ChipCategoria`, `Estrellas`, `EtiquetaEstado`, `Cargando`, `EstadoVacio`, `EstadoError`). Cero componentes ajenos a `DISENO.md`.
+- `docs/producto/WIREFRAMES.md`:
+  - Índice maestro con tabla resumen, imágenes incrustadas, desglose de componentes por zona y documentación exhaustiva del comportamiento de cada elemento tocable (eventos al pulsar, navegación, validaciones y cambios de estado).
+- Verificación del proyecto:
+  - Pruebas unitarias pasando limpiamente (44 pruebas, `./gradlew testDebugUnitTest`).
+  - Compilación exitosa (`./gradlew assembleDebug`).
+  - Instalación y ejecución interactiva limpia en emulador `emulator-5554` (`Displayed MainActivity`).
 
 **`S1-T13` — Interfaces de repositorio y fuente de datos falsa (fake) para desbloquear la UI.** 2026-09-20.
 Rama `feat/S1-T13-repositorios-falsos`, pull request **sin abrir todavía**.
@@ -177,8 +202,8 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S1-T14` — Wireframes de las pantallas de autenticación e inicio
-(prioridad 400, depende de S1-T08)
+`S1-T15` — Pantalla de bienvenida (splash)
+(prioridad 300, depende de S1-T10, S1-T12)
 
 
 ## Decisiones recientes
