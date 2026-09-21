@@ -14,28 +14,47 @@
 | Sprint | 2 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 0 |
-| En curso | 1 |
+| Terminadas | 1 |
+| En curso | 0 |
 | Bloqueadas | 0 |
 
 > Sprint 1 cerrado el 2026-09-20 con sus 16 tareas en `hecha`.
 
 ## Tarea en curso
 
+_Ninguna._
+
 | Campo | Valor |
 |---|---|
-| ID | `S2-T01` |
-| Título | Diseño de las pantallas de registro, inicio de sesión y recuperación |
-| Quién la tomó | BCJL |
-| Rama | `docs/S2-T01-diseno-pantallas-autenticacion` |
-| Desde | 2026-09-21 |
-
-> **Esta tarea se trabaja sin ticket.** `docs/tareas/S2-T01.md` no existe: los
-> tickets del Sprint 2 no se han redactado. El líder autorizó avanzar sin él
-> el 2026-09-21. El alcance acordado queda escrito al inicio de
-> `docs/producto/DISENO-AUTENTICACION.md` y hace las veces de ticket.
+| ID | — |
+| Título | — |
+| Quién la tomó | — |
+| Rama | — |
+| Desde | — |
 
 ## Última tarea terminada
+
+**`S2-T01` — Diseño de las pantallas de registro, inicio de sesión y recuperación.** 2026-09-21.
+Rama `docs/S2-T01-diseno-pantallas-autenticacion`, pull request **sin abrir todavía**.
+
+**Se trabajó sin ticket.** `docs/tareas/S2-T01.md` no existe —los tickets del Sprint 2 no se han redactado— y el líder autorizó avanzar sin él el 2026-09-21. El alcance acordado quedó escrito en la sección 0 del entregable y hace las veces de ticket.
+
+Especificación de detalle de P-02, P-03 y P-04, que convierte los wireframes de `S1-T14` en algo implementable sin volver a decidir nada:
+- `docs/producto/DISENO-AUTENTICACION.md`: documento nuevo, diez secciones.
+  - Reglas comunes a las tres pantallas: esqueleto con medidas, scroll e `imePadding()` obligatorios, catálogo cerrado de componentes, cuándo se valida, normalización previa al envío, teclado y orden de foco, accesibilidad.
+  - Los cuatro estados por pantalla, con el estado vacío declarado **no aplicable** en las tres y el porqué: son formularios, no listan datos. El cargando va dentro del `BotonPrincipal`, no a pantalla completa, para que HU-02 pueda conservar lo escrito.
+  - Anatomía de arriba hacia abajo de cada pantalla, contrato de `Estado...` y lista de eventos con los nombres de `CONVENCIONES.md` (`EstadoIniciarSesion`, `EstadoRegistro`, `EstadoRecuperarContrasena`).
+  - Matriz de cada resultado posible de `RepositorioAuth` contra lo que ve el usuario, en las tres pantallas.
+  - Validaciones campo por campo con mensaje y clave, usando **la misma expresión regular** que `ck_usuario_correo_valido` en el esquema, y con los topes de longitud de `public.usuarios` aplicados en el propio campo.
+  - Las 38 cadenas nuevas de `strings.xml` con su clave definitiva, para que `S2-T02`, `S2-T03`, `S2-T04` y `S2-T10` no inventen tres nombres distintos para lo mismo.
+  - Navegación entre las tres, con `popBackStack` en los regresos y limpieza de la pila del subgrafo al entrar.
+- `docs/producto/WIREFRAMES.md`: nota al inicio que enlaza el documento nuevo y deslinda qué resuelve cada uno.
+- Verificación del proyecto:
+  - Compilación exitosa (`./gradlew assembleDebug`).
+  - 57 pruebas unitarias pasando, 0 fallas (`./gradlew testDebugUnitTest`).
+  - Instalación y arranque limpio en emulador `emulator-5554` (`Displayed MainActivity`, sin excepciones en logcat).
+- **No se escribió código:** la tarea es de diseño. Las pantallas las construyen `S2-T02`, `S2-T03` y `S2-T10`; los ViewModels, `S2-T05`; las validaciones, `S2-T04`.
+- **Dos hallazgos nuevos para el líder, `H-09` y `H-10`, ninguno resuelto.** Están al final del documento y se repiten abajo.
 
 **`S1-T16` — Estrategia de pruebas y configuración de las pruebas base (JUnit / Compose test).** 2026-09-20.
 Rama `test/S1-T16-estrategia-pruebas`, pull request **sin abrir todavía**.
@@ -240,8 +259,29 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S2-T01` — Diseño de las pantallas de registro, inicio de sesión y recuperación
-(prioridad 1000, sprint 2, depende de: —)
+`S2-T02` — Pantalla de registro con selección de rol (cliente / trabajador)
+(prioridad 970, sprint 2, depende de: S1-T10, S1-T12, las dos hechas)
+
+Su diseño ya está escrito: secciones 1, 3 y 7 de
+`docs/producto/DISENO-AUTENTICACION.md`. **Tampoco tiene ticket.**
+
+## Dos huecos nuevos que esperan al líder
+
+Salen de `S2-T01`, de cruzar HU-01 y HU-04 contra `CONTRATOS-API.md`. Están
+explicados al final de `docs/producto/DISENO-AUTENTICACION.md`.
+
+- **`H-09` — El segundo tramo de HU-04 no tiene pantalla.** Definir la
+  contraseña nueva desde el enlace del correo no es ninguna de las 19
+  pantallas. O el enlace abre la página alojada de Supabase —y se anota en
+  HU-04 para que nadie la busque— o abre la aplicación por *deep link*, y
+  entonces hacen falta pantalla y tarea nuevas. **Conviene cerrarlo antes de
+  `S2-T07`.**
+- **`H-10` — No está decidido si el registro deja sesión abierta.** HU-01 da
+  por hecho que sí, pero `registrar` devuelve `Usuario`, no `Sesion`, y con la
+  confirmación por correo activa en Supabase Auth el `signUp` no abre sesión.
+  El diseño contempla las dos ramas para no frenar a `S2-T02`, pero la
+  decisión es de producto. **Le toca a `S2-T06` recogerla y a `S2-T07`
+  implementarla.**
 
 
 ## Decisiones recientes

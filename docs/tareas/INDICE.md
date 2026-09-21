@@ -20,12 +20,12 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 | Sprint | Tareas | Pendientes | Bloqueadas | Opcionales | Hechas |
 |---|---|---|---|---|---|
 | 1 | 16 | 0 | 0 | 0 | 16 |
-| 2 | 16 | 15 | 0 | 0 | 0 |
+| 2 | 16 | 15 | 0 | 0 | 1 |
 | 3 | 15 | 15 | 0 | 0 | 0 |
 | 4 | 15 | 13 | 0 | 2 | 0 |
 | 5 | 12 | 12 | 0 | 0 | 0 |
 | 6 | 12 | 12 | 0 | 0 | 0 |
-| **Total** | **86** | **67** | **0** | **2** | **16** |
+| **Total** | **86** | **67** | **0** | **2** | **17** |
 
 > **No queda ninguna tarea bloqueada.** PEND-01 se resolvió el 2026-09-14 a
 > favor de Supabase (`DEC-16`). PEND-02 sigue abierto y no bloquea a nadie.
@@ -61,7 +61,7 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 
 | ID | Prio | Tarea | Resp. | Estado | Depende de |
 |---|---|---|---|---|---|
-| `S2-T01` | 1000 | Diseño de las pantallas de registro, inicio de sesión y recuperación | BCJL | en curso | — |
+| `S2-T01` | 1000 | Diseño de las pantallas de registro, inicio de sesión y recuperación | BCJL | hecha | — |
 | `S2-T02` | 970 | Pantalla de registro con selección de rol (cliente / trabajador) | LMM | pendiente | S1-T10, S1-T12 |
 | `S2-T03` | 950 | Pantalla de inicio de sesión | RRC | pendiente | S1-T10, S1-T12 |
 | `S2-T04` | 900 | Validaciones de formularios y mensajes de error | GRI | pendiente | S2-T02, S2-T03 |
@@ -174,3 +174,9 @@ Los tickets se redactan **al iniciar cada sprint**, no los seis por adelantado:
 detallar hoy el Sprint 5 es trabajo que se va a tirar. Hoy están escritos los
 16 del Sprint 1. Para los siguientes, ver el prompt 6 de
 `docs/proceso/PROMPTS.md`.
+
+> **Los del Sprint 2 no están escritos y el sprint ya arrancó.** `S2-T01` se
+> trabajó sin ticket por autorización del líder del 2026-09-21, dejando su
+> alcance escrito en el propio entregable. Es una excepción, no la nueva
+> forma de trabajar: mientras no haya tickets, cada tarea del Sprint 2
+> necesita esa autorización o se detiene.
