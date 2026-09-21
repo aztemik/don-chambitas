@@ -49,4 +49,10 @@
     <string name="error_limite_ia">Alcanzaste el límite de hoy, vuelve a intentarlo mañana.</string>
     <string name="error_servidor">Ocurrió un problema en el servidor. Intenta de nuevo más tarde.</string>
     <string name="error_desconocido">Ocurrió un error inesperado. Intenta de nuevo más tarde.</string>
+
+    <!-- Pantalla Splash (P-01) -->
+    <string name="splash_nombre_app">Don Chambitas</string>
+    <string name="splash_eslogan">Tu oficio, tu chamba</string>
+    <string name="splash_verificando_sesion">Verificando sesión…</string>
+    <string name="splash_logo_descripcion">Logotipo Don Chambitas</string>
 </resources>

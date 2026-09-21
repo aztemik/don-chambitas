@@ -14,7 +14,7 @@
 | Sprint | 1 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 14 |
+| Terminadas | 15 |
 | En curso | 0 |
 | Bloqueadas | 0 |
 
@@ -31,6 +31,21 @@ _Ninguna._
 | Desde | — |
 
 ## Última tarea terminada
+
+**`S1-T15` — Pantalla de bienvenida (splash).** 2026-09-20.
+Rama `feat/S1-T15-pantalla-splash`, pull request **sin abrir todavía**.
+
+Implementación completa de P-01 (Splash) según `PANTALLAS.md`, `WIREFRAMES.md` y `DISENO.md`:
+- `ui/pantallas/EstadoSplash.kt`: Data class de estado inmutable con propiedades `cargando: Boolean` y `destino: Ruta?`.
+- `ui/pantallas/SplashViewModel.kt`: ViewModel con `@HiltViewModel` que consulta el estado de sesión temporal (según S1-T12 hasta S2-T09) e impone un retraso mínimo de 800 ms para evitar parpadeos, resolviendo los tres destinos posibles:
+  - Sin sesión -> `P-02` (Iniciar sesión)
+  - Cliente -> `P-05` (Inicio cliente)
+  - Trabajador -> `P-10` (Inicio trabajador)
+- `ui/pantallas/SplashPantalla.kt`: Composable con fondo `Crema` (`#FFFDF8`), isotipo del casco oficial de seguridad Don Chambitas, nombre de aplicación en `Carbon` (negrita), eslogan "Tu oficio, tu chamba" en `Cafe`, e indicador circular `Cargando` en color `Mostaza` (48 dp) con etiqueta "Verificando sesión…".
+- `ui/navegacion/GrafoNavegacion.kt`: Sustitución del marcador provisional por `SplashPantalla`, saliendo de la pila de navegación con `popUpTo(Ruta.Splash.ruta) { inclusive = true }` de modo que presionar el botón Atrás desde el destino cierra la aplicación.
+- `themes.xml` y `colors.xml`: Configuración de `android:windowBackground` con `color_crema` (`#FFFDF8`) eliminando cualquier parpadeo de fondo blanco antes de renderizar Compose.
+- Pruebas unitarias: 7 pruebas unitarias nuevas en `SplashViewModelTest.kt` cubriendo estados iniciales, resolución de destinos y temporizador mínimo (51 pruebas totales en el proyecto pasando limpiamente).
+- Compilación (`./gradlew assembleDebug`), instalación y verificación interactiva en emulador `emulator-5554` comprobando arranque en Splash, transición a destino y cierre limpio con botón Atrás.
 
 **`S1-T14` — Wireframes de las pantallas de autenticación e inicio.** 2026-09-20.
 Rama `docs/S1-T14-wireframes-pantallas`, pull request **sin abrir todavía**.
@@ -202,8 +217,8 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S1-T15` — Pantalla de bienvenida (splash)
-(prioridad 300, depende de S1-T10, S1-T12)
+`S1-T16` — Estrategia de pruebas y configuración de las pruebas base (JUnit / Compose test)
+(prioridad 250, depende de S1-T04)
 
 
 ## Decisiones recientes

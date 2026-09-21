@@ -49,6 +49,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import mx.donchambitas.app.R
 import mx.donchambitas.app.ui.componentes.BarraSuperior
+import mx.donchambitas.app.ui.pantallas.SplashPantalla
 import mx.donchambitas.app.ui.componentes.BotonDestacado
 import mx.donchambitas.app.ui.componentes.BotonPrincipal
 import mx.donchambitas.app.ui.componentes.BotonSecundario
@@ -199,27 +200,14 @@ private fun NavGraphBuilder.subgrafoAutenticacion(navController: NavHostControll
         route = Subgrafo.Autenticacion.ruta
     ) {
         composable(Ruta.Splash.ruta) {
-            MarcadorPantalla(
-                ruta = Ruta.Splash,
-                descripcion = "Verifica si hay sesión guardada y decide a dónde ir. Sin onboarding.",
-                navController = navController,
-                acciones = listOf(
-                    AccionNavegacion("Iniciar sesión (P-02)") {
-                        navController.navigate(Ruta.IniciarSesion.ruta)
-                    },
-                    AccionNavegacion("Simular entrar como Cliente (P-05)") {
-                        MarcadorSesionTemporal.estado = EstadoSesionTemporal.CLIENTE
-                        navController.navigate(Ruta.InicioCliente.ruta) {
-                            popUpTo(Ruta.Splash.ruta) { inclusive = true }
-                        }
-                    },
-                    AccionNavegacion("Simular entrar como Trabajador (P-10)") {
-                        MarcadorSesionTemporal.estado = EstadoSesionTemporal.TRABAJADOR
-                        navController.navigate(Ruta.InicioTrabajador.ruta) {
-                            popUpTo(Ruta.Splash.ruta) { inclusive = true }
+            SplashPantalla(
+                alNavegarADestino = { destino ->
+                    navController.navigate(destino.ruta) {
+                        popUpTo(Ruta.Splash.ruta) {
+                            inclusive = true
                         }
                     }
-                )
+                }
             )
         }
 

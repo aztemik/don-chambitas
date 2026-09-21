@@ -23,6 +23,7 @@
 | 2026-09-20 | S1-T12 | RRC | feat/S1-T12-navegacion-compose |  | Grafo completo con 3 subgrafos y 19 pantallas en Rutas.kt sin cadenas sueltas. Barras inferiores de 4 destinos para Cliente y Trabajador, boton flotante en P-05 hacia P-08, guardas reactivas por rol/sesion y 8 pantallas superiores sin barra. 9 pruebas unitarias pasando y verificado en emulador |
 | 2026-09-20 | S1-T13 | GRI | feat/S1-T13-repositorios-falsos |  | 10 interfaces de repositorio en dominio/repositorio, modelos de soporte, FuenteDatosFalsa en memoria con 8 trabajadores, 5 solicitudes, 3 chats, catalogos de datos semilla, 10 falsas con retraso de 300 ms y error forzado, enlazadas en ModuloRepositorios. 10 pruebas unitarias pasando y verificado en emulador |
 | 2026-09-20 | S1-T14 | BCJL | docs/S1-T14-wireframes-pantallas |  | 11 wireframes generados a 360x800 dp con paleta Taller y anotaciones exactas de componentes de DISENO.md (P-01, P-02, P-03, P-04, P-05, P-10, P-18 más estados vacío y error de P-05 y P-10). Documento maestro WIREFRAMES.md con índice y comportamiento de cada elemento tocable |
+| 2026-09-20 | S1-T15 | LMM | feat/S1-T15-pantalla-splash |  | Implementación de P-01 Splash: logo Don Chambitas con isotipo de casco, nombre y lema sobre fondo Crema, verificación con 800 ms mínimos hacia P-02, P-05 o P-10, salida de la pila de navegación con botón Atrás y eliminación de destello blanco en arranque de Activity. 7 pruebas unitarias nuevas |
 
 ---
 
