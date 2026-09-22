@@ -20,6 +20,27 @@
 
 > Sprint 1 cerrado el 2026-09-20 con sus 16 tareas en `hecha`.
 
+## Qué se puede probar hoy en la aplicación
+
+Léelo antes de instalar el APK y reportar que algo "no funciona". La
+aplicación todavía no autentica a nadie: lo que hay son pantallas conectadas
+al grafo y una fuente de datos en memoria.
+
+| Si haces esto | Pasa esto hoy | Lo arregla |
+|---|---|---|
+| Abres la aplicación | P-01 espera 800 ms y te deja en P-02 | — |
+| Estás en P-02 (iniciar sesión) | Es todavía el marcador de `S1-T12`, no la pantalla real | `S2-T03` |
+| Entras a P-03 desde el marcador de P-02 | La pantalla real de registro, con sus cinco campos y el selector de rol | — |
+| Confirmas el registro **sin elegir rol** | Te reclama el rol y no hace nada más | — |
+| Escribes un correo sin arroba, o una contraseña de un carácter | **Los da por buenos.** No hay ninguna regla de formato ni de longitud | `S2-T04` |
+| Confirmas el registro **con rol** | Te manda a P-05 o P-10. **No se crea ninguna cuenta**: no se llama a `RepositorioAuth`, no se guarda nada, no se comprueba si el correo ya existe | `S2-T05` |
+| Cierras y vuelves a abrir | No hay cuenta que recordar, ni sesión | `S2-T08`, `S2-T09` |
+
+**Cuando `S2-T05` esté hecha, el alta seguirá sin ser real.** Escribirá en
+`FuenteDatosFalsa`, que vive en memoria: vas a poder registrarte y entrar, y
+la cuenta desaparece al reiniciar la aplicación. Cuentas de verdad, contra
+Supabase Auth, son `S2-T07`, y esa depende de que se cierre `H-10`.
+
 ## Tarea en curso
 
 _Ninguna._
