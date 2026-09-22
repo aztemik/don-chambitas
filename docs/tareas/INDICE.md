@@ -19,16 +19,17 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 
 | Sprint | Tareas | Pendientes | Bloqueadas | Opcionales | Hechas |
 |---|---|---|---|---|---|
-| 1 | 16 | 13 | 0 | 0 | 3 |
-| 2 | 16 | 16 | 0 | 0 | 0 |
+| 1 | 16 | 0 | 0 | 0 | 16 |
+| 2 | 16 | 14 | 0 | 0 | 2 |
 | 3 | 15 | 15 | 0 | 0 | 0 |
 | 4 | 15 | 13 | 0 | 2 | 0 |
 | 5 | 12 | 12 | 0 | 0 | 0 |
 | 6 | 12 | 12 | 0 | 0 | 0 |
-| **Total** | **86** | **81** | **0** | **2** | **3** |
+| **Total** | **86** | **66** | **0** | **2** | **18** |
 
-> **No queda ninguna tarea bloqueada.** PEND-01 se resolvió el 2026-09-14 a
-> favor de Supabase (`DEC-16`). PEND-02 sigue abierto y no bloquea a nadie.
+> **No queda ninguna tarea bloqueada, ni ningún pendiente abierto.** PEND-01 se
+> resolvió el 2026-09-14 a favor de Supabase (`DEC-16`) y PEND-02 el 2026-09-22
+> a favor de los 26 municipios sembrados (`DEC-26`).
 
 ---
 
@@ -41,19 +42,19 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 | `S1-T01` | 1000 | Análisis de requerimientos e historias de usuario (documento en .md) | GRI | hecha | — |
 | `S1-T02` | 970 | Definición del alcance del MVP y lista completa de pantallas | BCJL | hecha | S1-T01 |
 | `S1-T03` | 950 | Modelo entidad-relación (ER) completo del sistema | LMM | hecha | S1-T01 |
-| `S1-T04` | 900 | Configuración del proyecto Android (Gradle, Kotlin, Compose, Hilt) | RRC | pendiente | — |
-| `S1-T05` | 850 | Configuración del repositorio en GitHub: ramas, plantilla de PR y .gitignore | GRI | pendiente | — |
-| `S1-T06` | 800 | Arquitectura de capas y carpetas (data / domain / ui) documentada en .md | BCJL | pendiente | S1-T04 |
-| `S1-T07` | 750 | Diccionario de datos y modelado de entidades en Kotlin (data classes) | LMM | pendiente | S1-T03, S1-T04 |
-| `S1-T08` | 700 | Identidad visual: paleta de colores, tipografía e iconografia | RRC | pendiente | — |
-| `S1-T09` | 650 | Sistema de diseño en Jetpack Compose (Theme, Color, Typography, Shape) | GRI | pendiente | S1-T04, S1-T08 |
-| `S1-T10` | 600 | Componentes reutilizables base (botones, campos de texto, tarjetas, chips) | BCJL | pendiente | S1-T09 |
-| `S1-T11` | 550 | Componentes de estado: carga, vacío, error y mensajes al usuario | LMM | pendiente | S1-T09 |
-| `S1-T12` | 500 | Navegación con Navigation Compose y definición del grafo de rutas | RRC | pendiente | S1-T06 |
-| `S1-T13` | 450 | Interfaces de repositorio y fuente de datos falsa (fake) para desbloquear la UI | GRI | pendiente | S1-T07 |
-| `S1-T14` | 400 | Wireframes de las pantallas de autenticación e inicio | BCJL | pendiente | S1-T08 |
-| `S1-T15` | 300 | Pantalla de bienvenida (splash) | LMM | pendiente | S1-T10, S1-T12 |
-| `S1-T16` | 250 | Estrategia de pruebas y configuración de las pruebas base (JUnit / Compose test) | RRC | pendiente | S1-T04 |
+| `S1-T04` | 900 | Configuración del proyecto Android (Gradle, Kotlin, Compose, Hilt) | RRC | hecha | — |
+| `S1-T05` | 850 | Configuración del repositorio en GitHub: ramas, plantilla de PR y .gitignore | GRI | hecha | — |
+| `S1-T06` | 800 | Arquitectura de capas y carpetas (data / domain / ui) documentada en .md | BCJL | hecha | S1-T04 |
+| `S1-T07` | 750 | Diccionario de datos y modelado de entidades en Kotlin (data classes) | LMM | hecha | S1-T03, S1-T04 |
+| `S1-T08` | 700 | Identidad visual: paleta de colores, tipografía e iconografia | RRC | hecha | — |
+| `S1-T09` | 650 | Sistema de diseño en Jetpack Compose (Theme, Color, Typography, Shape) | GRI | hecha | S1-T04, S1-T08 |
+| `S1-T10` | 600 | Componentes reutilizables base (botones, campos de texto, tarjetas, chips) | BCJL | hecha | S1-T09 |
+| `S1-T11` | 550 | Componentes de estado: carga, vacío, error y mensajes al usuario | LMM | hecha | S1-T09 |
+| `S1-T12` | 500 | Navegación con Navigation Compose y definición del grafo de rutas | RRC | hecha | S1-T06 |
+| `S1-T13` | 450 | Interfaces de repositorio y fuente de datos falsa (fake) para desbloquear la UI | GRI | hecha | S1-T07 |
+| `S1-T14` | 400 | Wireframes de las pantallas de autenticación e inicio | BCJL | hecha | S1-T08 |
+| `S1-T15` | 300 | Pantalla de bienvenida (splash) | LMM | hecha | S1-T10, S1-T12 |
+| `S1-T16` | 250 | Estrategia de pruebas y configuración de las pruebas base (JUnit / Compose test) | RRC | hecha | S1-T04 |
 
 ## Sprint 2
 
@@ -61,8 +62,8 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 
 | ID | Prio | Tarea | Resp. | Estado | Depende de |
 |---|---|---|---|---|---|
-| `S2-T01` | 1000 | Diseño de las pantallas de registro, inicio de sesión y recuperación | BCJL | pendiente | — |
-| `S2-T02` | 970 | Pantalla de registro con selección de rol (cliente / trabajador) | LMM | pendiente | S1-T10, S1-T12 |
+| `S2-T01` | 1000 | Diseño de las pantallas de registro, inicio de sesión y recuperación | BCJL | hecha | — |
+| `S2-T02` | 970 | Pantalla de registro con selección de rol (cliente / trabajador) | LMM | hecha | S1-T10, S1-T12 |
 | `S2-T03` | 950 | Pantalla de inicio de sesión | RRC | pendiente | S1-T10, S1-T12 |
 | `S2-T04` | 900 | Validaciones de formularios y mensajes de error | GRI | pendiente | S2-T02, S2-T03 |
 | `S2-T05` | 850 | ViewModels y estados de UI del flujo de autenticación | BCJL | pendiente | S1-T13 |
@@ -172,5 +173,12 @@ criterios de aceptación y cómo probarla.
 
 Los tickets se redactan **al iniciar cada sprint**, no los seis por adelantado:
 detallar hoy el Sprint 5 es trabajo que se va a tirar. Hoy están escritos los
-16 del Sprint 1. Para los siguientes, ver el prompt 6 de
+16 del Sprint 1 y el de `S2-T03`. Para los siguientes, ver el prompt 6 de
 `docs/proceso/PROMPTS.md`.
+
+> **Los del Sprint 2 se están redactando tarde, tarea por tarea.** `S2-T01` y
+> `S2-T02` se trabajaron **sin ticket**, por autorización del líder del
+> 2026-09-21, dejando su alcance escrito en el propio entregable. Desde
+> `S2-T03` sí hay ticket: el líder ordenó el 2026-09-22 redactarlo antes de
+> tomar la tarea. Las 13 restantes del Sprint 2 siguen sin ticket; cada una lo
+> necesita antes de empezar.

@@ -463,9 +463,10 @@ del cliente).
 
 ## Lo que queda pendiente
 
-**Catálogo completo de municipios.** Hoy hay 26 de zonas de prueba. Los 2,469
-del país se cargan del INEGI con un `COPY` desde CSV. Es PEND-02 y no bloquea a
-nadie.
+**Catálogo de municipios: cerrado en 26.** `PEND-02` se resolvió el 2026-09-22
+(`DEC-26`): los 26 municipios de zonas de prueba son los del MVP. Los 2,469 del
+país no entran. Si algún día hacen falta, se cargan del INEGI con un `COPY`
+desde CSV, sin tocar el esquema.
 
 ## Estado
 

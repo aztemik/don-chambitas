@@ -20,37 +20,29 @@ BEGIN;
 -- ----------------------------------------------------------------------------
 --  Categorias de oficios
 --
---  OJO con la columna 'icono'. Los valores de abajo (ti-droplet, ti-bolt, ...)
---  son nombres de Tabler Icons, y DISENO.md manda Material Icons variante
---  Outlined, sin librerias externas. Son PROVISIONALES y hoy no los consume
---  nadie.
+--  Iconos de Material Icons variante Outlined (definidos en S1-T08 y DISENO.md),
+--  sin librerias externas.
 --
---  S1-T08 elige los 16 iconos de Material, los anota en DISENO.md y REEMPLAZA
---  estos 16 valores. Hasta entonces son datos muertos: no los uses.
---
---  Por eso el ON CONFLICT de abajo es DO UPDATE y no DO NOTHING: con
---  DO NOTHING, volver a correr este archivo despues de S1-T08 no cambiaria un
---  solo icono y habria que ir a corregirlos a mano en la consola. La llave
---  natural es el nombre de la categoria, que no cambia; lo que se reconcilia
---  es todo lo demas.
+--  El ON CONFLICT es DO UPDATE para reconciliar icono, descripcion y orden
+--  si se vuelve a correr el archivo.
 -- ----------------------------------------------------------------------------
 INSERT INTO categorias (nombre, descripcion, icono, orden) VALUES
-    ('Plomeria',        'Fugas, instalaciones hidraulicas y drenajes',        'ti-droplet',       10),
-    ('Electricidad',    'Instalaciones electricas, cortos y luminarias',      'ti-bolt',          20),
-    ('Albanileria',     'Muros, pisos, castillos y acabados',                 'ti-wall',          30),
-    ('Carpinteria',     'Muebles a medida, puertas y reparaciones en madera', 'ti-hammer',        40),
-    ('Pintura',         'Interiores, exteriores e impermeabilizacion',        'ti-brush',         50),
-    ('Herreria',        'Rejas, portones, barandales y soldadura',            'ti-tools',         60),
-    ('Limpieza',        'Limpieza de casas, oficinas y mudanzas',             'ti-spray',         70),
-    ('Jardineria',      'Poda, mantenimiento de jardines y riego',            'ti-plant',         80),
-    ('Mudanzas y carga','Fletes, cargadores y traslados',                     'ti-truck',         90),
-    ('Aire y refrigeracion','Minisplits, refrigeradores y ventilacion',       'ti-snowflake',    100),
-    ('Mecanica',        'Reparacion automotriz y servicio a domicilio',       'ti-car',          110),
-    ('Computo',         'Reparacion de equipos, redes y respaldo de datos',   'ti-device-laptop',120),
-    ('Cerrajeria',      'Aperturas, cambio de chapas y duplicado de llaves',  'ti-key',          130),
-    ('Costura',         'Arreglos de ropa, confeccion y tapiceria',           'ti-needle',       140),
-    ('Cocina y eventos','Banquetes, meseros y servicio para eventos',         'ti-chef-hat',     150),
-    ('Otros',           'Oficios que no encajan en las categorias anteriores','ti-dots',         999)
+    ('Plomeria',        'Fugas, instalaciones hidraulicas y drenajes',        'plumbing',          10),
+    ('Electricidad',    'Instalaciones electricas, cortos y luminarias',      'bolt',              20),
+    ('Albanileria',     'Muros, pisos, castillos y acabados',                 'construction',      30),
+    ('Carpinteria',     'Muebles a medida, puertas y reparaciones en madera', 'carpenter',         40),
+    ('Pintura',         'Interiores, exteriores e impermeabilizacion',        'format_paint',      50),
+    ('Herreria',        'Rejas, portones, barandales y soldadura',            'hardware',          60),
+    ('Limpieza',        'Limpieza de casas, oficinas y mudanzas',             'cleaning_services', 70),
+    ('Jardineria',      'Poda, mantenimiento de jardines y riego',            'yard',              80),
+    ('Mudanzas y carga','Fletes, cargadores y traslados',                     'local_shipping',    90),
+    ('Aire y refrigeracion','Minisplits, refrigeradores y ventilacion',       'ac_unit',          100),
+    ('Mecanica',        'Reparacion automotriz y servicio a domicilio',       'car_repair',       110),
+    ('Computo',         'Reparacion de equipos, redes y respaldo de datos',   'computer',         120),
+    ('Cerrajeria',      'Aperturas, cambio de chapas y duplicado de llaves',  'key',              130),
+    ('Costura',         'Arreglos de ropa, confeccion y tapiceria',           'content_cut',      140),
+    ('Cocina y eventos','Banquetes, meseros y servicio para eventos',         'restaurant',       150),
+    ('Otros',           'Oficios que no encajan en las categorias anteriores','more_horiz',       999)
 on conflict (nombre) do update
     set descripcion = excluded.descripcion,
         icono       = excluded.icono,

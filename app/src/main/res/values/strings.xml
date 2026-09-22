@@ -1,3 +1,88 @@
 <resources>
     <string name="app_name">don-chambitas</string>
+
+    <!-- Accesibilidad y componentes base -->
+    <string name="cargando">Cargando…</string>
+    <string name="mostrar_contrasena">Mostrar contraseña</string>
+    <string name="ocultar_contrasena">Ocultar contraseña</string>
+    <string name="regresar">Regresar</string>
+    <string name="foto_perfil">Foto de perfil</string>
+    <string name="foto_servicio">Foto del servicio</string>
+    <string name="sin_calificaciones">Sin calificaciones</string>
+    <string name="formato_calificacion">%1$.1f (%2$d)</string>
+    <string name="formato_calificacion_simple">%1$.1f</string>
+    <string name="formato_estrellas_descripcion">Calificación %1$.1f de 5 estrellas</string>
+
+    <!-- Destinos de barra inferior -->
+    <string name="navegacion_inicio">Inicio</string>
+    <string name="navegacion_buscar">Buscar</string>
+    <string name="navegacion_solicitudes">Solicitudes</string>
+    <string name="navegacion_perfil">Perfil</string>
+    <string name="navegacion_servicios">Servicios</string>
+    <string name="navegacion_chats">Chats</string>
+    <string name="navegacion_cuenta">Cuenta</string>
+    <string name="boton_publicar_solicitud">Publicar solicitud</string>
+
+    <!-- Estados de solicitud -->
+    <string name="estado_abierta">Abierta</string>
+    <string name="estado_asignada">Asignada</string>
+    <string name="estado_cerrada">Cerrada</string>
+    <string name="estado_cancelada">Cancelada</string>
+
+    <!-- Componentes de estado (S1-T11) -->
+    <string name="reintentar">Reintentar</string>
+    <string name="estado_vacio_titulo">Sin resultados</string>
+    <string name="estado_vacio_mensaje">No hay elementos disponibles para mostrar en este momento.</string>
+
+    <!-- Títulos de error -->
+    <string name="error_titulo_red">Sin conexión</string>
+    <string name="error_titulo_autenticacion">Sesión requerida</string>
+    <string name="error_titulo_validacion">Datos incorrectos</string>
+    <string name="error_titulo_limite_ia">Límite alcanzado</string>
+    <string name="error_titulo_servidor">Error del servidor</string>
+    <string name="error_titulo_desconocido">Algo salió mal</string>
+
+    <!-- Mensajes de error por TipoError (dicen qué hacer) -->
+    <string name="error_red">Revisa tu conexión e intenta de nuevo.</string>
+    <string name="error_autenticacion">Inicia sesión de nuevo para continuar.</string>
+    <string name="error_validacion">Revisa los campos y corrige los datos ingresados.</string>
+    <string name="error_limite_ia">Alcanzaste el límite de hoy, vuelve a intentarlo mañana.</string>
+    <string name="error_servidor">Ocurrió un problema en el servidor. Intenta de nuevo más tarde.</string>
+    <string name="error_desconocido">Ocurrió un error inesperado. Intenta de nuevo más tarde.</string>
+
+    <!-- Pantalla Splash (P-01) -->
+    <string name="splash_nombre_app">Don Chambitas</string>
+    <string name="splash_eslogan">Tu oficio, tu chamba</string>
+    <string name="splash_verificando_sesion">Verificando sesión…</string>
+    <string name="splash_logo_descripcion">Logotipo Don Chambitas</string>
+
+    <!-- Autenticación · común (S2-T01) -->
+    <string name="auth_correo">Correo electrónico</string>
+    <string name="auth_contrasena">Contraseña</string>
+
+    <!-- Pantalla Registro (P-03) -->
+    <string name="registro_titulo">Crear cuenta</string>
+    <string name="registro_pregunta_rol">¿Qué vienes a hacer?</string>
+    <string name="registro_rol_cliente">Quiero contratar</string>
+    <string name="registro_rol_trabajador">Ofrezco mi trabajo</string>
+    <string name="registro_rol_definitivo">El rol no se puede cambiar después</string>
+    <string name="registro_nombre">Nombre(s)</string>
+    <string name="registro_apellidos">Apellidos</string>
+    <string name="registro_telefono">Teléfono celular</string>
+    <string name="registro_ayuda_contrasena">Mínimo 8 caracteres</string>
+    <string name="registro_accion">Crear cuenta</string>
+    <string name="registro_ir_iniciar_sesion">¿Ya tienes cuenta? Inicia sesión</string>
+
+    <!-- Mensajes de validación de P-03 (los eligen las reglas de S2-T04) -->
+    <string name="validacion_rol_sin_elegir">Elige si vienes a contratar o a trabajar</string>
+    <string name="validacion_nombre_vacio">Escribe tu nombre</string>
+    <string name="validacion_nombre_largo">El nombre es demasiado largo</string>
+    <string name="validacion_apellidos_vacio">Escribe tus apellidos</string>
+    <string name="validacion_apellidos_largo">Los apellidos son demasiado largos</string>
+    <string name="validacion_correo_vacio">Escribe tu correo electrónico</string>
+    <string name="validacion_correo_formato">Ese correo no se ve bien, revísalo</string>
+    <string name="validacion_correo_largo">El correo es demasiado largo</string>
+    <string name="validacion_contrasena_corta">Usa al menos 8 caracteres</string>
+    <string name="validacion_telefono_vacio">Escribe tu teléfono</string>
+    <string name="validacion_telefono_digitos">El teléfono lleva 10 dígitos</string>
 </resources>

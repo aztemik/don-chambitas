@@ -1,30 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:endX="85.84757"
-                android:endY="92.4963"
-                android:startX="42.9492"
-                android:startY="49.59793"
-                android:type="linear">
-                <item
-                    android:color="#44000000"
-                    android:offset="0.0" />
-                <item
-                    android:color="#00000000"
-                    android:offset="1.0" />
-            </gradient>
-        </aapt:attr>
-    </path>
+
+    <!-- Sombra sutil bajo el casco -->
     <path
-        android:fillColor="#FFFFFF"
-        android:fillType="nonZero"
-        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
-        android:strokeWidth="1"
-        android:strokeColor="#00000000" />
+        android:fillColor="#1A120A"
+        android:pathData="M33,70 L75,70 C73,73 65,74.5 54,74.5 C43,74.5 35,73 33,70 Z" />
+
+    <!-- Cúpula del casco en color Mostaza (#E0A11B) -->
+    <path
+        android:fillColor="#E0A11B"
+        android:pathData="M34,64 C34,42 42,34 54,34 C66,34 74,42 74,64 Z" />
+
+    <!-- Brillo superior / luz en cúpula -->
+    <path
+        android:fillColor="#FFC857"
+        android:pathData="M37,60 C37,45 44,37 54,37 C57,37 54,42 48,50 C43,56 40,60 37,60 Z" />
+
+    <!-- Cresta central de refuerzo en Mostaza Oscuro (#B37D08) -->
+    <path
+        android:fillColor="#B37D08"
+        android:pathData="M51.5,34 C51.5,44 50.5,56 49.5,64 L58.5,64 C57.5,56 56.5,44 56.5,34 Z" />
+
+    <!-- Insignia frontal en Terracota (#C1440E) -->
+    <path
+        android:fillColor="#C1440E"
+        android:pathData="M51,51 L57,51 C57.5,51 58,51.5 58,52 L58,56 C58,56.5 57.5,57 57,57 L51,57 C50.5,57 50,56.5 50,56 L50,52 C50,51.5 50.5,51 51,51 Z" />
+
+    <!-- Base / contorno de la visera en Mostaza Oscuro (#B37D08) -->
+    <path
+        android:fillColor="#B37D08"
+        android:pathData="M27,64.5 C27,62.5 32,61 38,61 L70,61 C76,61 81,62.5 81,64.5 C81,68 76,71 70,71 L38,71 C32,71 27,68 27,64.5 Z" />
+
+    <!-- Visera frontal y ala perimetral en Mostaza (#E0A11B) -->
+    <path
+        android:fillColor="#E0A11B"
+        android:pathData="M28,63.5 C28,62 33,60.5 39,60.5 L69,60.5 C75,60.5 80,62 80,63.5 C80,66.5 75,69.5 69,69.5 L39,69.5 C33,69.5 28,66.5 28,63.5 Z" />
+
+    <!-- Borde inferior estilizado del casco -->
+    <path
+        android:fillColor="#B37D08"
+        android:pathData="M34,68.5 L74,68.5 C72,70 65,71.5 54,71.5 C43,71.5 36,70 34,68.5 Z" />
+
 </vector>

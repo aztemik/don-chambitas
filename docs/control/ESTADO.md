@@ -3,7 +3,7 @@
 > Archivo **vivo**. Quien termina una tarea lo actualiza. Es la primera cosa
 > que lee el agente y la única fuente confiable sobre qué está pasando hoy.
 
-**Última actualización:** 2026-09-16
+**Última actualización:** 2026-09-22
 
 ---
 
@@ -11,12 +11,37 @@
 
 | Campo | Valor |
 |---|---|
-| Sprint | 1 |
+| Sprint | 2 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 3 |
+| Terminadas | 2 |
 | En curso | 0 |
 | Bloqueadas | 0 |
+
+> Sprint 1 cerrado el 2026-09-20 con sus 16 tareas en `hecha`.
+
+## Qué se puede probar hoy en la aplicación
+
+Léelo antes de instalar el APK y reportar que algo "no funciona". La
+aplicación todavía no autentica a nadie: lo que hay son pantallas conectadas
+al grafo y una fuente de datos en memoria.
+
+| Si haces esto | Pasa esto hoy | Lo arregla |
+|---|---|---|
+| Abres la aplicación | P-01 espera 800 ms y te deja en P-02 | — |
+| Estás en P-02 (iniciar sesión) | Es todavía el marcador de `S1-T12`, no la pantalla real | `S2-T03` |
+| Entras a P-03 desde el marcador de P-02 | La pantalla real de registro, con sus cinco campos y el selector de rol | — |
+| Confirmas el registro **sin elegir rol** | Te reclama el rol y no hace nada más | — |
+| Escribes un correo sin arroba, o una contraseña de un carácter | **Los da por buenos.** No hay ninguna regla de formato ni de longitud | `S2-T04` |
+| Confirmas el registro **con rol** | Te manda a P-05 o P-10. **No se crea ninguna cuenta**: no se llama a `RepositorioAuth`, no se guarda nada, no se comprueba si el correo ya existe | `S2-T05` |
+| Cierras y vuelves a abrir | No hay cuenta que recordar, ni sesión | `S2-T08`, `S2-T09` |
+
+**Cuando `S2-T05` esté hecha, el alta seguirá sin ser real.** Escribirá en
+`FuenteDatosFalsa`, que vive en memoria: vas a poder registrarte y entrar, y
+la cuenta desaparece al reiniciar la aplicación. Cuentas de verdad, contra
+Supabase Auth, son `S2-T07`. `H-10` ya se cerró: `DEC-25` decide que el
+registro deja sesión abierta, así que `S2-T07` va con la confirmación por
+correo de Supabase Auth desactivada.
 
 ## Tarea en curso
 
@@ -32,16 +57,194 @@ _Ninguna._
 
 ## Última tarea terminada
 
-**`S1-T03` — Modelo entidad-relación (ER) completo del sistema.** 2026-09-16.
-Rama `docs/S1-T03-validacion-modelo-er`, pull request **sin abrir todavía**.
+**`S2-T02` — Pantalla de registro con selección de rol (cliente / trabajador).** 2026-09-21.
+Rama `docs/S2-T01-diseno-pantallas-autenticacion`, pull request **sin abrir todavía**.
 
-**Verificado contra el proyecto real, no solo escrito.** `01` a `04` sin error,
-`90_verificacion.sql` **42 de 42**, `91_prueba_funcional.sql` **25 de 25** y el
-paso 2c **10 de 10** con la `anon key` y cuatro sesiones reales contra
-PostgREST. El proyecto compila y la prueba unitaria pasa; no se tocó ni una
-línea de Kotlin.
+**También se trabajó sin ticket**, con la misma autorización del líder del 2026-09-21. El alcance se tomó de las secciones 1, 3 y 7 de `docs/producto/DISENO-AUTENTICACION.md`.
 
-Lo que deja:
+Implementación de P-03 conforme a esa especificación:
+- `ui/pantallas/EstadoRegistro.kt`: estado inmutable con los seis valores de captura, el rol y un identificador de recurso por cada error de campo. Los mensajes viajan como `@StringRes Int?` y no como texto, para que ninguna cadena de interfaz viva fuera de `strings.xml`. `LimitesRegistro` fija los topes de captura con los de `public.usuarios` (80, 120, 160 y 10 dígitos).
+- `ui/pantallas/RegistroPantalla.kt`: `RegistroPantalla` con el estado local —provisional hasta que `S2-T05` traiga el ViewModel— y `RegistroContenido`, el contenido visual puro. Selector de rol de dos `ChipCategoria` sin preselección (`DEC-22`), los cinco campos con su teclado y su acción de avance, ayuda de contraseña siempre visible, error en línea que no tapa el formulario, y `rememberSaveable` que conserva lo capturado al girar el dispositivo. Cuatro `@Preview`: vacío, con errores, cargando y correo duplicado.
+- `ui/navegacion/GrafoNavegacion.kt`: sustitución del marcador de P-03 por la pantalla real. El alta marca la sesión con el mecanismo temporal de `S1-T12` y navega a P-05 o P-10 limpiando la pila del subgrafo de autenticación.
+- `strings.xml`: 24 cadenas nuevas con las claves que fijó `S2-T01`.
+- Verificación del proyecto:
+  - Compilación exitosa (`./gradlew assembleDebug`).
+  - 57 pruebas unitarias pasando (`./gradlew testDebugUnitTest`).
+  - 16 pruebas instrumentadas pasando, 0 fallas (`./gradlew connectedDebugAndroidTest`): las 5 de `S1-T16` y 11 nuevas en `RegistroPantallaTest`.
+  - Recorrido a mano en emulador `emulator-5554`: confirmar sin rol reclama el rol, elegirlo limpia el mensaje, el teléfono descarta lo que no sea dígito y corta en 10 (`477-12ab34x5678901` quedó en `4771234567`), y el alta como trabajador entra a P-10 con el botón atrás cerrando la aplicación. Sin excepciones en logcat.
+- **Lo que esta tarea NO trae, por estar en la cola aparte:** las reglas de validación de formato y longitud con sus mensajes son `S2-T04`, y el ViewModel contra `RepositorioAuth` es `S2-T05`. Lo único que la pantalla decide hoy es exigir el rol, que es el título de la tarea.
+- **Desvío de `CONVENCIONES.md`: las dos tareas van en la misma rama.** `S2-T02` se trabajó sobre `docs/S2-T01-diseno-pantallas-autenticacion` en vez de abrir `feat/S2-T02-pantalla-registro`. La regla es rama por tarea y pull request por tarea; aquí sale un solo pull request con las dos. Los commits sí llevan su `S2-T01` o `S2-T02` en el scope, así que se pueden separar después si el líder lo prefiere.
+- **Se actualizó Espresso de 3.6.1 a 3.7.0 y `androidx.test.ext:junit` de 1.2.1 a 1.3.0.** No es parte de la tarea: las 5 pruebas instrumentadas de `S1-T16` ya venían fallando en la imagen actual del emulador porque Espresso 3.6.1 llama por reflexión a `InputManager.getInstance`, que ya no existe. Con la actualización las 16 pasan.
+
+**`S2-T01` — Diseño de las pantallas de registro, inicio de sesión y recuperación.** 2026-09-21.
+Rama `docs/S2-T01-diseno-pantallas-autenticacion`, pull request **sin abrir todavía**.
+
+**Se trabajó sin ticket.** `docs/tareas/S2-T01.md` no existe —los tickets del Sprint 2 no se han redactado— y el líder autorizó avanzar sin él el 2026-09-21. El alcance acordado quedó escrito en la sección 0 del entregable y hace las veces de ticket.
+
+Especificación de detalle de P-02, P-03 y P-04, que convierte los wireframes de `S1-T14` en algo implementable sin volver a decidir nada:
+- `docs/producto/DISENO-AUTENTICACION.md`: documento nuevo, diez secciones.
+  - Reglas comunes a las tres pantallas: esqueleto con medidas, scroll e `imePadding()` obligatorios, catálogo cerrado de componentes, cuándo se valida, normalización previa al envío, teclado y orden de foco, accesibilidad.
+  - Los cuatro estados por pantalla, con el estado vacío declarado **no aplicable** en las tres y el porqué: son formularios, no listan datos. El cargando va dentro del `BotonPrincipal`, no a pantalla completa, para que HU-02 pueda conservar lo escrito.
+  - Anatomía de arriba hacia abajo de cada pantalla, contrato de `Estado...` y lista de eventos con los nombres de `CONVENCIONES.md` (`EstadoIniciarSesion`, `EstadoRegistro`, `EstadoRecuperarContrasena`).
+  - Matriz de cada resultado posible de `RepositorioAuth` contra lo que ve el usuario, en las tres pantallas.
+  - Validaciones campo por campo con mensaje y clave, usando **la misma expresión regular** que `ck_usuario_correo_valido` en el esquema, y con los topes de longitud de `public.usuarios` aplicados en el propio campo.
+  - Las 39 cadenas nuevas de `strings.xml` con su clave definitiva, para que `S2-T02`, `S2-T03`, `S2-T04` y `S2-T10` no inventen tres nombres distintos para lo mismo.
+  - Navegación entre las tres, con `popBackStack` en los regresos y limpieza de la pila del subgrafo al entrar.
+- `docs/producto/WIREFRAMES.md`: nota al inicio que enlaza el documento nuevo y deslinda qué resuelve cada uno.
+- Verificación del proyecto:
+  - Compilación exitosa (`./gradlew assembleDebug`).
+  - 57 pruebas unitarias pasando, 0 fallas (`./gradlew testDebugUnitTest`).
+  - Instalación y arranque limpio en emulador `emulator-5554` (`Displayed MainActivity`, sin excepciones en logcat).
+- **No se escribió código:** la tarea es de diseño. Las pantallas las construyen `S2-T02`, `S2-T03` y `S2-T10`; los ViewModels, `S2-T05`; las validaciones, `S2-T04`.
+- **Dos hallazgos nuevos para el líder, `H-09` y `H-10`.** Están al final del documento y se repiten abajo. `H-10` se cerró el 2026-09-22 con `DEC-25`; `H-09` sigue abierto.
+
+**`S1-T16` — Estrategia de pruebas y configuración de las pruebas base (JUnit / Compose test).** 2026-09-20.
+Rama `test/S1-T16-estrategia-pruebas`, pull request **sin abrir todavía**.
+
+Configuración completa de la infraestructura, utilidades y documentación de pruebas según `CONVENCIONES.md` y `ARQUITECTURA.md`:
+- `docs/tecnico/PRUEBAS.md`: Documento maestro de estrategia de pruebas definiendo qué se prueba (ViewModels, dominio, repositorios falsos, interacción UI) y qué no (Composables pasivos, código generado), convenciones `debe..._cuando...`, comandos de ejecución y generación de reportes de cobertura JaCoCo.
+- `app/src/test/.../util/ReglaCorrutinas.kt`: Regla de JUnit 4 (`TestWatcher`) para pruebas unitarias que reemplaza `Dispatchers.Main` con `StandardTestDispatcher`, proveyendo `testDispatcher` y `testScope` sin requerir el Looper de Android.
+- `app/src/test/.../util/DatosPrueba.kt`: Fábrica con valores por defecto y argumentos con nombre para todas las entidades principales (`Usuario`, `PerfilTrabajador`, `PerfilHabilidad`, `Servicio`, `ServicioFoto`, `Solicitud`, `Postulacion`, `Conversacion`, `Mensaje`, `Resena`, `Categoria`, `Estado`, `Municipio`, `Sesion`, etc.).
+- `app/src/test/.../util/DatosPruebaTest.kt`: Pruebas unitarias para validar `DatosPrueba` y la ejecución en el despachador principal mediante `ReglaCorrutinas`.
+- `app/src/test/.../ui/pantallas/SplashViewModelTest.kt`: Actualizado para utilizar `ReglaCorrutinas` y la convención de nomenclatura `debe..._cuando...`, funcionando como plantilla oficial para ViewModels con corrutinas.
+- `app/src/androidTest/.../ui/componentes/ComponentesTest.kt`: 4 pruebas instrumentadas en Jetpack Compose (`createComposeRule`) validando renderizado y eventos de `BotonPrincipal`, `CampoTexto` y `EstadoVacio`.
+- `app/build.gradle.kts`: Activación de `enableUnitTestCoverage = true` y `enableAndroidTestCoverage = true` en el build type `debug` para soportar las tareas de reporte JaCoCo (`createDebugUnitTestCoverageReport` y `createDebugCoverageReport`).
+- Verificación del proyecto:
+  - 57 pruebas unitarias pasando (`./gradlew testDebugUnitTest`).
+  - 5 pruebas instrumentadas pasando en emulador (`./gradlew connectedDebugAndroidTest`).
+  - Reporte de cobertura generado exitosamente (`./gradlew createDebugUnitTestCoverageReport`).
+  - Compilación exitosa (`./gradlew assembleDebug`).
+  - Instalación y ejecución interactiva limpia en emulador `emulator-5554` (`Displayed MainActivity`).
+
+**`S1-T15` — Pantalla de bienvenida (splash).** 2026-09-20.
+Rama `feat/S1-T15-pantalla-splash`, pull request **sin abrir todavía**.
+
+Implementación completa de P-01 (Splash) según `PANTALLAS.md`, `WIREFRAMES.md` y `DISENO.md`:
+- `ui/pantallas/EstadoSplash.kt`: Data class de estado inmutable con propiedades `cargando: Boolean` y `destino: Ruta?`.
+- `ui/pantallas/SplashViewModel.kt`: ViewModel con `@HiltViewModel` que consulta el estado de sesión temporal (según S1-T12 hasta S2-T09) e impone un retraso mínimo de 800 ms para evitar parpadeos, resolviendo los tres destinos posibles:
+  - Sin sesión -> `P-02` (Iniciar sesión)
+  - Cliente -> `P-05` (Inicio cliente)
+  - Trabajador -> `P-10` (Inicio trabajador)
+- `ui/pantallas/SplashPantalla.kt`: Composable con fondo `Crema` (`#FFFDF8`), isotipo del casco oficial de seguridad Don Chambitas, nombre de aplicación en `Carbon` (negrita), eslogan "Tu oficio, tu chamba" en `Cafe`, e indicador circular `Cargando` en color `Mostaza` (48 dp) con etiqueta "Verificando sesión…".
+- `ui/navegacion/GrafoNavegacion.kt`: Sustitución del marcador provisional por `SplashPantalla`, saliendo de la pila de navegación con `popUpTo(Ruta.Splash.ruta) { inclusive = true }` de modo que presionar el botón Atrás desde el destino cierra la aplicación.
+- `themes.xml` y `colors.xml`: Configuración de `android:windowBackground` con `color_crema` (`#FFFDF8`) eliminando cualquier parpadeo de fondo blanco antes de renderizar Compose.
+- Pruebas unitarias: 7 pruebas unitarias nuevas en `SplashViewModelTest.kt` cubriendo estados iniciales, resolución de destinos y temporizador mínimo (51 pruebas totales en el proyecto pasando limpiamente).
+- Compilación (`./gradlew assembleDebug`), instalación y verificación interactiva en emulador `emulator-5554` comprobando arranque en Splash, transición a destino y cierre limpio con botón Atrás.
+
+**`S1-T14` — Wireframes de las pantallas de autenticación e inicio.** 2026-09-20.
+Rama `docs/S1-T14-wireframes-pantallas`, pull request **sin abrir todavía**.
+
+Diseño y documentación completa de las pantallas para el arranque del Sprint 2 conforme a `PANTALLAS.md` y `DISENO.md`:
+- `docs/producto/wireframes/`:
+  - 11 wireframes vectorizados a escala móvil estándar **360 × 800 dp** con la paleta oficial **Taller** (Mostaza, MostazaOscuro, Terracota, Carbon, Cafe, Crema, Arena, Borde y semánticos Exito, Advertencia y Error):
+    - `P-01-splash.png`: Splash con casco de seguridad, slogan y widget de carga.
+    - `P-02-iniciar-sesion.png`: Login con campos de captura, visibilidad y enlaces de navegación.
+    - `P-03-registro.png`: Alta de cuenta con selector de rol único (`ChipCategoria`), 5 campos y enlaces.
+    - `P-04-recuperar.png`: Formulario de recuperación de contraseña con aviso de vigencia (24h).
+    - `P-05-inicio-cliente.png`: Inicio cliente con buscador, chips de oficios, tarjetas de trabajadores con estrellas, botón flotante "+ Publicar solicitud" y barra inferior de 4 destinos.
+    - `P-05-vacio.png`: Estado vacío de búsqueda con icono, explicación y acción de limpiar filtros.
+    - `P-05-error.png`: Estado error con icono de advertencia, mensaje explicativo y botón de reintentar.
+    - `P-10-inicio-trabajador.png`: Inicio trabajador con filtro de oficios, tarjetas de solicitudes abiertas, etiqueta de estado y barra inferior.
+    - `P-10-vacio.png`: Estado vacío de solicitudes por categoría con sugerencias y botón de ver todas.
+    - `P-10-error.png`: Estado error con mensaje de reintento.
+    - `P-18-cuenta.png`: Mi cuenta con cabecera de perfil, badge de rol, acciones de configuración y cierre de sesión.
+  - Cada zona cuenta con anotaciones exactas de componentes (`BarraSuperior`, `BarraInferior`, `BotonPrincipal`, `BotonSecundario`, `BotonDestacado`, `BotonTexto`, `CampoTexto`, `CampoContrasena`, `TarjetaTrabajador`, `TarjetaSolicitud`, `ChipCategoria`, `Estrellas`, `EtiquetaEstado`, `Cargando`, `EstadoVacio`, `EstadoError`). Cero componentes ajenos a `DISENO.md`.
+- `docs/producto/WIREFRAMES.md`:
+  - Índice maestro con tabla resumen, imágenes incrustadas, desglose de componentes por zona y documentación exhaustiva del comportamiento de cada elemento tocable (eventos al pulsar, navegación, validaciones y cambios de estado).
+- Verificación del proyecto:
+  - Pruebas unitarias pasando limpiamente (44 pruebas, `./gradlew testDebugUnitTest`).
+  - Compilación exitosa (`./gradlew assembleDebug`).
+  - Instalación y ejecución interactiva limpia en emulador `emulator-5554` (`Displayed MainActivity`).
+
+**`S1-T13` — Interfaces de repositorio y fuente de datos falsa (fake) para desbloquear la UI.** 2026-09-20.
+Rama `feat/S1-T13-repositorios-falsos`, pull request **sin abrir todavía**.
+
+Implementación completa de la capa de datos en memoria y contratos de repositorio según `ARQUITECTURA.md` y `CONTRATOS-API.md`:
+- `dominio/repositorio/`:
+  - 10 interfaces de dominio puras (`RepositorioAuth`, `RepositorioUsuario`, `RepositorioTrabajador`, `RepositorioServicios`, `RepositorioSolicitudes`, `RepositorioPostulaciones`, `RepositorioChat`, `RepositorioResenas`, `RepositorioCatalogos`, `RepositorioIa`) con métodos `suspend` devolviendo `Resultado<T>` y `Flow` reactivo para sesiones y mensajes. Cero dependencias de Android o Supabase.
+- `dominio/modelo/ModelosRepositorio.kt`:
+  - Modelos de soporte de dominio (`Sesion`, `PerfilPublicoTrabajador`, `CalificacionTrabajador`, `ServicioPublico`, `ResenaPublica`, `FiltrosBusquedaTrabajadores`, `ResumenTrabajadorBusqueda`, `DetalleSolicitud`, `ResultadoIa`).
+- `datos/falso/`:
+  - `FuenteDatosFalsa.kt`: Singleton en memoria con semillero coherente de `04_datos_semilla.sql` (16 categorías, 32 estados, 26 municipios, 8 trabajadores completos con servicios y fotos, 2 clientes, 5 solicitudes en estados abierta/asignada/cerrada/cancelada, 3 chats con mensajes y reseñas válidas respetando las restricciones relacionales del esquema).
+  - 10 implementaciones falsas correspondientes (`Repositorio*Falso`) aplicando simulación de latencia de red (300 ms) y propiedad `errorForzado: TipoError?` para pruebas de `EstadoError`.
+- `di/ModuloRepositorios.kt`:
+  - Módulo de Hilt vinculando las 10 interfaces de dominio a sus implementaciones falsas con `@Binds` en `SingletonComponent`. Único archivo a modificar cuando entren las implementaciones reales.
+- Pruebas unitarias:
+  - 10 pruebas unitarias nuevas en `RepositoriosFalsosTest.kt` cubriendo las 10 implementaciones, validaciones de negocio, operaciones atómicas (aceptar postulación) y control de errores (44 pruebas totales en el proyecto pasando limpiamente).
+  - Compilación (`./gradlew assembleDebug`), instalación y ejecución limpia en emulador Pixel 8 Pro.
+
+**`S1-T12` — Navegación con Navigation Compose y definición del grafo de rutas.** 2026-09-20.
+Rama `feat/S1-T12-navegacion-compose`, pull request **sin abrir todavía**.
+
+Implementación completa de la arquitectura de navegación en Jetpack Compose según `ARQUITECTURA.md`, `PANTALLAS.md` y `DISENO.md`:
+- `Rutas.kt`:
+  - Las 19 rutas del sistema modeladas con la clase sellada `Ruta` (`P-01` a `P-19`), con identificadores únicos, títulos y argumentos fuertemente tipados (`NavType.StringType`, nulabilidad y valores por defecto).
+  - Subgrafos definidos en `Subgrafo`: `Autenticacion`, `Cliente`, `Trabajador`.
+  - Cero cadenas de ruta sueltas fuera de `Rutas.kt` (verificado con `grep` y pruebas unitarias).
+  - Las 8 pantallas que se abren encima y no muestran barra inferior registradas en `PANTALLAS_ENCIMA`.
+  - Sistema de guardas de navegación reactivo (`resolverGuarda` y `MarcadorSesionTemporal`) con control temporal de rol (Sin sesión, Cliente, Trabajador):
+    - Sin sesión: cualquier ruta privada redirige a `P-02` (Iniciar sesión).
+    - Con sesión Cliente: las rutas de trabajador redirigen a `P-05` (Inicio cliente).
+    - Con sesión Trabajador: las rutas de cliente redirigen a `P-10` (Inicio trabajador).
+- `BarraInferiorCliente.kt`: Barra inferior con exactamente 4 destinos para Cliente (`Inicio` P-05, `Solicitudes` P-09, `Chats` P-15, `Cuenta` P-18) con indicador Mostaza e iconos Carbon/Cafe.
+- `BarraInferiorTrabajador.kt`: Barra inferior con exactamente 4 destinos para Trabajador (`Inicio` P-10, `Servicios` P-12, `Chats` P-15, `Cuenta` P-18).
+- `GrafoNavegacion.kt`:
+  - Grafo completo con tres subgrafos y pantallas compartidas.
+  - Botón flotante (+) en `P-05` (Inicio cliente) que navega a `P-08` (Publicar solicitud).
+  - Marcador interactivo para las 19 pantallas con información de ruta, argumentos recibidos, conmutador de sesión en tiempo real, pruebas de guardas y mapa completo de navegación.
+  - Botón de regreso del sistema integrado con `Scaffold` y `BarraSuperior`.
+- `MainActivity.kt`: Envoltorio limpio llamando a `GrafoNavegacion()` dentro de `DonChambitasTema`.
+- 9 pruebas unitarias nuevas en `NavegacionTest.kt` (34 pruebas totales en el proyecto pasando limpiamente), compilación (`./gradlew assembleDebug`), instalación y verificación interactiva en emulador (`emulator-5554`).
+
+**`S1-T11` — Componentes de estado: carga, vacío, error y mensajes al usuario.** 2026-09-20.
+Rama `feat/S1-T11-componentes-estado`, pull request **sin abrir todavía**.
+
+Construcción completa de los componentes de estado y el patrón de pantalla con datos según `DISENO.md` y `ARQUITECTURA.md`:
+- `Estados.kt`:
+  - `Cargando`: Indicador circular centrado en color Mostaza (48 dp) y mensaje opcional, con descripción semántica de accesibilidad.
+  - `EstadoVacio`: Icono grande (56 dp en color Cafe), título (subtítulo en Carbon), mensaje (cuerpo en Cafe) y botón opcional (`BotonPrincipal`). Soporta valores por defecto desde `strings.xml`.
+  - `EstadoError`: Icono de advertencia en color Error, título (subtítulo en Carbon), mensaje de error que dice qué hacer derivado de cada `TipoError` (o mensaje personalizado) y botón de reintentar opcional (`BotonPrincipal` con texto "Reintentar").
+  - Mapeo de `TipoError` a recursos de cadenas (`obtenerMensajeErrorRes` y `obtenerTituloErrorRes`), garantizando mensajes distintos orientados a la acción para `RED`, `AUTENTICACION`, `VALIDACION`, `LIMITE_IA`, `SERVIDOR` y `DESCONOCIDO`.
+- `ContenedorEstado.kt`:
+  - `ContenedorEstado`: Patrón de pantalla con datos que recibe `cargando`, `error` (`TipoError?`), `vacio`, `alReintentar` y `contenido`. Utiliza `resolverEstadoVisual` para garantizar orden de precedencia estricto (cargando > error > vacío > contenido) asegurando que ningún estado se pinte encima de otro. Permite personalización total mediante slots de vista.
+- `strings.xml`: Cadenas agregadas para reintentar, títulos de error y mensajes explicativos por `TipoError` centrados en la acción.
+- 8 pruebas unitarias nuevas en `EstadosTest.kt` (25 pruebas totales en el proyecto pasando limpiamente), compilación (`./gradlew assembleDebug`), instalación y verificación en emulador.
+
+**`S1-T10` — Componentes reutilizables base (botones, campos de texto, tarjetas, chips).** 2026-09-20.
+Rama `feat/S1-T10-componentes-base`, pull request **sin abrir todavía**.
+
+Construcción completa de los 14 componentes reutilizables base de la tabla de `DISENO.md` dentro de `mx.donchambitas.app.ui.componentes`:
+- `Botones.kt`: `BotonPrincipal` (Mostaza con texto Carbon 7.09:1 WCAG AAA), `BotonSecundario` (contorno Mostaza Oscuro), `BotonDestacado` (Terracota con texto blanco 5.12:1 WCAG AA) y `BotonTexto` (sin fondo, texto Mostaza Oscuro). Soportan estados `habilitado` y `cargando` con indicador de progreso y bloqueo táctil.
+- `Campos.kt`: `CampoTexto` (fondo Arena, contorno Borde/Mostaza Oscuro y texto de error en color Error) y `CampoContrasena` (con alternador de visibilidad e iconos de ojo).
+- `Estrellas.kt`: `Estrellas` en color Terracota permitiendo media estrella en modo lectura con iconos vectoriales y descripción de accesibilidad.
+- `Chips.kt`: `ChipCategoria` (Mostaza activo con texto Carbon, Arena inactivo con borde) y `EtiquetaEstado` con los cuatro colores de estado (`abierta` en Exito, `asignada` en Advertencia con texto Carbon, `cerrada` en Cafe, `cancelada` en Error con texto blanco).
+- `Barras.kt`: `BarraSuperior` (fondo Mostaza, texto Carbon, flecha de regreso opcional) y `BarraInferior` (4 destinos: Inicio, Buscar, Solicitudes, Perfil con indicador en Mostaza e iconos Carbon/Cafe).
+- `Tarjetas.kt`: `TarjetaTrabajador` (foto, nombre, oficio, estrellas, municipio), `TarjetaServicio` (foto, titulo, categoria, precio) y `TarjetaSolicitud` (titulo, categoria, presupuesto, estado, fecha).
+- Cada componente acepta `modifier: Modifier = Modifier` como último parámetro con valor por defecto, no importa capas de repositorio ni datos, no contiene colores literales y cuenta con su `@Preview` funcional.
+- 17 pruebas unitarias pasando (`./gradlew testDebugUnitTest`), compilación (`./gradlew assembleDebug`) e instalación/ejecución limpia en emulador Pixel 8 Pro.
+
+**`S1-T09` — Sistema de diseño en Jetpack Compose (Theme, Color, Typography, Shape).** 2026-09-20.
+Rama `feat/S1-T09-sistema-diseno`, pull request **sin abrir todavía**.
+
+Implementación completa de la paleta Taller como tema de Jetpack Compose (`DonChambitasTema`) en `mx.donchambitas.app.ui.tema`.
+- `Color.kt`: los 8 colores de la paleta (`Mostaza`, `MostazaOscuro`, `Terracota`, `Carbon`, `Cafe`, `Crema`, `Arena`, `Borde`) y 3 semánticos (`Exito`, `Advertencia`, `Error`), más `Blanco`. Ni una sola declaración de `Color(0xFF...)` fuera de este archivo.
+- `Tema.kt`: `ColorScheme` de Material 3 con `onPrimary` mapeado obligatoriamente a `Carbon` (relación 7.09:1 WCAG AAA), `secondary` a `Terracota` con `onSecondary` en blanco, `background` en `Crema`, `surface` en `Arena` con `onSurface` en `Carbon`, `outline` en `Borde` y `error` en `Error`.
+- `Tipografia.kt`: los 6 estilos tipográficos de `DISENO.md` (`titulo`, `subtitulo`, `cuerpoFuerte`, `cuerpo`, `secundario`, `pie`) con la fuente del sistema, integrados en `Typography` de Material 3 y accesibles vía propiedades de extensión.
+- `Espaciado.kt`: escala base de 4 (`dp4` a `dp48`) y valores semánticos (`margenPantalla`, `separacionTarjetas`, `rellenoTarjeta`).
+- `Formas.kt`: `Shapes` de Material 3 y formas de componentes (botones y campos 12 dp, tarjetas 16 dp, chips círculo, hoja inferior 20 dp).
+- `MainActivity.kt`: envuelta en `DonChambitasTema`, arrancando con fondo Crema verificado en emulador.
+- Pruebas unitarias en `TemaTest.kt` comprobando los contrastes obligatorios, la escala de tipografía y espaciado. Compilación (`./gradlew assembleDebug`) y pruebas (`./gradlew testDebugUnitTest`) exitosas.
+
+**`S1-T08` — Identidad visual: paleta de colores, tipografía e iconografia.** 2026-09-20.
+Rama `feat/S1-T08-identidad-visual`, pull request **sin abrir todavía**.
+
+Cierre y documentación completa de la identidad visual de la aplicación. Tabla exhaustiva de relaciones de contraste WCAG 2.1 (Carbon sobre Mostaza 7.09:1 pasa AAA, Blanco sobre Mostaza 2.26:1 falla y queda prohibido). Diseño del logotipo vectorial legible a 48 dp en `docs/tecnico/recursos/logo.svg`. Lámina visual de la paleta Taller y reglas de aplicación en `docs/tecnico/recursos/muestra-paleta.png`. Asignación formal de los 16 iconos de oficios con Material Icons Outlined en `docs/tecnico/DISENO.md` y reemplazo total de los nombres provisionales Tabler en `basedatos/04_datos_semilla.sql`. Icono adaptativo vectorial (background y foreground con casco de seguridad en Mostaza) e iconos rasterizados en todas las densidades de mipmap (mdpi, hdpi, xhdpi, xxhdpi, xxxhdpi) para versión estándar y redonda. Probado e inspeccionado exitosamente en emulador Pixel 8 Pro (lanzador, cajón de apps y ajustes del sistema). Compilación (`./gradlew assembleDebug`) y pruebas unitarias (`./gradlew testDebugUnitTest`) exitosas.
+
+**`S1-T07` — Diccionario de datos y modelado de entidades en Kotlin (data classes).** 2026-09-20.
+Rama `feat/S1-T07-modelado-entidades`, pull request **sin abrir todavía**.
+
+Modelado completo de las entidades del esquema relacional en Kotlin dentro de `mx.donchambitas.app.dominio.modelo` (`Usuario`, `PerfilTrabajador`, `PerfilHabilidad`, `Servicio`, `ServicioFoto`, `Solicitud`, `Postulacion`, `Conversacion`, `Mensaje`, `Resena`, `Estado`, `Municipio`, `Categoria`) y los 4 tipos enumerados exactos (`RolUsuario`, `EstadoSolicitud`, `EstadoPostulacion`, `FuncionIa`). Mapeo estricto de tipos (`UUID` a `String`, `TIMESTAMPTZ` a `Instant`, `NUMERIC(10,2)` a `BigDecimal`, `SMALLINT`/`SERIAL` a `Int`) y nulabilidad correspondiente. Sin anotaciones de serialización ni dependencias de `supabase-kt` o `android.*`. Documentado en `docs/tecnico/DICCIONARIO-DATOS.md`. Pruebas unitarias en `ModelosTest.kt`. Compilación (`./gradlew assembleDebug`), pruebas unitarias (`./gradlew testDebugUnitTest`) e instalación y ejecución en emulador Pixel 8 Pro exitosas.
+
 
 - **El diagrama**, en `docs/tecnico/diagrama-er.png`, con su generador al lado.
 - **El cruce de las 33 historias contra las tablas**, en `MODELO-ER.md`.
@@ -98,8 +301,31 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S1-T04` — Configuración del proyecto Android (Gradle, Kotlin, Compose, Hilt)
-(prioridad 900, sin dependencias)
+`S2-T03` — Pantalla de inicio de sesión
+(prioridad 950, sprint 2, depende de: S1-T10, S1-T12, las dos hechas)
+
+Su diseño ya está escrito: secciones 1, 2 y 7 de
+`docs/producto/DISENO-AUTENTICACION.md`. **Tampoco tiene ticket.**
+
+## Un hueco que todavía espera al líder
+
+Salen de `S2-T01`, de cruzar HU-01 y HU-04 contra `CONTRATOS-API.md`. Están
+explicados al final de `docs/producto/DISENO-AUTENTICACION.md`.
+
+- **`H-09` — El segundo tramo de HU-04 no tiene pantalla. SIGUE ABIERTO.**
+  Definir la contraseña nueva desde el enlace del correo no es ninguna de las
+  19 pantallas. O el enlace abre la página alojada de Supabase —y se anota en
+  HU-04 para que nadie la busque— o abre la aplicación por *deep link*, y
+  entonces hacen falta pantalla y tarea nuevas. **Conviene cerrarlo antes de
+  `S2-T07`.** No frena a `S2-T03`.
+- **`H-10` — CERRADO el 2026-09-22 por `DEC-25`.** El registro deja sesión
+  abierta: el usuario entra directo a la pantalla de su rol y la sesión vive
+  hasta que él la cierre. Dos consecuencias que `S2-T06` y `S2-T07` tienen que
+  respetar: la confirmación por correo de Supabase Auth **queda desactivada**,
+  porque con ella activa `signUp` no abre sesión; y `registrar` pasa a devolver
+  `Sesion` en vez de `Usuario`, así que `CONTRATOS-API.md` y `RepositorioAuth`
+  cambian en `S2-T06`.
+
 
 ## Decisiones recientes
 

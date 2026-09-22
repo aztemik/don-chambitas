@@ -52,6 +52,21 @@ Android Studio y según el sistema operativo.
 Rama por tarea, pull request por tarea. `main` protegida: nadie empuja directo,
 ni el líder.
 
+### Repositorio
+
+- **Nombre:** `don-chambitas` (organización / usuario: `aztemik/don-chambitas`)
+- **URL:** `https://github.com/aztemik/don-chambitas`
+- **URL de clonación:** `https://github.com/aztemik/don-chambitas.git`
+
+### Protección de la rama main
+
+En GitHub (`Settings > Branches` o `Settings > Rules`):
+1. **Rama objetivo:** `main`.
+2. **Requerir pull request para integrar:** al menos 1 aprobación requerida (`Require approvals: 1`).
+3. **Revisión obligatoria de propietarios:** `Require review from Code Owners` activo para que el líder revise todo PR.
+4. **Sin excepciones:** `Do not allow bypassing the above settings` marcado (aplica también al líder y administradores).
+5. **Sin force push ni eliminaciones:** bloqueado para todos los colaboradores.
+
 Nomenclatura completa en `docs/tecnico/CONVENCIONES.md`.
 
 Si `main` avanzó mientras trabajabas: `git rebase main`, resuelves y vuelves a

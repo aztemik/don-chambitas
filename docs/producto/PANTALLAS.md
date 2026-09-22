@@ -156,7 +156,8 @@ costo extra, porque HU-06 obliga al trabajador a capturar estado y municipio, y
 filtrar por catálogo no es "mapas y geolocalización", que es lo que quedó
 fuera. Se corrigieron `PRODUCTO.md`, el renglón de P-06 y el título de `S4-T05`
 en `INDICE.md`; HU-18 y HU-17 se quedaron como estaban. Ojo al implementar:
-`PEND-02` sigue abierto, así que hoy solo hay 26 municipios sembrados.
+`PEND-02` se cerró el 2026-09-22 (`DEC-26`) y los 26 municipios sembrados son
+los definitivos, así que el desplegable de municipio se llena con esos.
 
 **H-02 · P-06 no mencionaba el ordenamiento ni la paginación que HU-18 exige.**
 No era alcance nuevo —`S4-T07` ya los cubre como tarea—, era la descripción de
