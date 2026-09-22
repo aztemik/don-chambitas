@@ -39,7 +39,9 @@ al grafo y una fuente de datos en memoria.
 **Cuando `S2-T05` esté hecha, el alta seguirá sin ser real.** Escribirá en
 `FuenteDatosFalsa`, que vive en memoria: vas a poder registrarte y entrar, y
 la cuenta desaparece al reiniciar la aplicación. Cuentas de verdad, contra
-Supabase Auth, son `S2-T07`, y esa depende de que se cierre `H-10`.
+Supabase Auth, son `S2-T07`. `H-10` ya se cerró: `DEC-25` decide que el
+registro deja sesión abierta, así que `S2-T07` va con la confirmación por
+correo de Supabase Auth desactivada.
 
 ## Tarea en curso
 
@@ -94,7 +96,7 @@ Especificación de detalle de P-02, P-03 y P-04, que convierte los wireframes de
   - 57 pruebas unitarias pasando, 0 fallas (`./gradlew testDebugUnitTest`).
   - Instalación y arranque limpio en emulador `emulator-5554` (`Displayed MainActivity`, sin excepciones en logcat).
 - **No se escribió código:** la tarea es de diseño. Las pantallas las construyen `S2-T02`, `S2-T03` y `S2-T10`; los ViewModels, `S2-T05`; las validaciones, `S2-T04`.
-- **Dos hallazgos nuevos para el líder, `H-09` y `H-10`, ninguno resuelto.** Están al final del documento y se repiten abajo.
+- **Dos hallazgos nuevos para el líder, `H-09` y `H-10`.** Están al final del documento y se repiten abajo. `H-10` se cerró el 2026-09-22 con `DEC-25`; `H-09` sigue abierto.
 
 **`S1-T16` — Estrategia de pruebas y configuración de las pruebas base (JUnit / Compose test).** 2026-09-20.
 Rama `test/S1-T16-estrategia-pruebas`, pull request **sin abrir todavía**.
@@ -305,23 +307,24 @@ explicados al final de `MODELO-ER.md`.
 Su diseño ya está escrito: secciones 1, 2 y 7 de
 `docs/producto/DISENO-AUTENTICACION.md`. **Tampoco tiene ticket.**
 
-## Dos huecos nuevos que esperan al líder
+## Un hueco que todavía espera al líder
 
 Salen de `S2-T01`, de cruzar HU-01 y HU-04 contra `CONTRATOS-API.md`. Están
 explicados al final de `docs/producto/DISENO-AUTENTICACION.md`.
 
-- **`H-09` — El segundo tramo de HU-04 no tiene pantalla.** Definir la
-  contraseña nueva desde el enlace del correo no es ninguna de las 19
-  pantallas. O el enlace abre la página alojada de Supabase —y se anota en
+- **`H-09` — El segundo tramo de HU-04 no tiene pantalla. SIGUE ABIERTO.**
+  Definir la contraseña nueva desde el enlace del correo no es ninguna de las
+  19 pantallas. O el enlace abre la página alojada de Supabase —y se anota en
   HU-04 para que nadie la busque— o abre la aplicación por *deep link*, y
   entonces hacen falta pantalla y tarea nuevas. **Conviene cerrarlo antes de
-  `S2-T07`.**
-- **`H-10` — No está decidido si el registro deja sesión abierta.** HU-01 da
-  por hecho que sí, pero `registrar` devuelve `Usuario`, no `Sesion`, y con la
-  confirmación por correo activa en Supabase Auth el `signUp` no abre sesión.
-  El diseño contempla las dos ramas para no frenar a `S2-T02`, pero la
-  decisión es de producto. **Le toca a `S2-T06` recogerla y a `S2-T07`
-  implementarla.**
+  `S2-T07`.** No frena a `S2-T03`.
+- **`H-10` — CERRADO el 2026-09-22 por `DEC-25`.** El registro deja sesión
+  abierta: el usuario entra directo a la pantalla de su rol y la sesión vive
+  hasta que él la cierre. Dos consecuencias que `S2-T06` y `S2-T07` tienen que
+  respetar: la confirmación por correo de Supabase Auth **queda desactivada**,
+  porque con ella activa `signUp` no abre sesión; y `registrar` pasa a devolver
+  `Sesion` en vez de `Usuario`, así que `CONTRATOS-API.md` y `RepositorioAuth`
+  cambian en `S2-T06`.
 
 
 ## Decisiones recientes

@@ -701,6 +701,11 @@ Las guardas de `S1-T12` ya mandan cualquier ruta privada a P-02 sin sesión, y
 Los dos salen de cruzar HU-01 y HU-04 contra `CONTRATOS-API.md` y
 `RepositorioAuth`. **Ninguno se resolvió aquí**, conforme a AGENTS.md §9.
 
+> **Al 2026-09-22: `H-10` está cerrado, `H-09` sigue abierto.** El líder
+> resolvió `H-10` con `DEC-25` — el registro deja sesión abierta. Lo que sigue
+> abajo es el hallazgo como se reportó; la resolución y sus consecuencias están
+> en `docs/control/DECISIONES.md`.
+
 **`H-09` · El segundo tramo de HU-04 no tiene pantalla, y puede que no la
 necesite.** HU-04 pide que al abrir el enlace del correo se pueda definir una
 contraseña nueva. `PANTALLAS.md` tiene 19 pantallas y ninguna es esa: P-04
@@ -711,7 +716,13 @@ aplicación por *deep link*, con lo cual hace falta una pantalla nueva, una
 tarea nueva en el Sprint 2 y tocar `PANTALLAS.md`. **Conviene cerrarlo antes
 de `S2-T07`**, que es quien implementa `recuperarContrasena` de verdad.
 
-**`H-10` · No está decidido si el registro deja sesión abierta.** HU-01 dice
+**`H-10` · CERRADO el 2026-09-22 por `DEC-25`: el registro deja sesión
+abierta.** Con eso, de las dos ramas que la sección 3.5 contempla gana la de
+sesión inmediata, y la confirmación por correo de Supabase Auth queda
+desactivada. `S2-T06` cambia `registrar` para que devuelva `Sesion` en vez de
+`Usuario`. El hallazgo, como se reportó:
+
+HU-01 dice
 que al confirmar el registro se entra directo a la pantalla del rol, lo que
 supone sesión inmediata. Pero `registrar` devuelve `Resultado<Usuario>`, no
 `Sesion`, y si Supabase Auth tiene activada la confirmación por correo, el

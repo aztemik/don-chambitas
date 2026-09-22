@@ -58,19 +58,27 @@ día que una implementación real entra es el enlace en `ModuloRepositorios`.
 
 ## PEND-02 · Catálogo completo de municipios
 
-**Estado:** abierto
-**Quién decide:** GRI (líder)
-**Bloquea:** nada
+**Estado:** resuelto — 2026-09-22
+**Quién decidió:** GRI (líder)
+**Resultado:** **Se queda con los 26 municipios sembrados.** Ver `DEC-26` en
+`docs/control/DECISIONES.md`.
 
-`04_datos_semilla.sql` siembra 26 municipios de zonas de prueba. Los 2,469 del
-país se cargan del catálogo abierto del INEGI con un `COPY` desde CSV. No
-bloquea a nadie; se resuelve cuando convenga.
+### Qué se decidió
 
-Sigue sin bloquear, pero **pesa más desde `DEC-23`**: el municipio dejó de ser
-un dato del perfil y ahora es filtro de búsqueda en P-06. Con 26 municipios,
-`S4-T05` se puede construir y probar igual, pero la búsqueda solo se siente
-real dentro de las zonas de prueba. Conviene cargar el catálogo antes de
-`S6-T10`, las pruebas cerradas.
+`04_datos_semilla.sql` siembra 26 municipios de zonas de prueba y así se queda.
+Los 2,469 del país, que se habrían cargado del catálogo abierto del INEGI con
+un `COPY` desde CSV, no entran al MVP.
+
+### Qué no cambia
+
+Nunca bloqueó a nadie, así que no desbloquea nada. `DEC-23` dejó al municipio
+como filtro de búsqueda en P-06: `S4-T05` construye y prueba sus cinco filtros
+igual, y `S6-T10` corre las pruebas cerradas dentro de las zonas sembradas.
+
+### Si algún día hace falta el catálogo completo
+
+Se carga sin tocar código ni esquema: es dato. La ruta sigue siendo el CSV del
+INEGI con un `COPY` contra `municipios`.
 
 ---
 
