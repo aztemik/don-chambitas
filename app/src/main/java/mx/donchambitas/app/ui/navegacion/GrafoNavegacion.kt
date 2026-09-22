@@ -14,6 +14,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -35,6 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -50,6 +54,7 @@ import androidx.navigation.compose.rememberNavController
 import mx.donchambitas.app.R
 import mx.donchambitas.app.ui.componentes.BarraSuperior
 import mx.donchambitas.app.dominio.modelo.RolUsuario
+import mx.donchambitas.app.ui.pantallas.IniciarSesionPantalla
 import mx.donchambitas.app.ui.pantallas.RegistroPantalla
 import mx.donchambitas.app.ui.pantallas.SplashPantalla
 import mx.donchambitas.app.ui.componentes.BotonDestacado
@@ -116,12 +121,14 @@ fun GrafoNavegacion(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            BarraSuperior(
-                titulo = tituloBarraSuperior,
-                alRegresar = if (puedeRegresar) {
-                    { navController.popBackStack() }
-                } else null
-            )
+            if (rutaActual !in RUTAS_SIN_BARRA_DEL_ANDAMIO) {
+                BarraSuperior(
+                    titulo = tituloBarraSuperior,
+                    alRegresar = if (puedeRegresar) {
+                        { navController.popBackStack() }
+                    } else null
+                )
+            }
         },
         bottomBar = {
             if (debeMostrarBarraInferior(rutaActual, estadoSesion)) {
@@ -178,12 +185,28 @@ fun GrafoNavegacion(
         },
         containerColor = Crema
     ) { rellenoInterno ->
+        // Sin barra del andamio, el relleno superior tiene que irse con ella: si
+        // se conserva, la pantalla arranca debajo de la barra de estado y su
+        // propia BarraSuperior se queda sin inset donde dibujar, con lo que el
+        // reloj y los iconos quedan sobre el fondo Crema y no se leen.
+        val direccion = LocalLayoutDirection.current
+        val rellenoContenido = if (rutaActual in RUTAS_SIN_BARRA_DEL_ANDAMIO) {
+            PaddingValues(
+                start = rellenoInterno.calculateStartPadding(direccion),
+                top = 0.dp,
+                end = rellenoInterno.calculateEndPadding(direccion),
+                bottom = rellenoInterno.calculateBottomPadding()
+            )
+        } else {
+            rellenoInterno
+        }
+
         NavHost(
             navController = navController,
             startDestination = Subgrafo.Autenticacion.ruta,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(rellenoInterno)
+                .padding(rellenoContenido)
         ) {
             subgrafoAutenticacion(navController)
             subgrafoCliente(navController)
@@ -192,6 +215,27 @@ fun GrafoNavegacion(
         }
     }
 }
+
+/**
+ * Rutas donde el andamio de S1-T12 no debe pintar barra superior, porque la
+ * pantalla real ya resuelve su propia parte de arriba:
+ *
+ * - P-01 es de pantalla completa por diseño (S1-T15).
+ * - P-02 y P-03 traen su propio Scaffold con BarraSuperior, que es lo que pide
+ *   la regla 1.1 de DISENO-AUTENTICACION.md.
+ *
+ * Sin esto salen dos barras encimadas, con dos títulos y dos flechas de
+ * regreso. El andamio nació cuando los 19 destinos eran MarcadorPantalla y su
+ * título lleva el identificador delante ("P-02 · Iniciar sesión"), que es
+ * andamio, no interfaz de producto.
+ *
+ * **Cada pantalla que sustituya a su marcador se agrega aquí.**
+ */
+private val RUTAS_SIN_BARRA_DEL_ANDAMIO = setOf(
+    Ruta.Splash.ruta,
+    Ruta.IniciarSesion.ruta,
+    Ruta.Registro.ruta
+)
 
 /**
  * Subgrafo de autenticación (P-01 a P-04).
@@ -214,30 +258,21 @@ private fun NavGraphBuilder.subgrafoAutenticacion(navController: NavHostControll
         }
 
         composable(Ruta.IniciarSesion.ruta) {
-            MarcadorPantalla(
-                ruta = Ruta.IniciarSesion,
-                descripcion = "Correo, contraseña, enlace a registro y a recuperación.",
-                navController = navController,
-                acciones = listOf(
-                    AccionNavegacion("Registrarse (P-03)") {
-                        navController.navigate(Ruta.Registro.ruta)
-                    },
-                    AccionNavegacion("Recuperar contraseña (P-04)") {
-                        navController.navigate(Ruta.RecuperarContrasena.ruta)
-                    },
-                    AccionNavegacion("Entrar como Cliente -> P-05") {
-                        MarcadorSesionTemporal.estado = EstadoSesionTemporal.CLIENTE
-                        navController.navigate(Ruta.InicioCliente.ruta) {
-                            popUpTo(Subgrafo.Autenticacion.ruta) { inclusive = true }
-                        }
-                    },
-                    AccionNavegacion("Entrar como Trabajador -> P-10") {
-                        MarcadorSesionTemporal.estado = EstadoSesionTemporal.TRABAJADOR
-                        navController.navigate(Ruta.InicioTrabajador.ruta) {
-                            popUpTo(Subgrafo.Autenticacion.ruta) { inclusive = true }
-                        }
+            IniciarSesionPantalla(
+                alIniciarSesion = {
+                    // Hasta S2-T05 no se llama a RepositorioAuth, asi que no hay
+                    // Sesion de donde leer el rol: se entra como cliente y se
+                    // marca con el mecanismo temporal de S1-T12. El recorrido de
+                    // trabajador se alcanza registrandose como tal en P-03.
+                    MarcadorSesionTemporal.estado = EstadoSesionTemporal.CLIENTE
+                    navController.navigate(Ruta.InicioCliente.ruta) {
+                        popUpTo(Subgrafo.Autenticacion.ruta) { inclusive = true }
                     }
-                )
+                },
+                alIrARegistro = { navController.navigate(Ruta.Registro.ruta) },
+                alIrARecuperarContrasena = {
+                    navController.navigate(Ruta.RecuperarContrasena.ruta)
+                }
             )
         }
 
