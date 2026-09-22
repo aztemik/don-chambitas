@@ -14,7 +14,7 @@
 | Sprint | 2 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 2 |
+| Terminadas | 3 |
 | En curso | 0 |
 | Bloqueadas | 0 |
 
@@ -29,7 +29,9 @@ al grafo y una fuente de datos en memoria.
 | Si haces esto | Pasa esto hoy | Lo arregla |
 |---|---|---|
 | Abres la aplicación | P-01 espera 800 ms y te deja en P-02 | — |
-| Estás en P-02 (iniciar sesión) | Es todavía el marcador de `S1-T12`, no la pantalla real | `S2-T03` |
+| Estás en P-02 (iniciar sesión) | La pantalla real: marca, los dos campos y los enlaces a P-03 y P-04 | — |
+| Pulsas **Iniciar sesión** con lo que sea | Entra **siempre como cliente**, a P-05. No se comprueba nada: no se llama a `RepositorioAuth` | `S2-T05` |
+| Quieres entrar como trabajador | Desde P-02 no se puede todavía. Regístrate como trabajador en P-03 | `S2-T05` |
 | Entras a P-03 desde el marcador de P-02 | La pantalla real de registro, con sus cinco campos y el selector de rol | — |
 | Confirmas el registro **sin elegir rol** | Te reclama el rol y no hace nada más | — |
 | Escribes un correo sin arroba, o una contraseña de un carácter | **Los da por buenos.** No hay ninguna regla de formato ni de longitud | `S2-T04` |
@@ -56,6 +58,24 @@ _Ninguna._
 | Desde | — |
 
 ## Última tarea terminada
+
+**`S2-T03` — Pantalla de inicio de sesión.** 2026-09-22.
+Rama `feat/S2-T03-pantalla-inicio-sesion`, pull request **sin abrir todavía**.
+
+**Primera tarea del Sprint 2 con ticket**, `docs/tareas/S2-T03.md`, redactado el mismo día por instrucción del líder. El alcance salió de las secciones 1, 2 y 7 de `docs/producto/DISENO-AUTENTICACION.md`.
+
+Implementación de P-02 conforme a esa especificación:
+- `ui/pantallas/EstadoIniciarSesion.kt`: los siete campos del contrato 2.2. Los errores viajan como `@StringRes Int?` y `destino` es un evento de un solo uso.
+- `ui/pantallas/IniciarSesionPantalla.kt`: `IniciarSesionPantalla` con estado local —provisional hasta que `S2-T05` traiga el ViewModel— y `IniciarSesionContenido`, el contenido visual puro. Los ocho elementos de la tabla 2.1 en orden, **sin flecha de regreso** por ser la raíz del subgrafo, isotipo del casco a 72 dp reutilizando el vector de P-01, y el correo normalizado con `trim().lowercase()` solo al enviar (regla 1.6): en pantalla se sigue viendo lo que se tecleó. Cuatro `@Preview`.
+- `ui/navegacion/GrafoNavegacion.kt`: sustitución del marcador de P-02 por la pantalla real.
+- `strings.xml`: 5 cadenas nuevas con las claves que fijó `S2-T01`. `auth_correo` y `auth_contrasena` ya existían desde `S2-T02`.
+- Verificación del proyecto:
+  - Compilación exitosa (`./gradlew assembleDebug`).
+  - 57 pruebas unitarias pasando (`./gradlew testDebugUnitTest`).
+  - 27 pruebas instrumentadas pasando, 0 fallas (`./gradlew connectedDebugAndroidTest`): las 16 anteriores y 13 nuevas en `IniciarSesionPantallaTest`.
+  - Recorrido a mano en emulador `Medium_Phone` (Android 17): P-02 arranca sin flecha, "Regístrate" y "¿Olvidaste tu contraseña?" apilan P-03 y P-04 y el botón atrás regresa a P-02, el correo se conserva al girar el dispositivo y el alta entra a P-05 con el botón atrás cerrando la aplicación. Sin excepciones en logcat.
+- **Se corrigió un defecto del andamio de `S1-T12`, fuera del alcance del ticket.** El `Scaffold` del grafo pintaba `BarraSuperior` en **toda** ruta, así que cada pantalla real —que trae la suya por la regla 1.1— salía con **dos barras encimadas, dos títulos y dos flechas**. Afectaba a P-01, P-02 y P-03. `P-03 ya estaba así en main`: entró con el pull request #8 y su criterio de aceptación se marcó cumplido igual. Se corrigió con `RUTAS_SIN_BARRA_DEL_ANDAMIO` en `GrafoNavegacion.kt`, que además devuelve el inset superior a la pantalla para que su barra dibuje bajo la barra de estado. **Cada pantalla que sustituya a su marcador tiene que agregarse a ese conjunto.**
+- **Lo que esta tarea NO trae, por estar en la cola aparte:** las reglas de validación de formato y longitud son `S2-T04`, y el ViewModel contra `RepositorioAuth` es `S2-T05`. Hoy el botón entra **siempre como cliente**, porque sin `Sesion` no hay rol que leer.
 
 **`S2-T02` — Pantalla de registro con selección de rol (cliente / trabajador).** 2026-09-21.
 Rama `docs/S2-T01-diseno-pantallas-autenticacion`, pull request **sin abrir todavía**.
@@ -301,11 +321,16 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S2-T03` — Pantalla de inicio de sesión
-(prioridad 950, sprint 2, depende de: S1-T10, S1-T12, las dos hechas)
+`S2-T04` — Validaciones de formularios y mensajes de error
+(prioridad 900, sprint 2, depende de: S2-T02 y S2-T03, las dos hechas)
 
-Su diseño ya está escrito: secciones 1, 2 y 7 de
-`docs/producto/DISENO-AUTENTICACION.md`. **Tampoco tiene ticket.**
+Su alcance ya está escrito: secciones 1.5, 5 y 7 de
+`docs/producto/DISENO-AUTENTICACION.md`. **No tiene ticket**: hay que
+redactarlo antes de tomarla, como se hizo con `S2-T03`.
+
+Ojo: la clave `validacion_contrasena_vacia` de la sección 7 **todavía no
+existe** en `strings.xml`. Ni `S2-T02` ni `S2-T03` la necesitaban, porque
+ninguna de las dos decide reglas de formato. La agrega `S2-T04`.
 
 ## Un hueco que todavía espera al líder
 
