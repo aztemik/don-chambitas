@@ -27,8 +27,9 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 | 6 | 12 | 12 | 0 | 0 | 0 |
 | **Total** | **86** | **66** | **0** | **2** | **18** |
 
-> **No queda ninguna tarea bloqueada.** PEND-01 se resolvió el 2026-09-14 a
-> favor de Supabase (`DEC-16`). PEND-02 sigue abierto y no bloquea a nadie.
+> **No queda ninguna tarea bloqueada, ni ningún pendiente abierto.** PEND-01 se
+> resolvió el 2026-09-14 a favor de Supabase (`DEC-16`) y PEND-02 el 2026-09-22
+> a favor de los 26 municipios sembrados (`DEC-26`).
 
 ---
 
@@ -172,11 +173,12 @@ criterios de aceptación y cómo probarla.
 
 Los tickets se redactan **al iniciar cada sprint**, no los seis por adelantado:
 detallar hoy el Sprint 5 es trabajo que se va a tirar. Hoy están escritos los
-16 del Sprint 1. Para los siguientes, ver el prompt 6 de
+16 del Sprint 1 y el de `S2-T03`. Para los siguientes, ver el prompt 6 de
 `docs/proceso/PROMPTS.md`.
 
-> **Los del Sprint 2 no están escritos y el sprint ya arrancó.** `S2-T01` se
-> trabajó sin ticket por autorización del líder del 2026-09-21, dejando su
-> alcance escrito en el propio entregable. Es una excepción, no la nueva
-> forma de trabajar: mientras no haya tickets, cada tarea del Sprint 2
-> necesita esa autorización o se detiene.
+> **Los del Sprint 2 se están redactando tarde, tarea por tarea.** `S2-T01` y
+> `S2-T02` se trabajaron **sin ticket**, por autorización del líder del
+> 2026-09-21, dejando su alcance escrito en el propio entregable. Desde
+> `S2-T03` sí hay ticket: el líder ordenó el 2026-09-22 redactarlo antes de
+> tomar la tarea. Las 13 restantes del Sprint 2 siguen sin ticket; cada una lo
+> necesita antes de empezar.
