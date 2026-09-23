@@ -116,7 +116,7 @@ Especificación de detalle de P-02, P-03 y P-04, que convierte los wireframes de
   - 57 pruebas unitarias pasando, 0 fallas (`./gradlew testDebugUnitTest`).
   - Instalación y arranque limpio en emulador `emulator-5554` (`Displayed MainActivity`, sin excepciones en logcat).
 - **No se escribió código:** la tarea es de diseño. Las pantallas las construyen `S2-T02`, `S2-T03` y `S2-T10`; los ViewModels, `S2-T05`; las validaciones, `S2-T04`.
-- **Dos hallazgos nuevos para el líder, `H-09` y `H-10`.** Están al final del documento y se repiten abajo. `H-10` se cerró el 2026-09-22 con `DEC-25`; `H-09` sigue abierto.
+- **Dos hallazgos nuevos para el líder, `H-09` y `H-10`.** Están al final del documento y se repiten abajo. Los dos se cerraron el 2026-09-22: `H-10` con `DEC-25` y `H-09` con `DEC-27`.
 
 **`S1-T16` — Estrategia de pruebas y configuración de las pruebas base (JUnit / Compose test).** 2026-09-20.
 Rama `test/S1-T16-estrategia-pruebas`, pull request **sin abrir todavía**.
@@ -332,17 +332,20 @@ Ojo: la clave `validacion_contrasena_vacia` de la sección 7 **todavía no
 existe** en `strings.xml`. Ni `S2-T02` ni `S2-T03` la necesitaban, porque
 ninguna de las dos decide reglas de formato. La agrega `S2-T04`.
 
-## Un hueco que todavía espera al líder
+## Los dos huecos de S2-T01, ya cerrados
 
-Salen de `S2-T01`, de cruzar HU-01 y HU-04 contra `CONTRATOS-API.md`. Están
-explicados al final de `docs/producto/DISENO-AUTENTICACION.md`.
+Salían de `S2-T01`, de cruzar HU-01 y HU-04 contra `CONTRATOS-API.md`. Están
+explicados al final de `docs/producto/DISENO-AUTENTICACION.md`. **Al 2026-09-22
+no queda ninguno abierto.**
 
-- **`H-09` — El segundo tramo de HU-04 no tiene pantalla. SIGUE ABIERTO.**
-  Definir la contraseña nueva desde el enlace del correo no es ninguna de las
-  19 pantallas. O el enlace abre la página alojada de Supabase —y se anota en
-  HU-04 para que nadie la busque— o abre la aplicación por *deep link*, y
-  entonces hacen falta pantalla y tarea nuevas. **Conviene cerrarlo antes de
-  `S2-T07`.** No frena a `S2-T03`.
+- **`H-09` — CERRADO el 2026-09-22 por `DEC-27`.** El enlace de recuperación
+  abre la aplicación por *deep link*, canjea el token por sesión y aterriza en
+  **P-18**, que ya cambia la contraseña por HU-05. **No se agrega pantalla:
+  siguen siendo 19 y `DEC-10` queda intacto.** Al investigarlo se cayó la
+  premisa del hallazgo: la "página alojada de Supabase" no existe —Supabase no
+  hospeda formulario de contraseña nueva, la pantalla la pone uno— y una web
+  propia la descarta `DEC-02`. Lo recoge `S2-T06`, lo implementa `S2-T07` y
+  `S2-T11` especifica la llegada a P-18.
 - **`H-10` — CERRADO el 2026-09-22 por `DEC-25`.** El registro deja sesión
   abierta: el usuario entra directo a la pantalla de su rol y la sesión vive
   hasta que él la cierre. Dos consecuencias que `S2-T06` y `S2-T07` tienen que

@@ -701,13 +701,22 @@ Las guardas de `S1-T12` ya mandan cualquier ruta privada a P-02 sin sesión, y
 Los dos salen de cruzar HU-01 y HU-04 contra `CONTRATOS-API.md` y
 `RepositorioAuth`. **Ninguno se resolvió aquí**, conforme a AGENTS.md §9.
 
-> **Al 2026-09-22: `H-10` está cerrado, `H-09` sigue abierto.** El líder
-> resolvió `H-10` con `DEC-25` — el registro deja sesión abierta. Lo que sigue
-> abajo es el hallazgo como se reportó; la resolución y sus consecuencias están
+> **Al 2026-09-22 los dos están cerrados.** El líder resolvió `H-10` con
+> `DEC-25` —el registro deja sesión abierta— y `H-09` con `DEC-27` —el enlace
+> de recuperación entra por *deep link* y aterriza en P-18—. Lo que sigue abajo
+> es cada hallazgo como se reportó; las resoluciones y sus consecuencias están
 > en `docs/control/DECISIONES.md`.
 
-**`H-09` · El segundo tramo de HU-04 no tiene pantalla, y puede que no la
-necesite.** HU-04 pide que al abrir el enlace del correo se pueda definir una
+**`H-09` · CERRADO el 2026-09-22 por `DEC-27`: el enlace abre la aplicación
+por *deep link* y aterriza en P-18, sin pantalla nueva.** De las dos salidas
+que se plantean abajo **la primera resultó no existir**: Supabase no hospeda
+ningún formulario de contraseña nueva, así que la pantalla la pone uno siempre;
+y una página web propia la descarta `DEC-02`. El *deep link* no era una opción
+entre dos, era la única. Lo que se decidió fue el aterrizaje: P-18, que ya
+cambia la contraseña por HU-05, con lo que `DEC-10` se conserva en 19
+pantallas. El hallazgo, como se reportó:
+
+HU-04 pide que al abrir el enlace del correo se pueda definir una
 contraseña nueva. `PANTALLAS.md` tiene 19 pantallas y ninguna es esa: P-04
 solo pide el enlace. Hay dos salidas y las dos son del líder: que el enlace
 abra la página alojada de Supabase Auth, con lo cual no hace falta pantalla y

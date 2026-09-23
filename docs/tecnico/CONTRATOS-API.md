@@ -43,7 +43,7 @@ Todos los métodos son `suspend` y devuelven `Resultado<T>`.
 |---|---|
 | `registrar(correo, contrasena, nombre, apellidos, telefono, rol)` | `auth.signUpWith(Email)`, con nombre, apellidos, teléfono y rol en `options.data` |
 | `iniciarSesion(correo, contrasena)` | `auth.signInWith(Email)` |
-| `recuperarContrasena(correo)` | `auth.resetPasswordForEmail(correo)` |
+| `recuperarContrasena(correo)` | `auth.resetPasswordForEmail(correo, redirectTo = <esquema de la app>)` |
 | `cambiarContrasena(nueva)` | `auth.updateUser { password = nueva }` |
 | `cerrarSesion()` | `auth.signOut()` |
 | `sesionActual(): Flow<Sesion?>` | `auth.sessionStatus` |
@@ -54,6 +54,18 @@ registro no manda `rol` en `options.data`, el usuario queda como `cliente`.
 
 `recuperarContrasena` **siempre reporta éxito**, exista o no el correo. Decir
 cuáles correos están registrados es una fuga de información.
+
+**El `redirectTo` no es opcional.** Supabase no hospeda ningún formulario de
+contraseña nueva: el enlace del correo va a la URL que se le pase y la pantalla
+la pone la aplicación. Por `DEC-27` esa URL es un *deep link* al propio APK que
+aterriza en **P-18**, no una página web —`DEC-02` descartó la versión web—.
+`S2-T06` fija el esquema exacto; `S2-T07` agrega el `intent-filter`, canjea el
+token por sesión y da de alta el esquema en la lista de URLs permitidas de la
+consola de Supabase. Si el esquema no está en esa lista, Supabase no redirige.
+
+`cambiarContrasena(nueva)` **no recibe la contraseña anterior**, y eso es lo que
+permite reutilizar P-18 para la recuperación: quien llega por el enlace no puede
+dar la que olvidó.
 
 La sesión y su refresco los lleva `supabase-kt`. No se guarda el token a mano.
 
