@@ -99,8 +99,11 @@ Dos marcas:
 - Dado que escribo un correo en P-04, cuando confirmo, entonces veo el mismo
   aviso de "te enviamos el enlace" **exista o no ese correo**: decir cuáles
   están registrados es una fuga de información.
-- Dado que recibí el enlace, cuando lo abro y defino una contraseña nueva,
-  entonces puedo iniciar sesión con ella.
+- Dado que recibí el enlace, cuando lo abro, entonces **se abre la aplicación**
+  —no una página web— con la sesión ya iniciada, y aterrizo en **P-18** para
+  definir la contraseña nueva. No se me pide la anterior: es la que olvidé.
+  Ver `DEC-27`. Esta parte de la historia **no tiene pantalla propia**, y así
+  quedó a propósito: P-18 ya cambia la contraseña por HU-05.
 
 ### HU-05 · Administrar mi cuenta
 

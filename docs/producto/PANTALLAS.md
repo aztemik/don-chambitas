@@ -44,7 +44,7 @@ de describir la pantalla otra vez.
 | P-15 | Conversaciones | Bandeja de chats ordenada por mensaje más reciente |
 | P-16 | Chat | Conversación de texto plano con un usuario |
 | P-17 | Dejar reseña | Calificación de 1 a 5 estrellas y comentario. Solo tras cerrar una solicitud |
-| P-18 | Mi cuenta | Datos personales, foto, cambiar contraseña, cerrar sesión |
+| P-18 | Mi cuenta | Datos personales, foto, cambiar contraseña, cerrar sesión. **Es también donde aterriza el enlace de recuperación de HU-04** (`DEC-27`) |
 | P-19 | Detalle de solicitud | Datos de la solicitud, postulaciones recibidas y acciones según el rol |
 
 ---
@@ -52,6 +52,10 @@ de describir la pantalla otra vez.
 ## Navegación
 
 **Antes de iniciar sesión:** P-01 → P-02 ↔ P-03 ↔ P-04
+
+**El enlace del correo de recuperación entra por fuera de ese mapa.** Abre la
+aplicación por *deep link*, canjea el token por sesión y deja al usuario en
+P-18, ya dentro. No pasa por P-02. Ver `DEC-27`.
 
 **Cliente, barra inferior de 4:** P-05 Inicio · P-09 Solicitudes · P-15 Chats ·
 P-18 Cuenta. Botón flotante en P-05 que lleva a P-08.

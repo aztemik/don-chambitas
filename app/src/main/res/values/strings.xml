@@ -60,6 +60,13 @@
     <string name="auth_correo">Correo electrónico</string>
     <string name="auth_contrasena">Contraseña</string>
 
+    <!-- Pantalla Iniciar sesión (P-02) -->
+    <string name="iniciar_sesion_titulo">Iniciar sesión</string>
+    <string name="iniciar_sesion_accion">Iniciar sesión</string>
+    <string name="iniciar_sesion_olvide">¿Olvidaste tu contraseña?</string>
+    <string name="iniciar_sesion_ir_registro">¿No tienes cuenta? Regístrate</string>
+    <string name="error_credenciales_invalidas">Correo o contraseña incorrectos</string>
+
     <!-- Pantalla Registro (P-03) -->
     <string name="registro_titulo">Crear cuenta</string>
     <string name="registro_pregunta_rol">¿Qué vienes a hacer?</string>
