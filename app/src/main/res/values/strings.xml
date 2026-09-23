@@ -80,7 +80,7 @@
     <string name="registro_accion">Crear cuenta</string>
     <string name="registro_ir_iniciar_sesion">¿Ya tienes cuenta? Inicia sesión</string>
 
-    <!-- Mensajes de validación de P-03 (los eligen las reglas de S2-T04) -->
+    <!-- Mensajes de validación de P-02 y P-03 (los eligen las reglas de S2-T04) -->
     <string name="validacion_rol_sin_elegir">Elige si vienes a contratar o a trabajar</string>
     <string name="validacion_nombre_vacio">Escribe tu nombre</string>
     <string name="validacion_nombre_largo">El nombre es demasiado largo</string>
@@ -89,6 +89,7 @@
     <string name="validacion_correo_vacio">Escribe tu correo electrónico</string>
     <string name="validacion_correo_formato">Ese correo no se ve bien, revísalo</string>
     <string name="validacion_correo_largo">El correo es demasiado largo</string>
+    <string name="validacion_contrasena_vacia">Escribe tu contraseña</string>
     <string name="validacion_contrasena_corta">Usa al menos 8 caracteres</string>
     <string name="validacion_telefono_vacio">Escribe tu teléfono</string>
     <string name="validacion_telefono_digitos">El teléfono lleva 10 dígitos</string>

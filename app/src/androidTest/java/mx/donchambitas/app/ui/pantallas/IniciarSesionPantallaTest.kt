@@ -2,6 +2,7 @@ package mx.donchambitas.app.ui.pantallas
 
 import androidx.annotation.StringRes
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
@@ -16,6 +17,7 @@ import mx.donchambitas.app.R
 import mx.donchambitas.app.ui.tema.DonChambitasTema
 import mx.donchambitas.app.util.TipoError
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -24,9 +26,10 @@ import org.junit.runner.RunWith
 /**
  * Pruebas instrumentadas de la pantalla de inicio de sesion (P-02).
  * Cubren lo que la pantalla decide por si misma: anatomia, normalizacion del
- * correo al enviar, navegacion a P-03 y P-04, bloqueo durante la carga y
- * pintado de los errores que le llegan en el estado. Las reglas de validacion
- * son de S2-T04 y la llamada a RepositorioAuth es de S2-T05.
+ * correo al enviar, navegacion a P-03 y P-04, bloqueo durante la carga,
+ * pintado de los errores que le llegan en el estado y cuando se valida (1.5).
+ * Cada regla se prueba sin emulador en ValidacionesAuthTest; la llamada a
+ * RepositorioAuth es de S2-T05.
  */
 @RunWith(AndroidJUnit4::class)
 class IniciarSesionPantallaTest {
@@ -114,9 +117,68 @@ class IniciarSesionPantallaTest {
 
         composeTestRule.onNodeWithText(texto(R.string.auth_correo))
             .performTextInput("  Refugio@Ejemplo.MX  ")
+        composeTestRule.onNodeWithText(texto(R.string.auth_contrasena))
+            .performTextInput("secreta")
         botonIniciarSesion().performClick()
 
         assertEquals("refugio@ejemplo.mx", correoRecibido)
+    }
+
+    @Test
+    fun debeMarcarLosDosCamposYNoEnviar_cuandoSeEnviaVacio() {
+        var correoRecibido: String? = null
+        montarPantalla(alIniciarSesion = { correoRecibido = it })
+
+        botonIniciarSesion().performClick()
+
+        composeTestRule.onNodeWithText(texto(R.string.validacion_correo_vacio)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(texto(R.string.validacion_contrasena_vacia)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(texto(R.string.auth_correo)).assertIsFocused()
+        assertNull("Con errores no debe enviarse", correoRecibido)
+    }
+
+    /** En P-02 la contrasena solo se exige no vacia (5.2): el minimo de 8 es del registro. */
+    @Test
+    fun debeEnviar_cuandoLaContrasenaTieneUnSoloCaracter() {
+        var correoRecibido: String? = null
+        montarPantalla(alIniciarSesion = { correoRecibido = it })
+
+        composeTestRule.onNodeWithText(texto(R.string.auth_correo)).performTextInput("a@b.mx")
+        composeTestRule.onNodeWithText(texto(R.string.auth_contrasena)).performTextInput("1")
+        botonIniciarSesion().performClick()
+
+        assertEquals("a@b.mx", correoRecibido)
+    }
+
+    @Test
+    fun debeMarcarElCorreo_cuandoSaleDelCampoConUnFormatoQueNoSirve() {
+        montarPantalla()
+
+        composeTestRule.onNodeWithText(texto(R.string.auth_correo)).performTextInput("hola")
+        composeTestRule.onNodeWithText(texto(R.string.auth_contrasena)).performClick()
+
+        composeTestRule.onNodeWithText(texto(R.string.validacion_correo_formato)).assertIsDisplayed()
+    }
+
+    @Test
+    fun debeNoMarcarNada_cuandoSePasaPorLosCamposSinEscribir() {
+        montarPantalla()
+
+        composeTestRule.onNodeWithText(texto(R.string.auth_correo)).performClick()
+        composeTestRule.onNodeWithText(texto(R.string.auth_contrasena)).performClick()
+        composeTestRule.onNodeWithText(texto(R.string.auth_correo)).performClick()
+
+        composeTestRule.onNodeWithText(texto(R.string.validacion_correo_vacio)).assertDoesNotExist()
+        composeTestRule.onNodeWithText(texto(R.string.validacion_contrasena_vacia)).assertDoesNotExist()
+    }
+
+    @Test
+    fun debeNoMarcarError_mientrasSeEscribeElCorreo() {
+        montarPantalla()
+
+        composeTestRule.onNodeWithText(texto(R.string.auth_correo)).performTextInput("hola")
+
+        composeTestRule.onNodeWithText(texto(R.string.validacion_correo_formato)).assertDoesNotExist()
     }
 
     /**
@@ -158,12 +220,12 @@ class IniciarSesionPantallaTest {
         montarContenido(
             EstadoIniciarSesion(
                 errorCorreo = R.string.validacion_correo_formato,
-                errorContrasena = R.string.validacion_contrasena_corta
+                errorContrasena = R.string.validacion_contrasena_vacia
             )
         )
 
         composeTestRule.onNodeWithText(texto(R.string.validacion_correo_formato)).assertIsDisplayed()
-        composeTestRule.onNodeWithText(texto(R.string.validacion_contrasena_corta)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(texto(R.string.validacion_contrasena_vacia)).assertIsDisplayed()
     }
 
     /**

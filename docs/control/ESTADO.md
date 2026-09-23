@@ -3,7 +3,7 @@
 > Archivo **vivo**. Quien termina una tarea lo actualiza. Es la primera cosa
 > que lee el agente y la única fuente confiable sobre qué está pasando hoy.
 
-**Última actualización:** 2026-09-22
+**Última actualización:** 2026-09-23
 
 ---
 
@@ -14,7 +14,7 @@
 | Sprint | 2 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 3 |
+| Terminadas | 4 |
 | En curso | 0 |
 | Bloqueadas | 0 |
 
@@ -30,11 +30,13 @@ al grafo y una fuente de datos en memoria.
 |---|---|---|
 | Abres la aplicación | P-01 espera 800 ms y te deja en P-02 | — |
 | Estás en P-02 (iniciar sesión) | La pantalla real: marca, los dos campos y los enlaces a P-03 y P-04 | — |
-| Pulsas **Iniciar sesión** con lo que sea | Entra **siempre como cliente**, a P-05. No se comprueba nada: no se llama a `RepositorioAuth` | `S2-T05` |
+| Pulsas **Iniciar sesión** con un correo válido y cualquier contraseña | Entra **siempre como cliente**, a P-05. No se comprueba la cuenta: no se llama a `RepositorioAuth` | `S2-T05` |
 | Quieres entrar como trabajador | Desde P-02 no se puede todavía. Regístrate como trabajador en P-03 | `S2-T05` |
 | Entras a P-03 desde el marcador de P-02 | La pantalla real de registro, con sus cinco campos y el selector de rol | — |
 | Confirmas el registro **sin elegir rol** | Te reclama el rol y no hace nada más | — |
-| Escribes un correo sin arroba, o una contraseña de un carácter | **Los da por buenos.** No hay ninguna regla de formato ni de longitud | `S2-T04` |
+| Escribes un correo sin arroba y sales del campo | Sale "Ese correo no se ve bien, revísalo" debajo. Se borra en cuanto vuelves a escribir | — |
+| Pulsas el botón de P-02 o P-03 con campos mal | Marca **todos** los que fallan, no avanza y deja el foco en el primero | — |
+| Entras en P-02 con una contraseña de un carácter | **Entra.** Al iniciar sesión solo se exige que no esté vacía (5.2); el mínimo de 8 es del registro | — |
 | Confirmas el registro **con rol** | Te manda a P-05 o P-10. **No se crea ninguna cuenta**: no se llama a `RepositorioAuth`, no se guarda nada, no se comprueba si el correo ya existe | `S2-T05` |
 | Cierras y vuelves a abrir | No hay cuenta que recordar, ni sesión | `S2-T08`, `S2-T09` |
 
@@ -58,6 +60,28 @@ _Ninguna._
 | Desde | — |
 
 ## Última tarea terminada
+
+**`S2-T04` — Validaciones de formularios y mensajes de error.** 2026-09-23.
+Rama `feat/S2-T04-validaciones-formularios`, pull request **#11**, abierto desde el fork `michaelleonmoso25-MLM/don-chambitas`. **El #10 de Ricardo5690 implementa la misma tarea**: se trabajaron en paralelo sin saberlo, y el líder decide cuál integrar.
+
+Ticket `docs/tareas/S2-T04.md`, redactado por el agente como el de `S2-T03`.
+El alcance salió de las secciones 1.5, 1.6, 5 y 7 de
+`docs/producto/DISENO-AUTENTICACION.md`.
+
+- `dominio/validacion/ValidacionesAuth.kt`: las 12 reglas de la tabla 5.2, una función pura por campo, sin Android. El correo usa la expresión de 5.1, espejo de `ck_usuario_correo_valido`. `LimitesRegistro` se mudó aquí desde `EstadoRegistro.kt`, con los mismos topes, y ganó `LARGO_MINIMO_CONTRASENA = 8`.
+- `ui/pantallas/ValidacionEnPantalla.kt`: traduce cada `FalloValidacion` a su `R.string.validacion_*`, y `alPerderFoco`, que avisa cuando el foco sale de un campo.
+- `IniciarSesionPantalla.kt` y `RegistroPantalla.kt`: validan cuando dice 1.5. Al salir de un campo **en el que ya se escribió** se valida ese campo; al pulsar el botón se validan todos, se marcan todos los que fallan y el foco salta al primero. Si el primero es el rol, la pantalla sube hasta el selector. Escribir limpia el error del campo, como ya pasaba.
+- `strings.xml`: `validacion_contrasena_vacia`, la única clave de la sección 7 que faltaba.
+- La vista previa "P-02 con errores" mostraba `validacion_contrasena_corta`, que en P-02 nunca sale. Ahora muestra `validacion_contrasena_vacia`.
+- Verificación del proyecto:
+  - Compilación exitosa (`./gradlew assembleDebug`).
+  - 86 pruebas unitarias, 29 nuevas en `ValidacionesAuthTest`: pasan todas **menos 2 de `SplashViewModelTest`**, que fallan igual sin esta tarea. Ver el hallazgo abajo.
+  - 31 pruebas instrumentadas de P-02 y P-03 pasando, 0 fallas: 16 en `IniciarSesionPantallaTest` y 15 en `RegistroPantallaTest`, 8 de ellas nuevas. Dos pruebas viejas se ajustaron porque enviaban el formulario vacío o sin contraseña, que ahora no pasa. Las 5 de `S1-T16` no se corrieron en esta máquina.
+  - Recorrido a mano en emulador `Pixel_8` (Android 17): P-02 vacío marca los dos campos y enfoca el correo; `hola` al salir marca el formato y se limpia al escribir; P-03 con rol y todo vacío marca los cinco campos y enfoca el nombre. Sin excepciones en logcat.
+- **Desvío de la letra de la sección 5, para que el líder lo revise.** La sección dice que cada regla devuelve `Int?`, el recurso del mensaje, pero `ARQUITECTURA.md` prohíbe Android en `dominio`, y `R` es de Android. Las reglas devuelven `FalloValidacion` y la capa `ui` lo traduce. En pantalla no cambia nada.
+- **"Campo tocado" se interpretó como "ya se escribió en él".** Con "tuvo el foco", tocar un campo vacío y pasar a otro ya lo pinta de rojo, que es lo que 1.5 llama hostil.
+- **Hallazgo, fuera del alcance: `SplashViewModelTest` es intermitente.** `SplashViewModel` llama a `verificarSesion()` en su `init`, y la prueba lanza una segunda verificación. Las dos terminan a los 800 ms simulados, pero cada una resta tiempo real (`System.currentTimeMillis`), así que cuál escribe al último depende de la velocidad de la máquina. `debeResolverDestinoInicioCliente_...` y `debeResolverDestinoInicioTrabajador_...` fallan de forma constante en esta máquina, con y sin los cambios de `S2-T04`. Es de `S1-T15`/`S1-T16`; no se tocó.
+- **Lo que esta tarea NO trae:** la normalización al enviar y la llamada a `RepositorioAuth` son `S2-T05`, que además moverá esta validación al ViewModel sin cambiar las reglas. P-04 es `S2-T10` y usará `validarCorreo`.
 
 **`S2-T03` — Pantalla de inicio de sesión.** 2026-09-22.
 Rama `feat/S2-T03-pantalla-inicio-sesion`, pull request **sin abrir todavía**.
@@ -321,16 +345,13 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S2-T04` — Validaciones de formularios y mensajes de error
-(prioridad 900, sprint 2, depende de: S2-T02 y S2-T03, las dos hechas)
+`S2-T05` — ViewModels y estados de UI del flujo de autenticación
+(prioridad 850, sprint 2, depende de: S1-T13, hecha)
 
-Su alcance ya está escrito: secciones 1.5, 5 y 7 de
-`docs/producto/DISENO-AUTENTICACION.md`. **No tiene ticket**: hay que
-redactarlo antes de tomarla, como se hizo con `S2-T03`.
-
-Ojo: la clave `validacion_contrasena_vacia` de la sección 7 **todavía no
-existe** en `strings.xml`. Ni `S2-T02` ni `S2-T03` la necesitaban, porque
-ninguna de las dos decide reglas de formato. La agrega `S2-T04`.
+**No tiene ticket**: hay que redactarlo antes de tomarla, como se hizo con
+`S2-T03` y `S2-T04`. Hoy el estado y la validación de P-02 y P-03 viven en la
+pantalla; `S2-T05` los mueve al ViewModel reutilizando `ValidacionesAuth` tal
+cual, y hace ahí la normalización de 1.6 al enviar.
 
 ## Los dos huecos de S2-T01, ya cerrados
 
