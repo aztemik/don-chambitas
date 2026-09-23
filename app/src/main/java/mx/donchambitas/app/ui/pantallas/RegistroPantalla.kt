@@ -15,11 +15,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.listSaver
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -33,6 +31,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 import mx.donchambitas.app.R
 import mx.donchambitas.app.dominio.modelo.RolUsuario
 import mx.donchambitas.app.ui.componentes.BarraSuperior
@@ -42,6 +41,7 @@ import mx.donchambitas.app.ui.componentes.CampoContrasena
 import mx.donchambitas.app.ui.componentes.CampoTexto
 import mx.donchambitas.app.ui.componentes.ChipCategoria
 import mx.donchambitas.app.ui.componentes.EstadoError
+import mx.donchambitas.app.ui.navegacion.Ruta
 import mx.donchambitas.app.ui.tema.Cafe
 import mx.donchambitas.app.ui.tema.Carbon
 import mx.donchambitas.app.ui.tema.Crema
@@ -54,92 +54,43 @@ import mx.donchambitas.app.ui.tema.subtitulo
 import mx.donchambitas.app.util.TipoError
 
 /**
- * Conserva lo capturado al girar el dispositivo. Solo se guardan los seis
- * valores de captura y el rol: los errores y el indicador de carga se vuelven
- * a calcular, guardarlos mostraria un error viejo sobre un formulario nuevo.
- */
-private val GuardaEstadoRegistro = listSaver<EstadoRegistro, Any?>(
-    save = {
-        listOf(it.rol?.valor, it.nombre, it.apellidos, it.correo, it.contrasena, it.telefono)
-    },
-    restore = {
-        EstadoRegistro(
-            rol = (it[0] as String?)?.let(RolUsuario::desdeValor),
-            nombre = it[1] as String,
-            apellidos = it[2] as String,
-            correo = it[3] as String,
-            contrasena = it[4] as String,
-            telefono = it[5] as String
-        )
-    }
-)
-
-/**
  * Pantalla de registro con seleccion de rol (P-03).
  * Especificada en docs/producto/DISENO-AUTENTICACION.md, seccion 3.
  *
- * El estado vive aqui de forma provisional hasta que S2-T05 traiga
- * RegistroViewModel: esta tarea entrega la pantalla, no el ViewModel ni las
- * reglas de validacion, que son S2-T04.
- *
- * @param alRegistrarConRol Se invoca con el rol elegido cuando el formulario se envia.
+ * @param alNavegarADestino Navega una sola vez al destino resuelto por el ViewModel.
  * @param alRegresar Regresa a P-02 descartando lo capturado.
  * @param alIrAIniciarSesion Lleva a P-02 desde el pie de la pantalla.
  */
 @Composable
 fun RegistroPantalla(
-    alRegistrarConRol: (RolUsuario) -> Unit,
+    alNavegarADestino: (Ruta) -> Unit,
     alRegresar: () -> Unit,
     alIrAIniciarSesion: () -> Unit,
+    viewModel: RegistroViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
-    var estado by rememberSaveable(stateSaver = GuardaEstadoRegistro) {
-        mutableStateOf(EstadoRegistro())
+    val estado by viewModel.estado.collectAsState()
+
+    LaunchedEffect(estado.destino) {
+        estado.destino?.let { destino ->
+            viewModel.alConsumirDestino()
+            alNavegarADestino(destino)
+        }
     }
 
     RegistroContenido(
         estado = estado,
-        alElegirRol = { rol -> estado = estado.copy(rol = rol, errorRol = null) },
-        alCambiarNombre = { valor ->
-            estado = estado.copy(
-                nombre = valor.take(LimitesRegistro.LARGO_MAXIMO_NOMBRE),
-                errorNombre = null
-            )
-        },
-        alCambiarApellidos = { valor ->
-            estado = estado.copy(
-                apellidos = valor.take(LimitesRegistro.LARGO_MAXIMO_APELLIDOS),
-                errorApellidos = null
-            )
-        },
-        alCambiarCorreo = { valor ->
-            estado = estado.copy(
-                correo = valor.take(LimitesRegistro.LARGO_MAXIMO_CORREO),
-                errorCorreo = null
-            )
-        },
-        alCambiarContrasena = { valor ->
-            estado = estado.copy(contrasena = valor, errorContrasena = null)
-        },
-        alCambiarTelefono = { valor ->
-            // Se filtra al escribir en vez de validarse despues: no es una regla
-            // de negocio, es no dejar teclear lo que el campo no admite.
-            estado = estado.copy(
-                telefono = valor.filter(Char::isDigit).take(LimitesRegistro.LARGO_TELEFONO),
-                errorTelefono = null
-            )
-        },
-        alRegistrar = {
-            val rol = estado.rol
-            if (rol == null) {
-                estado = estado.copy(errorRol = R.string.validacion_rol_sin_elegir)
-            } else {
-                alRegistrarConRol(rol)
-            }
-        },
+        alElegirRol = viewModel::alElegirRol,
+        alCambiarNombre = viewModel::alCambiarNombre,
+        alCambiarApellidos = viewModel::alCambiarApellidos,
+        alCambiarCorreo = viewModel::alCambiarCorreo,
+        alCambiarContrasena = viewModel::alCambiarContrasena,
+        alCambiarTelefono = viewModel::alCambiarTelefono,
+        alRegistrar = viewModel::alRegistrar,
         alRegresar = alRegresar,
         alIrAIniciarSesion = alIrAIniciarSesion,
-        modifier = modifier
+        modifier = modifier,
+        alReintentar = viewModel::alReintentar
     )
 }
 

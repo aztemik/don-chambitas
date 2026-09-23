@@ -53,7 +53,6 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import mx.donchambitas.app.R
 import mx.donchambitas.app.ui.componentes.BarraSuperior
-import mx.donchambitas.app.dominio.modelo.RolUsuario
 import mx.donchambitas.app.ui.pantallas.IniciarSesionPantalla
 import mx.donchambitas.app.ui.pantallas.RegistroPantalla
 import mx.donchambitas.app.ui.pantallas.SplashPantalla
@@ -259,15 +258,8 @@ private fun NavGraphBuilder.subgrafoAutenticacion(navController: NavHostControll
 
         composable(Ruta.IniciarSesion.ruta) {
             IniciarSesionPantalla(
-                alIniciarSesion = {
-                    // Hasta S2-T05 no se llama a RepositorioAuth, asi que no hay
-                    // Sesion de donde leer el rol: se entra como cliente y se
-                    // marca con el mecanismo temporal de S1-T12. El recorrido de
-                    // trabajador se alcanza registrandose como tal en P-03.
-                    MarcadorSesionTemporal.estado = EstadoSesionTemporal.CLIENTE
-                    navController.navigate(Ruta.InicioCliente.ruta) {
-                        popUpTo(Subgrafo.Autenticacion.ruta) { inclusive = true }
-                    }
+                alNavegarADestino = { destino ->
+                    navegarTrasAutenticacion(navController, destino)
                 },
                 alIrARegistro = { navController.navigate(Ruta.Registro.ruta) },
                 alIrARecuperarContrasena = {
@@ -278,21 +270,8 @@ private fun NavGraphBuilder.subgrafoAutenticacion(navController: NavHostControll
 
         composable(Ruta.Registro.ruta) {
             RegistroPantalla(
-                alRegistrarConRol = { rol ->
-                    // Hasta S2-T05 el alta no pasa por RepositorioAuth: se marca
-                    // la sesion con el mismo mecanismo temporal de S1-T12 para
-                    // poder recorrer el flujo completo en el dispositivo.
-                    MarcadorSesionTemporal.estado = when (rol) {
-                        RolUsuario.CLIENTE -> EstadoSesionTemporal.CLIENTE
-                        RolUsuario.TRABAJADOR -> EstadoSesionTemporal.TRABAJADOR
-                    }
-                    val destino = when (rol) {
-                        RolUsuario.CLIENTE -> Ruta.InicioCliente
-                        RolUsuario.TRABAJADOR -> Ruta.InicioTrabajador
-                    }
-                    navController.navigate(destino.ruta) {
-                        popUpTo(Subgrafo.Autenticacion.ruta) { inclusive = true }
-                    }
+                alNavegarADestino = { destino ->
+                    navegarTrasAutenticacion(navController, destino)
                 },
                 alRegresar = { navController.popBackStack() },
                 alIrAIniciarSesion = { navController.popBackStack() }
@@ -311,6 +290,25 @@ private fun NavGraphBuilder.subgrafoAutenticacion(navController: NavHostControll
                 )
             )
         }
+    }
+}
+
+/**
+ * Las guardas siguen leyendo el marcador de S1-T12 hasta que S2-T15 las conecte
+ * con la sesion real. S2-T05 lo sincroniza solo despues de que el repositorio
+ * confirma la autenticacion.
+ */
+private fun navegarTrasAutenticacion(
+    navController: NavHostController,
+    destino: Ruta
+) {
+    MarcadorSesionTemporal.estado = when (destino) {
+        Ruta.InicioCliente -> EstadoSesionTemporal.CLIENTE
+        Ruta.InicioTrabajador -> EstadoSesionTemporal.TRABAJADOR
+        else -> EstadoSesionTemporal.SIN_SESION
+    }
+    navController.navigate(destino.ruta) {
+        popUpTo(Subgrafo.Autenticacion.ruta) { inclusive = true }
     }
 }
 

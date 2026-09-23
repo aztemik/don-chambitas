@@ -2,6 +2,7 @@ package mx.donchambitas.app.ui.pantallas
 
 import androidx.annotation.StringRes
 import mx.donchambitas.app.dominio.modelo.RolUsuario
+import mx.donchambitas.app.ui.navegacion.Ruta
 import mx.donchambitas.app.util.TipoError
 
 /**
@@ -33,7 +34,8 @@ data class EstadoRegistro(
     @StringRes val errorTelefono: Int? = null,
     val errorPantalla: TipoError? = null,
     val mensajePantalla: String? = null,
-    val cargando: Boolean = false
+    val cargando: Boolean = false,
+    val destino: Ruta? = null
 )
 
 /**

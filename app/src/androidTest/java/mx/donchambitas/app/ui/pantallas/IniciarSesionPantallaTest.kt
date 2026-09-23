@@ -12,8 +12,17 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import java.time.Instant
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import mx.donchambitas.app.R
+import mx.donchambitas.app.dominio.modelo.RolUsuario
+import mx.donchambitas.app.dominio.modelo.Sesion
+import mx.donchambitas.app.dominio.modelo.Usuario
+import mx.donchambitas.app.dominio.repositorio.RepositorioAuth
+import mx.donchambitas.app.ui.navegacion.Ruta
 import mx.donchambitas.app.ui.tema.DonChambitasTema
+import mx.donchambitas.app.util.Resultado
 import mx.donchambitas.app.util.TipoError
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -23,10 +32,9 @@ import org.junit.runner.RunWith
 
 /**
  * Pruebas instrumentadas de la pantalla de inicio de sesion (P-02).
- * Cubren lo que la pantalla decide por si misma: anatomia, normalizacion del
- * correo al enviar, navegacion a P-03 y P-04, bloqueo durante la carga y
- * pintado de los errores que le llegan en el estado. Las reglas de validacion
- * son de S2-T04 y la llamada a RepositorioAuth es de S2-T05.
+ * Cubren anatomia, enlace con el ViewModel, navegacion a P-03 y P-04, bloqueo
+ * durante la carga y pintado de los errores que llegan en el estado. Las
+ * reglas de validacion siguen perteneciendo a S2-T04.
  */
 @RunWith(AndroidJUnit4::class)
 class IniciarSesionPantallaTest {
@@ -47,16 +55,19 @@ class IniciarSesionPantallaTest {
     )
 
     private fun montarPantalla(
-        alIniciarSesion: (String) -> Unit = {},
+        repositorio: RepositorioAuthPantallaPrueba = RepositorioAuthPantallaPrueba(),
+        alNavegarADestino: (Ruta) -> Unit = {},
         alIrARegistro: () -> Unit = {},
         alIrARecuperarContrasena: () -> Unit = {}
     ) {
+        val viewModel = IniciarSesionViewModel(repositorio)
         composeTestRule.setContent {
             DonChambitasTema {
                 IniciarSesionPantalla(
-                    alIniciarSesion = alIniciarSesion,
+                    alNavegarADestino = alNavegarADestino,
                     alIrARegistro = alIrARegistro,
-                    alIrARecuperarContrasena = alIrARecuperarContrasena
+                    alIrARecuperarContrasena = alIrARecuperarContrasena,
+                    viewModel = viewModel
                 )
             }
         }
@@ -109,14 +120,15 @@ class IniciarSesionPantallaTest {
 
     @Test
     fun debeEntregarElCorreoEnMinusculasYSinEspacios_cuandoSeEnvia() {
-        var correoRecibido: String? = null
-        montarPantalla(alIniciarSesion = { correoRecibido = it })
+        val repositorio = RepositorioAuthPantallaPrueba()
+        montarPantalla(repositorio = repositorio)
 
         composeTestRule.onNodeWithText(texto(R.string.auth_correo))
             .performTextInput("  Refugio@Ejemplo.MX  ")
         botonIniciarSesion().performClick()
+        composeTestRule.waitForIdle()
 
-        assertEquals("refugio@ejemplo.mx", correoRecibido)
+        assertEquals("refugio@ejemplo.mx", repositorio.ultimoCorreoInicio)
     }
 
     /**
@@ -227,4 +239,61 @@ class IniciarSesionPantallaTest {
         composeTestRule.onNodeWithText("refugio@ejemplo.mx", substring = true).assertIsDisplayed()
         botonIniciarSesion().assertIsDisplayed()
     }
+}
+
+internal class RepositorioAuthPantallaPrueba : RepositorioAuth {
+    var llamadasRegistro = 0
+    var ultimoCorreoInicio: String? = null
+    var ultimoRolRegistro: RolUsuario? = null
+    private val sesion = MutableStateFlow<Sesion?>(null)
+
+    override suspend fun registrar(
+        correo: String,
+        contrasena: String,
+        nombre: String,
+        apellidos: String,
+        telefono: String?,
+        rol: RolUsuario
+    ): Resultado<Usuario> {
+        llamadasRegistro++
+        ultimoRolRegistro = rol
+        val usuario = crearUsuario(correo = correo, rol = rol)
+        sesion.value = Sesion(usuario, "token-prueba")
+        return Resultado.Exito(usuario)
+    }
+
+    override suspend fun iniciarSesion(
+        correo: String,
+        contrasena: String
+    ): Resultado<Sesion> {
+        ultimoCorreoInicio = correo
+        val sesionNueva = Sesion(crearUsuario(correo = correo), "token-prueba")
+        sesion.value = sesionNueva
+        return Resultado.Exito(sesionNueva)
+    }
+
+    override suspend fun recuperarContrasena(correo: String): Resultado<Unit> =
+        Resultado.Exito(Unit)
+
+    override suspend fun cambiarContrasena(nueva: String): Resultado<Unit> = Resultado.Exito(Unit)
+
+    override suspend fun cerrarSesion(): Resultado<Unit> = Resultado.Exito(Unit)
+
+    override fun sesionActual(): Flow<Sesion?> = sesion
+
+    private fun crearUsuario(
+        correo: String,
+        rol: RolUsuario = RolUsuario.CLIENTE
+    ) = Usuario(
+        id = "usuario-prueba",
+        correo = correo,
+        nombre = "Refugio",
+        apellidos = "Martínez Luna",
+        telefono = "4771234567",
+        rol = rol,
+        fotoUrl = null,
+        activo = true,
+        creadoEn = Instant.EPOCH,
+        actualizadoEn = Instant.EPOCH
+    )
 }

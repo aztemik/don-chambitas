@@ -15,20 +15,19 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import mx.donchambitas.app.R
 import mx.donchambitas.app.dominio.modelo.RolUsuario
+import mx.donchambitas.app.ui.navegacion.Ruta
 import mx.donchambitas.app.ui.tema.DonChambitasTema
 import mx.donchambitas.app.util.TipoError
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
  * Pruebas instrumentadas de la pantalla de registro (P-03).
- * Cubren lo que la pantalla decide por si misma: seleccion de rol, filtrado
- * del telefono, bloqueo durante la carga y pintado de los errores que le
- * llegan en el estado. Las reglas de validacion son de S2-T04 y el alta
- * contra el repositorio es de S2-T05.
+ * Cubren seleccion de rol, enlace con el ViewModel, filtrado del telefono,
+ * bloqueo durante la carga y pintado de errores. Las reglas de validacion
+ * siguen perteneciendo a S2-T04.
  */
 @RunWith(AndroidJUnit4::class)
 class RegistroPantallaTest {
@@ -48,13 +47,18 @@ class RegistroPantallaTest {
         hasText(texto(R.string.registro_accion)) and hasClickAction()
     )
 
-    private fun montarPantalla(alRegistrarConRol: (RolUsuario) -> Unit = {}) {
+    private fun montarPantalla(
+        repositorio: RepositorioAuthPantallaPrueba = RepositorioAuthPantallaPrueba(),
+        alNavegarADestino: (Ruta) -> Unit = {}
+    ) {
+        val viewModel = RegistroViewModel(repositorio)
         composeTestRule.setContent {
             DonChambitasTema {
                 RegistroPantalla(
-                    alRegistrarConRol = alRegistrarConRol,
+                    alNavegarADestino = alNavegarADestino,
                     alRegresar = {},
-                    alIrAIniciarSesion = {}
+                    alIrAIniciarSesion = {},
+                    viewModel = viewModel
                 )
             }
         }
@@ -115,24 +119,30 @@ class RegistroPantallaTest {
 
     @Test
     fun debeReclamarElRolYNoEnviar_cuandoSeConfirmaSinElegirlo() {
-        var rolRecibido: RolUsuario? = null
-        montarPantalla(alRegistrarConRol = { rolRecibido = it })
+        val repositorio = RepositorioAuthPantallaPrueba()
+        montarPantalla(repositorio = repositorio)
 
         botonCrearCuenta().performClick()
 
         composeTestRule.onNodeWithText(texto(R.string.validacion_rol_sin_elegir)).assertIsDisplayed()
-        assertNull("Sin rol elegido no debe enviarse el registro", rolRecibido)
+        assertEquals(0, repositorio.llamadasRegistro)
     }
 
     @Test
     fun debeEntregarElRolElegido_cuandoSeConfirmaConRol() {
-        var rolRecibido: RolUsuario? = null
-        montarPantalla(alRegistrarConRol = { rolRecibido = it })
+        val repositorio = RepositorioAuthPantallaPrueba()
+        var destino: Ruta? = null
+        montarPantalla(
+            repositorio = repositorio,
+            alNavegarADestino = { destino = it }
+        )
 
         composeTestRule.onNodeWithText(texto(R.string.registro_rol_trabajador)).performClick()
         botonCrearCuenta().performClick()
+        composeTestRule.waitForIdle()
 
-        assertEquals(RolUsuario.TRABAJADOR, rolRecibido)
+        assertEquals(RolUsuario.TRABAJADOR, repositorio.ultimoRolRegistro)
+        assertEquals(Ruta.InicioTrabajador, destino)
     }
 
     @Test

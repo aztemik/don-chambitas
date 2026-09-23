@@ -16,11 +16,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.listSaver
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -32,6 +30,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import mx.donchambitas.app.R
 import mx.donchambitas.app.ui.componentes.BarraSuperior
 import mx.donchambitas.app.ui.componentes.BotonPrincipal
@@ -39,6 +38,7 @@ import mx.donchambitas.app.ui.componentes.BotonTexto
 import mx.donchambitas.app.ui.componentes.CampoContrasena
 import mx.donchambitas.app.ui.componentes.CampoTexto
 import mx.donchambitas.app.ui.componentes.EstadoError
+import mx.donchambitas.app.ui.navegacion.Ruta
 import mx.donchambitas.app.ui.tema.Carbon
 import mx.donchambitas.app.ui.tema.Crema
 import mx.donchambitas.app.ui.tema.DonChambitasTema
@@ -53,60 +53,39 @@ private val LadoIsotipo = 72.dp
 private val AltoMinimoEnlace = 48.dp
 
 /**
- * Conserva lo capturado al girar el dispositivo. Solo se guardan los dos
- * valores de captura: los errores, el indicador de carga y el destino se
- * vuelven a calcular. Guardar el destino haria que la pantalla navegara otra
- * vez al restaurarse, que es justo lo que evita consumirlo.
- */
-private val GuardaEstadoIniciarSesion = listSaver<EstadoIniciarSesion, Any?>(
-    save = { listOf(it.correo, it.contrasena) },
-    restore = {
-        EstadoIniciarSesion(
-            correo = it[0] as String,
-            contrasena = it[1] as String
-        )
-    }
-)
-
-/**
  * Pantalla de inicio de sesion (P-02).
  * Especificada en docs/producto/DISENO-AUTENTICACION.md, seccion 2.
  *
- * El estado vive aqui de forma provisional hasta que S2-T05 traiga
- * IniciarSesionViewModel: esta tarea entrega la pantalla, no el ViewModel ni
- * las reglas de validacion, que son S2-T04.
- *
- * @param alIniciarSesion Se invoca con el correo ya normalizado cuando el formulario se envia.
+ * @param alNavegarADestino Navega una sola vez al destino resuelto por el ViewModel.
  * @param alIrARegistro Lleva a P-03. No pasa por el estado: no hay nada que decidir.
  * @param alIrARecuperarContrasena Lleva a P-04, por la misma razon.
  */
 @Composable
 fun IniciarSesionPantalla(
-    alIniciarSesion: (String) -> Unit,
+    alNavegarADestino: (Ruta) -> Unit,
     alIrARegistro: () -> Unit,
     alIrARecuperarContrasena: () -> Unit,
+    viewModel: IniciarSesionViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
-    var estado by rememberSaveable(stateSaver = GuardaEstadoIniciarSesion) {
-        mutableStateOf(EstadoIniciarSesion())
+    val estado by viewModel.estado.collectAsState()
+
+    LaunchedEffect(estado.destino) {
+        estado.destino?.let { destino ->
+            viewModel.alConsumirDestino()
+            alNavegarADestino(destino)
+        }
     }
 
     IniciarSesionContenido(
         estado = estado,
-        alCambiarCorreo = { valor ->
-            estado = estado.copy(correo = valor, errorCorreo = null)
-        },
-        alCambiarContrasena = { valor ->
-            estado = estado.copy(contrasena = valor, errorContrasena = null)
-        },
-        // La normalizacion es de 1.6 y toca hacerla aqui aunque las reglas de
-        // validacion sean de S2-T04: ck_usuario_correo_minusculas rechaza el
-        // correo tal como se escribio, y ese rechazo no es un mensaje para el
-        // usuario. En pantalla se sigue viendo lo que tecleo.
-        alIniciarSesion = { alIniciarSesion(estado.correo.trim().lowercase()) },
+        alCambiarCorreo = viewModel::alCambiarCorreo,
+        alCambiarContrasena = viewModel::alCambiarContrasena,
+        alIniciarSesion = viewModel::alIniciarSesion,
         alIrARegistro = alIrARegistro,
         alIrARecuperarContrasena = alIrARecuperarContrasena,
-        modifier = modifier
+        modifier = modifier,
+        alReintentar = viewModel::alReintentar
     )
 }
 
