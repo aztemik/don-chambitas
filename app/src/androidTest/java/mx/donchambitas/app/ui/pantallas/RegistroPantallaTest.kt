@@ -2,6 +2,7 @@ package mx.donchambitas.app.ui.pantallas
 
 import androidx.annotation.StringRes
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
@@ -25,10 +26,9 @@ import org.junit.runner.RunWith
 
 /**
  * Pruebas instrumentadas de la pantalla de registro (P-03).
- * Cubren lo que la pantalla decide por si misma: seleccion de rol, filtrado
- * del telefono, bloqueo durante la carga y pintado de los errores que le
- * llegan en el estado. Las reglas de validacion son de S2-T04 y el alta
- * contra el repositorio es de S2-T05.
+ * Cubren seleccion de rol, validaciones, filtrado del telefono, bloqueo
+ * durante la carga y pintado de errores. El alta contra el repositorio sigue
+ * fuera de alcance hasta S2-T05.
  */
 @RunWith(AndroidJUnit4::class)
 class RegistroPantallaTest {
@@ -71,12 +71,25 @@ class RegistroPantallaTest {
                     alCambiarCorreo = {},
                     alCambiarContrasena = {},
                     alCambiarTelefono = {},
-                    alRegistrar = {},
+                    alRegistrar = { null },
                     alRegresar = {},
                     alIrAIniciarSesion = {}
                 )
             }
         }
+    }
+
+    private fun llenarFormularioValido() {
+        composeTestRule.onNodeWithText(texto(R.string.registro_nombre))
+            .performTextInput("Refugio")
+        composeTestRule.onNodeWithText(texto(R.string.registro_apellidos))
+            .performTextInput("López Díaz")
+        composeTestRule.onNodeWithText(texto(R.string.auth_correo))
+            .performTextInput("refugio@ejemplo.mx")
+        composeTestRule.onNodeWithText(texto(R.string.auth_contrasena))
+            .performTextInput("12345678")
+        composeTestRule.onNodeWithText(texto(R.string.registro_telefono))
+            .performTextInput("4771234567")
     }
 
     @Test
@@ -130,9 +143,48 @@ class RegistroPantallaTest {
         montarPantalla(alRegistrarConRol = { rolRecibido = it })
 
         composeTestRule.onNodeWithText(texto(R.string.registro_rol_trabajador)).performClick()
+        llenarFormularioValido()
         botonCrearCuenta().performClick()
 
         assertEquals(RolUsuario.TRABAJADOR, rolRecibido)
+    }
+
+    @Test
+    fun debeMostrarTodosLosErroresYEnfocarRol_cuandoSeEnviaVacio() {
+        var rolRecibido: RolUsuario? = null
+        montarPantalla(alRegistrarConRol = { rolRecibido = it })
+
+        botonCrearCuenta().performClick()
+
+        composeTestRule.onNodeWithText(texto(R.string.validacion_rol_sin_elegir))
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(texto(R.string.validacion_nombre_vacio))
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(texto(R.string.validacion_apellidos_vacio))
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(texto(R.string.validacion_correo_vacio))
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(texto(R.string.validacion_contrasena_corta))
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(texto(R.string.validacion_telefono_vacio))
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(texto(R.string.registro_rol_cliente)).assertIsFocused()
+        assertNull(rolRecibido)
+    }
+
+    @Test
+    fun debeValidarAlPerderFocoYLimpiarAlEscribir_cuandoElNombreFueTocado() {
+        montarPantalla()
+
+        composeTestRule.onNodeWithText(texto(R.string.registro_nombre)).performClick()
+        composeTestRule.onNodeWithText(texto(R.string.registro_apellidos)).performClick()
+        composeTestRule.onNodeWithText(texto(R.string.validacion_nombre_vacio))
+            .assertIsDisplayed()
+
+        composeTestRule.onNodeWithText(texto(R.string.registro_nombre))
+            .performTextInput("Refugio")
+        composeTestRule.onNodeWithText(texto(R.string.validacion_nombre_vacio))
+            .assertDoesNotExist()
     }
 
     @Test

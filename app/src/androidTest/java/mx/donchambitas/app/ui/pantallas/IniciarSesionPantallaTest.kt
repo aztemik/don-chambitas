@@ -2,6 +2,7 @@ package mx.donchambitas.app.ui.pantallas
 
 import androidx.annotation.StringRes
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
@@ -23,10 +24,9 @@ import org.junit.runner.RunWith
 
 /**
  * Pruebas instrumentadas de la pantalla de inicio de sesion (P-02).
- * Cubren lo que la pantalla decide por si misma: anatomia, normalizacion del
- * correo al enviar, navegacion a P-03 y P-04, bloqueo durante la carga y
- * pintado de los errores que le llegan en el estado. Las reglas de validacion
- * son de S2-T04 y la llamada a RepositorioAuth es de S2-T05.
+ * Cubren anatomia, validaciones, normalizacion del correo, navegacion a P-03 y
+ * P-04, bloqueo durante la carga y pintado de errores. La llamada a
+ * RepositorioAuth sigue fuera de alcance hasta S2-T05.
  */
 @RunWith(AndroidJUnit4::class)
 class IniciarSesionPantallaTest {
@@ -72,7 +72,7 @@ class IniciarSesionPantallaTest {
                     estado = estado,
                     alCambiarCorreo = {},
                     alCambiarContrasena = {},
-                    alIniciarSesion = {},
+                    alIniciarSesion = { null },
                     alIrARegistro = {},
                     alIrARecuperarContrasena = {},
                     alReintentar = alReintentar
@@ -114,9 +114,55 @@ class IniciarSesionPantallaTest {
 
         composeTestRule.onNodeWithText(texto(R.string.auth_correo))
             .performTextInput("  Refugio@Ejemplo.MX  ")
+        composeTestRule.onNodeWithText(texto(R.string.auth_contrasena))
+            .performTextInput("1")
         botonIniciarSesion().performClick()
 
         assertEquals("refugio@ejemplo.mx", correoRecibido)
+    }
+
+    @Test
+    fun debeMostrarTodosLosErroresYEnfocarCorreo_cuandoSeEnviaVacio() {
+        var llamadas = 0
+        montarPantalla(alIniciarSesion = { llamadas++ })
+
+        botonIniciarSesion().performClick()
+
+        composeTestRule.onNodeWithText(texto(R.string.validacion_correo_vacio))
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(texto(R.string.validacion_contrasena_vacia))
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(texto(R.string.auth_correo)).assertIsFocused()
+        assertEquals(0, llamadas)
+    }
+
+    @Test
+    fun debeValidarAlPerderFocoYLimpiarAlEscribir_cuandoElCorreoFueTocado() {
+        montarPantalla()
+
+        composeTestRule.onNodeWithText(texto(R.string.auth_correo)).performClick()
+        composeTestRule.onNodeWithText(texto(R.string.auth_contrasena)).performClick()
+        composeTestRule.onNodeWithText(texto(R.string.validacion_correo_vacio))
+            .assertIsDisplayed()
+
+        composeTestRule.onNodeWithText(texto(R.string.auth_correo))
+            .performTextInput("refugio@ejemplo.mx")
+        composeTestRule.onNodeWithText(texto(R.string.validacion_correo_vacio))
+            .assertDoesNotExist()
+    }
+
+    @Test
+    fun debeAceptarContrasenaCorta_cuandoNoEstaVaciaEnInicioDeSesion() {
+        var llamadas = 0
+        montarPantalla(alIniciarSesion = { llamadas++ })
+
+        composeTestRule.onNodeWithText(texto(R.string.auth_correo))
+            .performTextInput("refugio@ejemplo.mx")
+        composeTestRule.onNodeWithText(texto(R.string.auth_contrasena))
+            .performTextInput("1")
+        botonIniciarSesion().performClick()
+
+        assertEquals(1, llamadas)
     }
 
     /**

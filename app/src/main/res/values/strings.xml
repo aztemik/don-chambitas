@@ -89,6 +89,7 @@
     <string name="validacion_correo_vacio">Escribe tu correo electrónico</string>
     <string name="validacion_correo_formato">Ese correo no se ve bien, revísalo</string>
     <string name="validacion_correo_largo">El correo es demasiado largo</string>
+    <string name="validacion_contrasena_vacia">Escribe tu contraseña</string>
     <string name="validacion_contrasena_corta">Usa al menos 8 caracteres</string>
     <string name="validacion_telefono_vacio">Escribe tu teléfono</string>
     <string name="validacion_telefono_digitos">El teléfono lleva 10 dígitos</string>

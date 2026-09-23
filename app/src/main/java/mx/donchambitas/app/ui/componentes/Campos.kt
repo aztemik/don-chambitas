@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -57,18 +58,25 @@ fun CampoTexto(
     iconoFin: (@Composable () -> Unit)? = null,
     tecladoOpciones: KeyboardOptions = KeyboardOptions.Default,
     tecladoAcciones: KeyboardActions = KeyboardActions.Default,
+    alPerderFoco: () -> Unit = {},
     lineasMaximas: Int = 1,
     lineasMinimas: Int = 1,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     modifier: Modifier = Modifier
 ) {
     val hayError = !error.isNullOrBlank()
+    var teniaFoco by rememberSaveable { mutableStateOf(false) }
 
     Column(modifier = modifier.fillMaxWidth()) {
         OutlinedTextField(
             value = valor,
             onValueChange = alCambiarValor,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { estadoFoco ->
+                    if (teniaFoco && !estadoFoco.isFocused) alPerderFoco()
+                    teniaFoco = estadoFoco.isFocused
+                },
             enabled = habilitado,
             readOnly = soloLectura,
             textStyle = DonChambitasTema.tipografia.cuerpo,
@@ -145,6 +153,7 @@ fun CampoContrasena(
     habilitado: Boolean = true,
     tecladoOpciones: KeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
     tecladoAcciones: KeyboardActions = KeyboardActions.Default,
+    alPerderFoco: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var contrasenaVisible by rememberSaveable { mutableStateOf(false) }
@@ -158,6 +167,7 @@ fun CampoContrasena(
         habilitado = habilitado,
         tecladoOpciones = tecladoOpciones,
         tecladoAcciones = tecladoAcciones,
+        alPerderFoco = alPerderFoco,
         visualTransformation = if (contrasenaVisible) VisualTransformation.None else PasswordVisualTransformation(),
         iconoFin = {
             val descripcion = if (contrasenaVisible) {

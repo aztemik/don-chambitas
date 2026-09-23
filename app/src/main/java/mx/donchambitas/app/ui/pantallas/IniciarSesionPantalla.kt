@@ -18,12 +18,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -99,11 +102,34 @@ fun IniciarSesionPantalla(
         alCambiarContrasena = { valor ->
             estado = estado.copy(contrasena = valor, errorContrasena = null)
         },
-        // La normalizacion es de 1.6 y toca hacerla aqui aunque las reglas de
-        // validacion sean de S2-T04: ck_usuario_correo_minusculas rechaza el
-        // correo tal como se escribio, y ese rechazo no es un mensaje para el
-        // usuario. En pantalla se sigue viendo lo que tecleo.
-        alIniciarSesion = { alIniciarSesion(estado.correo.trim().lowercase()) },
+        alPerderFocoCorreo = {
+            estado = estado.copy(errorCorreo = validarCorreo(estado.correo))
+        },
+        alPerderFocoContrasena = {
+            estado = estado.copy(
+                errorContrasena = validarContrasenaInicio(estado.contrasena)
+            )
+        },
+        alIniciarSesion = {
+            val errorCorreo = validarCorreo(estado.correo)
+            val errorContrasena = validarContrasenaInicio(estado.contrasena)
+            estado = estado.copy(
+                errorCorreo = errorCorreo,
+                errorContrasena = errorContrasena,
+                errorPantalla = null
+            )
+
+            when {
+                errorCorreo != null -> CampoAutenticacion.CORREO
+                errorContrasena != null -> CampoAutenticacion.CONTRASENA
+                else -> {
+                    // La normalizacion ocurre solo al enviar; en pantalla se
+                    // conserva exactamente lo que escribio el usuario.
+                    alIniciarSesion(estado.correo.trim().lowercase())
+                    null
+                }
+            }
+        },
         alIrARegistro = alIrARegistro,
         alIrARecuperarContrasena = alIrARecuperarContrasena,
         modifier = modifier
@@ -119,13 +145,25 @@ fun IniciarSesionContenido(
     estado: EstadoIniciarSesion,
     alCambiarCorreo: (String) -> Unit,
     alCambiarContrasena: (String) -> Unit,
-    alIniciarSesion: () -> Unit,
+    alIniciarSesion: () -> CampoAutenticacion?,
     alIrARegistro: () -> Unit,
     alIrARecuperarContrasena: () -> Unit,
     modifier: Modifier = Modifier,
-    alReintentar: (() -> Unit)? = null
+    alReintentar: (() -> Unit)? = null,
+    alPerderFocoCorreo: () -> Unit = {},
+    alPerderFocoContrasena: () -> Unit = {}
 ) {
     val administradorFoco = LocalFocusManager.current
+    val focoCorreo = remember { FocusRequester() }
+    val focoContrasena = remember { FocusRequester() }
+
+    fun enviar() {
+        when (alIniciarSesion()) {
+            CampoAutenticacion.CORREO -> focoCorreo.requestFocus()
+            CampoAutenticacion.CONTRASENA -> focoContrasena.requestFocus()
+            else -> Unit
+        }
+    }
 
     Scaffold(
         // Sin flecha de regreso: P-02 es la raiz del subgrafo. P-01 sale de la
@@ -160,7 +198,10 @@ fun IniciarSesionContenido(
                 tecladoAcciones = KeyboardActions(
                     onNext = { administradorFoco.moveFocus(FocusDirection.Down) }
                 ),
-                modifier = Modifier.padding(bottom = Espaciado.dp16)
+                alPerderFoco = alPerderFocoCorreo,
+                modifier = Modifier
+                    .focusRequester(focoCorreo)
+                    .padding(bottom = Espaciado.dp16)
             )
 
             CampoContrasena(
@@ -176,9 +217,11 @@ fun IniciarSesionContenido(
                 tecladoAcciones = KeyboardActions(
                     onDone = {
                         administradorFoco.clearFocus()
-                        if (!estado.cargando) alIniciarSesion()
+                        if (!estado.cargando) enviar()
                     }
-                )
+                ),
+                alPerderFoco = alPerderFocoContrasena,
+                modifier = Modifier.focusRequester(focoContrasena)
             )
 
             BotonTexto(
@@ -199,7 +242,7 @@ fun IniciarSesionContenido(
 
             BotonPrincipal(
                 texto = stringResource(R.string.iniciar_sesion_accion),
-                onClick = alIniciarSesion,
+                onClick = ::enviar,
                 cargando = estado.cargando,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -284,7 +327,7 @@ private fun IniciarSesionVacioPreview() {
             estado = EstadoIniciarSesion(),
             alCambiarCorreo = {},
             alCambiarContrasena = {},
-            alIniciarSesion = {},
+            alIniciarSesion = { null },
             alIrARegistro = {},
             alIrARecuperarContrasena = {}
         )
@@ -303,7 +346,7 @@ private fun IniciarSesionConErroresPreview() {
             ),
             alCambiarCorreo = {},
             alCambiarContrasena = {},
-            alIniciarSesion = {},
+            alIniciarSesion = { null },
             alIrARegistro = {},
             alIrARecuperarContrasena = {}
         )
@@ -322,7 +365,7 @@ private fun IniciarSesionCargandoPreview() {
             ),
             alCambiarCorreo = {},
             alCambiarContrasena = {},
-            alIniciarSesion = {},
+            alIniciarSesion = { null },
             alIrARegistro = {},
             alIrARecuperarContrasena = {}
         )
@@ -341,7 +384,7 @@ private fun IniciarSesionCredencialesRechazadasPreview() {
             ),
             alCambiarCorreo = {},
             alCambiarContrasena = {},
-            alIniciarSesion = {},
+            alIniciarSesion = { null },
             alIrARegistro = {},
             alIrARecuperarContrasena = {}
         )

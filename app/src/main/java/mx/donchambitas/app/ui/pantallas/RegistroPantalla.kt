@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -17,12 +18,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -129,12 +134,55 @@ fun RegistroPantalla(
                 errorTelefono = null
             )
         },
+        alPerderFocoRol = {
+            estado = estado.copy(errorRol = validarRol(estado.rol))
+        },
+        alPerderFocoNombre = {
+            estado = estado.copy(errorNombre = validarNombre(estado.nombre))
+        },
+        alPerderFocoApellidos = {
+            estado = estado.copy(errorApellidos = validarApellidos(estado.apellidos))
+        },
+        alPerderFocoCorreo = {
+            estado = estado.copy(errorCorreo = validarCorreo(estado.correo))
+        },
+        alPerderFocoContrasena = {
+            estado = estado.copy(
+                errorContrasena = validarContrasenaRegistro(estado.contrasena)
+            )
+        },
+        alPerderFocoTelefono = {
+            estado = estado.copy(errorTelefono = validarTelefono(estado.telefono))
+        },
         alRegistrar = {
-            val rol = estado.rol
-            if (rol == null) {
-                estado = estado.copy(errorRol = R.string.validacion_rol_sin_elegir)
-            } else {
-                alRegistrarConRol(rol)
+            val errorRol = validarRol(estado.rol)
+            val errorNombre = validarNombre(estado.nombre)
+            val errorApellidos = validarApellidos(estado.apellidos)
+            val errorCorreo = validarCorreo(estado.correo)
+            val errorContrasena = validarContrasenaRegistro(estado.contrasena)
+            val errorTelefono = validarTelefono(estado.telefono)
+            estado = estado.copy(
+                errorRol = errorRol,
+                errorNombre = errorNombre,
+                errorApellidos = errorApellidos,
+                errorCorreo = errorCorreo,
+                errorContrasena = errorContrasena,
+                errorTelefono = errorTelefono,
+                errorPantalla = null,
+                mensajePantalla = null
+            )
+
+            when {
+                errorRol != null -> CampoAutenticacion.ROL
+                errorNombre != null -> CampoAutenticacion.NOMBRE
+                errorApellidos != null -> CampoAutenticacion.APELLIDOS
+                errorCorreo != null -> CampoAutenticacion.CORREO
+                errorContrasena != null -> CampoAutenticacion.CONTRASENA
+                errorTelefono != null -> CampoAutenticacion.TELEFONO
+                else -> {
+                    alRegistrarConRol(requireNotNull(estado.rol))
+                    null
+                }
             }
         },
         alRegresar = alRegresar,
@@ -156,16 +204,40 @@ fun RegistroContenido(
     alCambiarCorreo: (String) -> Unit,
     alCambiarContrasena: (String) -> Unit,
     alCambiarTelefono: (String) -> Unit,
-    alRegistrar: () -> Unit,
+    alRegistrar: () -> CampoAutenticacion?,
     alRegresar: () -> Unit,
     alIrAIniciarSesion: () -> Unit,
     modifier: Modifier = Modifier,
-    alReintentar: (() -> Unit)? = null
+    alReintentar: (() -> Unit)? = null,
+    alPerderFocoRol: () -> Unit = {},
+    alPerderFocoNombre: () -> Unit = {},
+    alPerderFocoApellidos: () -> Unit = {},
+    alPerderFocoCorreo: () -> Unit = {},
+    alPerderFocoContrasena: () -> Unit = {},
+    alPerderFocoTelefono: () -> Unit = {}
 ) {
     val administradorFoco = LocalFocusManager.current
+    val focoRol = remember { FocusRequester() }
+    val focoNombre = remember { FocusRequester() }
+    val focoApellidos = remember { FocusRequester() }
+    val focoCorreo = remember { FocusRequester() }
+    val focoContrasena = remember { FocusRequester() }
+    val focoTelefono = remember { FocusRequester() }
     val siguienteCampo = KeyboardActions(
         onNext = { administradorFoco.moveFocus(FocusDirection.Down) }
     )
+
+    fun enviar() {
+        when (alRegistrar()) {
+            CampoAutenticacion.ROL -> focoRol.requestFocus()
+            CampoAutenticacion.NOMBRE -> focoNombre.requestFocus()
+            CampoAutenticacion.APELLIDOS -> focoApellidos.requestFocus()
+            CampoAutenticacion.CORREO -> focoCorreo.requestFocus()
+            CampoAutenticacion.CONTRASENA -> focoContrasena.requestFocus()
+            CampoAutenticacion.TELEFONO -> focoTelefono.requestFocus()
+            null -> Unit
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -193,7 +265,9 @@ fun RegistroContenido(
                 rol = estado.rol,
                 errorRol = estado.errorRol,
                 habilitado = !estado.cargando,
-                alElegirRol = alElegirRol
+                alElegirRol = alElegirRol,
+                alPerderFoco = alPerderFocoRol,
+                focoPrimerRol = focoRol
             )
 
             CampoTexto(
@@ -207,7 +281,9 @@ fun RegistroContenido(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
                 ),
-                tecladoAcciones = siguienteCampo
+                tecladoAcciones = siguienteCampo,
+                alPerderFoco = alPerderFocoNombre,
+                modifier = Modifier.focusRequester(focoNombre)
             )
 
             CampoTexto(
@@ -221,7 +297,9 @@ fun RegistroContenido(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
                 ),
-                tecladoAcciones = siguienteCampo
+                tecladoAcciones = siguienteCampo,
+                alPerderFoco = alPerderFocoApellidos,
+                modifier = Modifier.focusRequester(focoApellidos)
             )
 
             CampoTexto(
@@ -234,7 +312,9 @@ fun RegistroContenido(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next
                 ),
-                tecladoAcciones = siguienteCampo
+                tecladoAcciones = siguienteCampo,
+                alPerderFoco = alPerderFocoCorreo,
+                modifier = Modifier.focusRequester(focoCorreo)
             )
 
             Column(verticalArrangement = Arrangement.spacedBy(Espaciado.dp4)) {
@@ -248,7 +328,9 @@ fun RegistroContenido(
                         keyboardType = KeyboardType.Password,
                         imeAction = ImeAction.Next
                     ),
-                    tecladoAcciones = siguienteCampo
+                    tecladoAcciones = siguienteCampo,
+                    alPerderFoco = alPerderFocoContrasena,
+                    modifier = Modifier.focusRequester(focoContrasena)
                 )
                 Text(
                     text = stringResource(R.string.registro_ayuda_contrasena),
@@ -270,9 +352,11 @@ fun RegistroContenido(
                 tecladoAcciones = KeyboardActions(
                     onDone = {
                         administradorFoco.clearFocus()
-                        if (!estado.cargando) alRegistrar()
+                        if (!estado.cargando) enviar()
                     }
-                )
+                ),
+                alPerderFoco = alPerderFocoTelefono,
+                modifier = Modifier.focusRequester(focoTelefono)
             )
 
             ErrorDePantalla(
@@ -283,7 +367,7 @@ fun RegistroContenido(
 
             BotonPrincipal(
                 texto = stringResource(R.string.registro_accion),
-                onClick = alRegistrar,
+                onClick = ::enviar,
                 cargando = estado.cargando,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -309,8 +393,11 @@ private fun SelectorRol(
     errorRol: Int?,
     habilitado: Boolean,
     alElegirRol: (RolUsuario) -> Unit,
+    alPerderFoco: () -> Unit,
+    focoPrimerRol: FocusRequester,
     modifier: Modifier = Modifier
 ) {
+    var teniaFoco by rememberSaveable { mutableStateOf(false) }
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(Espaciado.dp8)
@@ -324,6 +411,11 @@ private fun SelectorRol(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .focusGroup()
+                .onFocusChanged { estadoFoco ->
+                    if (teniaFoco && !estadoFoco.hasFocus) alPerderFoco()
+                    teniaFoco = estadoFoco.hasFocus
+                }
                 .selectableGroup(),
             horizontalArrangement = Arrangement.spacedBy(Espaciado.dp12)
         ) {
@@ -332,7 +424,9 @@ private fun SelectorRol(
                 seleccionado = rol == RolUsuario.CLIENTE,
                 habilitado = habilitado,
                 alSeleccionar = { alElegirRol(RolUsuario.CLIENTE) },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .focusRequester(focoPrimerRol)
+                    .weight(1f)
             )
             OpcionRol(
                 texto = stringResource(R.string.registro_rol_trabajador),
@@ -432,7 +526,7 @@ private fun RegistroVacioPreview() {
             alCambiarCorreo = {},
             alCambiarContrasena = {},
             alCambiarTelefono = {},
-            alRegistrar = {},
+            alRegistrar = { null },
             alRegresar = {},
             alIrAIniciarSesion = {}
         )
@@ -460,7 +554,7 @@ private fun RegistroConErroresPreview() {
             alCambiarCorreo = {},
             alCambiarContrasena = {},
             alCambiarTelefono = {},
-            alRegistrar = {},
+            alRegistrar = { null },
             alRegresar = {},
             alIrAIniciarSesion = {}
         )
@@ -487,7 +581,7 @@ private fun RegistroCargandoPreview() {
             alCambiarCorreo = {},
             alCambiarContrasena = {},
             alCambiarTelefono = {},
-            alRegistrar = {},
+            alRegistrar = { null },
             alRegresar = {},
             alIrAIniciarSesion = {}
         )
@@ -515,7 +609,7 @@ private fun RegistroCorreoDuplicadoPreview() {
             alCambiarCorreo = {},
             alCambiarContrasena = {},
             alCambiarTelefono = {},
-            alRegistrar = {},
+            alRegistrar = { null },
             alRegresar = {},
             alIrAIniciarSesion = {}
         )
