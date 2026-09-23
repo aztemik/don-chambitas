@@ -14,8 +14,8 @@
 | Sprint | 2 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 3 |
-| En curso | 1 |
+| Terminadas | 4 |
+| En curso | 0 |
 | Bloqueadas | 0 |
 
 > Sprint 1 cerrado el 2026-09-20 con sus 16 tareas en `hecha`.
@@ -30,12 +30,13 @@ al grafo y una fuente de datos en memoria.
 |---|---|---|
 | Abres la aplicación | P-01 espera 800 ms y te deja en P-02 | — |
 | Estás en P-02 (iniciar sesión) | La pantalla real: marca, los dos campos y los enlaces a P-03 y P-04 | — |
-| Pulsas **Iniciar sesión** con lo que sea | Entra **siempre como cliente**, a P-05. No se comprueba nada: no se llama a `RepositorioAuth` | `S2-T05` |
+| Pulsas **Iniciar sesión** con datos inválidos | Muestra todos los errores, enfoca el correo y no navega | — |
+| Pulsas **Iniciar sesión** con datos válidos | Entra **siempre como cliente**, a P-05. Todavía no se llama a `RepositorioAuth` | `S2-T05` |
 | Quieres entrar como trabajador | Desde P-02 no se puede todavía. Regístrate como trabajador en P-03 | `S2-T05` |
 | Entras a P-03 desde el marcador de P-02 | La pantalla real de registro, con sus cinco campos y el selector de rol | — |
-| Confirmas el registro **sin elegir rol** | Te reclama el rol y no hace nada más | — |
-| Escribes un correo sin arroba, o una contraseña de un carácter | **Los da por buenos.** No hay ninguna regla de formato ni de longitud | `S2-T04` |
-| Confirmas el registro **con rol** | Te manda a P-05 o P-10. **No se crea ninguna cuenta**: no se llama a `RepositorioAuth`, no se guarda nada, no se comprueba si el correo ya existe | `S2-T05` |
+| Confirmas el registro con datos inválidos | Muestra simultáneamente los errores aplicables, enfoca el primero y no navega | — |
+| Escribes un correo sin arroba, una contraseña corta o un teléfono incompleto | El campo muestra su error al perder el foco y lo limpia al volver a escribir | — |
+| Confirmas el registro **con todos los datos válidos** | Te manda a P-05 o P-10. **No se crea ninguna cuenta**: no se llama a `RepositorioAuth`, no se guarda nada, no se comprueba si el correo ya existe | `S2-T05` |
 | Cierras y vuelves a abrir | No hay cuenta que recordar, ni sesión | `S2-T08`, `S2-T09` |
 
 **Cuando `S2-T05` esté hecha, el alta seguirá sin ser real.** Escribirá en
@@ -47,17 +48,19 @@ correo de Supabase Auth desactivada.
 
 ## Tarea en curso
 
-**`S2-T04` — Validaciones de formularios y mensajes de error.**
-
-| Campo | Valor |
-|---|---|
-| ID | S2-T04 |
-| Título | Validaciones de formularios y mensajes de error |
-| Quién la tomó | Agente Codex por confirmación de RRC |
-| Rama | `feat/S2-T04-validaciones-formularios` |
-| Desde | 2026-09-23 |
+Ninguna.
 
 ## Última tarea terminada
+
+**`S2-T04` — Validaciones de formularios y mensajes de error.** 2026-09-23.
+Rama `feat/S2-T04-validaciones-formularios`, pull request **sin abrir todavía**.
+
+- Funciones puras para cada regla de P-02 y P-03, incluida la expresión regular de correo fijada en `DISENO-AUTENTICACION.md`.
+- Validación al perder el foco después de tocar un campo, limpieza inmediata al volver a escribir y validación conjunta al enviar.
+- P-02 y P-03 muestran todos los errores aplicables, bloquean la navegación y enfocan el primer campo inválido en orden visual.
+- `validacion_contrasena_vacia` agregada a `strings.xml`; no se añadieron llamadas a repositorios, ViewModels ni Supabase.
+- Verificación final: `assembleDebug` exitoso, 63 pruebas unitarias y 32 instrumentadas pasando en el emulador `Pixel_10` (Android 17).
+- Recorrido manual en el mismo Pixel 10: envío vacío en P-02 muestra ambos errores y enfoca correo; envío vacío en P-03 muestra los seis errores y enfoca "Quiero contratar".
 
 **`S2-T03` — Pantalla de inicio de sesión.** 2026-09-22.
 Rama `feat/S2-T03-pantalla-inicio-sesion`, pull request **sin abrir todavía**.
@@ -321,16 +324,10 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S2-T04` — Validaciones de formularios y mensajes de error
-(prioridad 900, sprint 2, depende de: S2-T02 y S2-T03, las dos hechas)
+`S2-T05` — ViewModels y estados de UI del flujo de autenticación
+(prioridad 850, sprint 2, depende de: S1-T13, hecha)
 
-Su alcance ya está escrito: secciones 1.5, 5 y 7 de
-`docs/producto/DISENO-AUTENTICACION.md`. **No tiene ticket**: hay que
-redactarlo antes de tomarla, como se hizo con `S2-T03`.
-
-Ojo: la clave `validacion_contrasena_vacia` de la sección 7 **todavía no
-existe** en `strings.xml`. Ni `S2-T02` ni `S2-T03` la necesitaban, porque
-ninguna de las dos decide reglas de formato. La agrega `S2-T04`.
+No tiene ticket todavía: hay que redactarlo antes de tomar la tarea.
 
 ## Los dos huecos de S2-T01, ya cerrados
 
