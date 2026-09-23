@@ -16,14 +16,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -33,6 +37,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import mx.donchambitas.app.R
+import mx.donchambitas.app.dominio.validacion.ValidacionesAuth
 import mx.donchambitas.app.ui.componentes.BarraSuperior
 import mx.donchambitas.app.ui.componentes.BotonPrincipal
 import mx.donchambitas.app.ui.componentes.BotonTexto
@@ -68,13 +73,17 @@ private val GuardaEstadoIniciarSesion = listSaver<EstadoIniciarSesion, Any?>(
     }
 )
 
+/** Campos de P-02, en orden visual: el foco salta al primero que falle. */
+enum class CampoIniciarSesion { CORREO, CONTRASENA }
+
 /**
  * Pantalla de inicio de sesion (P-02).
  * Especificada en docs/producto/DISENO-AUTENTICACION.md, seccion 2.
  *
- * El estado vive aqui de forma provisional hasta que S2-T05 traiga
- * IniciarSesionViewModel: esta tarea entrega la pantalla, no el ViewModel ni
- * las reglas de validacion, que son S2-T04.
+ * El estado y la validacion viven aqui de forma provisional hasta que S2-T05
+ * traiga IniciarSesionViewModel. Las reglas son las de S2-T04, en
+ * ValidacionesAuth, y se aplican cuando dice 1.5: al salir de un campo ya
+ * escrito y al enviar.
  *
  * @param alIniciarSesion Se invoca con el correo ya normalizado cuando el formulario se envia.
  * @param alIrARegistro Lleva a P-03. No pasa por el estado: no hay nada que decidir.
@@ -90,29 +99,56 @@ fun IniciarSesionPantalla(
     var estado by rememberSaveable(stateSaver = GuardaEstadoIniciarSesion) {
         mutableStateOf(EstadoIniciarSesion())
     }
+    // Solo se valida al salir de un campo en el que ya se escribio: pasar por
+    // uno vacio camino a otro no es un error todavia.
+    var tocados by remember { mutableStateOf(emptySet<CampoIniciarSesion>()) }
 
     IniciarSesionContenido(
         estado = estado,
         alCambiarCorreo = { valor ->
+            tocados = tocados + CampoIniciarSesion.CORREO
             estado = estado.copy(correo = valor, errorCorreo = null)
         },
         alCambiarContrasena = { valor ->
+            tocados = tocados + CampoIniciarSesion.CONTRASENA
             estado = estado.copy(contrasena = valor, errorContrasena = null)
         },
-        // La normalizacion es de 1.6 y toca hacerla aqui aunque las reglas de
-        // validacion sean de S2-T04: ck_usuario_correo_minusculas rechaza el
-        // correo tal como se escribio, y ese rechazo no es un mensaje para el
-        // usuario. En pantalla se sigue viendo lo que tecleo.
-        alIniciarSesion = { alIniciarSesion(estado.correo.trim().lowercase()) },
+        alSalirDeCampo = { campo ->
+            if (campo in tocados) estado = estado.validado(campo)
+        },
+        alIniciarSesion = {
+            estado = CampoIniciarSesion.entries.fold(estado) { parcial, campo -> parcial.validado(campo) }
+            // La normalizacion es de 1.6: ck_usuario_correo_minusculas rechaza
+            // el correo tal como se escribio, y ese rechazo no es un mensaje
+            // para el usuario. En pantalla se sigue viendo lo que tecleo.
+            if (estado.errorCorreo == null && estado.errorContrasena == null) {
+                alIniciarSesion(estado.correo.trim().lowercase())
+            }
+        },
         alIrARegistro = alIrARegistro,
         alIrARecuperarContrasena = alIrARecuperarContrasena,
         modifier = modifier
     )
 }
 
+private fun EstadoIniciarSesion.validado(campo: CampoIniciarSesion): EstadoIniciarSesion =
+    when (campo) {
+        CampoIniciarSesion.CORREO ->
+            copy(errorCorreo = ValidacionesAuth.validarCorreo(correo)?.mensaje())
+        CampoIniciarSesion.CONTRASENA ->
+            copy(errorContrasena = ValidacionesAuth.validarContrasenaInicioSesion(contrasena)?.mensaje())
+    }
+
+private fun EstadoIniciarSesion.errorDe(campo: CampoIniciarSesion): Int? = when (campo) {
+    CampoIniciarSesion.CORREO -> errorCorreo
+    CampoIniciarSesion.CONTRASENA -> errorContrasena
+}
+
 /**
  * Contenido visual puro de P-02, sin estado propio, para previsualizarlo y
  * probarlo con cualquier combinacion de valores y errores.
+ *
+ * Al enviar, le pone el foco al primer campo con error (5.4).
  */
 @Composable
 fun IniciarSesionContenido(
@@ -123,9 +159,27 @@ fun IniciarSesionContenido(
     alIrARegistro: () -> Unit,
     alIrARecuperarContrasena: () -> Unit,
     modifier: Modifier = Modifier,
+    alSalirDeCampo: (CampoIniciarSesion) -> Unit = {},
     alReintentar: (() -> Unit)? = null
 ) {
     val administradorFoco = LocalFocusManager.current
+    val solicitantesFoco = remember { CampoIniciarSesion.entries.associateWith { FocusRequester() } }
+    var irAlPrimerError by remember { mutableStateOf(false) }
+    val iniciarSesion = {
+        alIniciarSesion()
+        irAlPrimerError = true
+    }
+
+    LaunchedEffect(irAlPrimerError) {
+        if (!irAlPrimerError) return@LaunchedEffect
+        irAlPrimerError = false
+        CampoIniciarSesion.entries.firstOrNull { estado.errorDe(it) != null }
+            ?.let { solicitantesFoco.getValue(it).requestFocus() }
+    }
+
+    fun Modifier.campo(campo: CampoIniciarSesion): Modifier = this
+        .focusRequester(solicitantesFoco.getValue(campo))
+        .alPerderFoco { alSalirDeCampo(campo) }
 
     Scaffold(
         // Sin flecha de regreso: P-02 es la raiz del subgrafo. P-01 sale de la
@@ -160,7 +214,9 @@ fun IniciarSesionContenido(
                 tecladoAcciones = KeyboardActions(
                     onNext = { administradorFoco.moveFocus(FocusDirection.Down) }
                 ),
-                modifier = Modifier.padding(bottom = Espaciado.dp16)
+                modifier = Modifier
+                    .padding(bottom = Espaciado.dp16)
+                    .campo(CampoIniciarSesion.CORREO)
             )
 
             CampoContrasena(
@@ -176,9 +232,10 @@ fun IniciarSesionContenido(
                 tecladoAcciones = KeyboardActions(
                     onDone = {
                         administradorFoco.clearFocus()
-                        if (!estado.cargando) alIniciarSesion()
+                        if (!estado.cargando) iniciarSesion()
                     }
-                )
+                ),
+                modifier = Modifier.campo(CampoIniciarSesion.CONTRASENA)
             )
 
             BotonTexto(
@@ -199,7 +256,7 @@ fun IniciarSesionContenido(
 
             BotonPrincipal(
                 texto = stringResource(R.string.iniciar_sesion_accion),
-                onClick = alIniciarSesion,
+                onClick = iniciarSesion,
                 cargando = estado.cargando,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -299,7 +356,7 @@ private fun IniciarSesionConErroresPreview() {
             estado = EstadoIniciarSesion(
                 correo = "refugio@",
                 errorCorreo = R.string.validacion_correo_formato,
-                errorContrasena = R.string.validacion_contrasena_corta
+                errorContrasena = R.string.validacion_contrasena_vacia
             ),
             alCambiarCorreo = {},
             alCambiarContrasena = {},

@@ -35,15 +35,3 @@ data class EstadoRegistro(
     val mensajePantalla: String? = null,
     val cargando: Boolean = false
 )
-
-/**
- * Topes de captura de P-03. Son los de public.usuarios en
- * basedatos/01_esquema.sql: el campo impide escribir de mas en lugar de
- * dejar que la base rechace el registro cuando ya no hay nada que corregir.
- */
-object LimitesRegistro {
-    const val LARGO_MAXIMO_NOMBRE = 80
-    const val LARGO_MAXIMO_APELLIDOS = 120
-    const val LARGO_MAXIMO_CORREO = 160
-    const val LARGO_TELEFONO = 10
-}

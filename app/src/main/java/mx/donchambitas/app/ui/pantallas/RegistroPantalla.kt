@@ -15,14 +15,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -35,6 +39,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import mx.donchambitas.app.R
 import mx.donchambitas.app.dominio.modelo.RolUsuario
+import mx.donchambitas.app.dominio.validacion.LimitesRegistro
+import mx.donchambitas.app.dominio.validacion.ValidacionesAuth
 import mx.donchambitas.app.ui.componentes.BarraSuperior
 import mx.donchambitas.app.ui.componentes.BotonPrincipal
 import mx.donchambitas.app.ui.componentes.BotonTexto
@@ -74,13 +80,16 @@ private val GuardaEstadoRegistro = listSaver<EstadoRegistro, Any?>(
     }
 )
 
+/** Campos de texto de P-03, en orden visual: el foco salta al primero que falle. */
+enum class CampoRegistro { NOMBRE, APELLIDOS, CORREO, CONTRASENA, TELEFONO }
+
 /**
  * Pantalla de registro con seleccion de rol (P-03).
  * Especificada en docs/producto/DISENO-AUTENTICACION.md, seccion 3.
  *
- * El estado vive aqui de forma provisional hasta que S2-T05 traiga
- * RegistroViewModel: esta tarea entrega la pantalla, no el ViewModel ni las
- * reglas de validacion, que son S2-T04.
+ * El estado y la validacion viven aqui de forma provisional hasta que S2-T05
+ * traiga RegistroViewModel. Las reglas son las de S2-T04, en ValidacionesAuth,
+ * y se aplican cuando dice 1.5: al salir de un campo ya escrito y al enviar.
  *
  * @param alRegistrarConRol Se invoca con el rol elegido cuando el formulario se envia.
  * @param alRegresar Regresa a P-02 descartando lo capturado.
@@ -96,46 +105,56 @@ fun RegistroPantalla(
     var estado by rememberSaveable(stateSaver = GuardaEstadoRegistro) {
         mutableStateOf(EstadoRegistro())
     }
+    // Solo se valida al salir de un campo en el que ya se escribio: pasar por
+    // uno vacio camino a otro no es un error todavia.
+    var tocados by remember { mutableStateOf(emptySet<CampoRegistro>()) }
 
     RegistroContenido(
         estado = estado,
         alElegirRol = { rol -> estado = estado.copy(rol = rol, errorRol = null) },
         alCambiarNombre = { valor ->
+            tocados = tocados + CampoRegistro.NOMBRE
             estado = estado.copy(
                 nombre = valor.take(LimitesRegistro.LARGO_MAXIMO_NOMBRE),
                 errorNombre = null
             )
         },
         alCambiarApellidos = { valor ->
+            tocados = tocados + CampoRegistro.APELLIDOS
             estado = estado.copy(
                 apellidos = valor.take(LimitesRegistro.LARGO_MAXIMO_APELLIDOS),
                 errorApellidos = null
             )
         },
         alCambiarCorreo = { valor ->
+            tocados = tocados + CampoRegistro.CORREO
             estado = estado.copy(
                 correo = valor.take(LimitesRegistro.LARGO_MAXIMO_CORREO),
                 errorCorreo = null
             )
         },
         alCambiarContrasena = { valor ->
+            tocados = tocados + CampoRegistro.CONTRASENA
             estado = estado.copy(contrasena = valor, errorContrasena = null)
         },
         alCambiarTelefono = { valor ->
             // Se filtra al escribir en vez de validarse despues: no es una regla
             // de negocio, es no dejar teclear lo que el campo no admite.
+            tocados = tocados + CampoRegistro.TELEFONO
             estado = estado.copy(
                 telefono = valor.filter(Char::isDigit).take(LimitesRegistro.LARGO_TELEFONO),
                 errorTelefono = null
             )
         },
+        alSalirDeCampo = { campo ->
+            if (campo in tocados) estado = estado.validado(campo)
+        },
         alRegistrar = {
+            estado = CampoRegistro.entries.fold(
+                estado.copy(errorRol = ValidacionesAuth.validarRol(estado.rol)?.mensaje())
+            ) { parcial, campo -> parcial.validado(campo) }
             val rol = estado.rol
-            if (rol == null) {
-                estado = estado.copy(errorRol = R.string.validacion_rol_sin_elegir)
-            } else {
-                alRegistrarConRol(rol)
-            }
+            if (rol != null && estado.sinErrores()) alRegistrarConRol(rol)
         },
         alRegresar = alRegresar,
         alIrAIniciarSesion = alIrAIniciarSesion,
@@ -143,9 +162,37 @@ fun RegistroPantalla(
     )
 }
 
+private fun EstadoRegistro.validado(campo: CampoRegistro): EstadoRegistro = when (campo) {
+    CampoRegistro.NOMBRE ->
+        copy(errorNombre = ValidacionesAuth.validarNombre(nombre)?.mensaje())
+    CampoRegistro.APELLIDOS ->
+        copy(errorApellidos = ValidacionesAuth.validarApellidos(apellidos)?.mensaje())
+    CampoRegistro.CORREO ->
+        copy(errorCorreo = ValidacionesAuth.validarCorreo(correo)?.mensaje())
+    CampoRegistro.CONTRASENA ->
+        copy(errorContrasena = ValidacionesAuth.validarContrasenaRegistro(contrasena)?.mensaje())
+    CampoRegistro.TELEFONO ->
+        copy(errorTelefono = ValidacionesAuth.validarTelefono(telefono)?.mensaje())
+}
+
+private fun EstadoRegistro.sinErrores(): Boolean =
+    listOf(errorRol, errorNombre, errorApellidos, errorCorreo, errorContrasena, errorTelefono)
+        .all { it == null }
+
+private fun EstadoRegistro.errorDe(campo: CampoRegistro): Int? = when (campo) {
+    CampoRegistro.NOMBRE -> errorNombre
+    CampoRegistro.APELLIDOS -> errorApellidos
+    CampoRegistro.CORREO -> errorCorreo
+    CampoRegistro.CONTRASENA -> errorContrasena
+    CampoRegistro.TELEFONO -> errorTelefono
+}
+
 /**
  * Contenido visual puro de P-03, sin estado propio, para previsualizarlo y
  * probarlo con cualquier combinacion de valores y errores.
+ *
+ * Al enviar, lleva al usuario al primer error en orden visual (5.4): si es el
+ * rol, sube hasta el selector; si es un campo, le pone el foco.
  */
 @Composable
 fun RegistroContenido(
@@ -160,12 +207,36 @@ fun RegistroContenido(
     alRegresar: () -> Unit,
     alIrAIniciarSesion: () -> Unit,
     modifier: Modifier = Modifier,
+    alSalirDeCampo: (CampoRegistro) -> Unit = {},
     alReintentar: (() -> Unit)? = null
 ) {
     val administradorFoco = LocalFocusManager.current
     val siguienteCampo = KeyboardActions(
         onNext = { administradorFoco.moveFocus(FocusDirection.Down) }
     )
+    val desplazamiento = rememberScrollState()
+    val solicitantesFoco = remember { CampoRegistro.entries.associateWith { FocusRequester() } }
+    var irAlPrimerError by remember { mutableStateOf(false) }
+    val registrar = {
+        alRegistrar()
+        irAlPrimerError = true
+    }
+
+    LaunchedEffect(irAlPrimerError) {
+        if (!irAlPrimerError) return@LaunchedEffect
+        irAlPrimerError = false
+        if (estado.errorRol != null) {
+            administradorFoco.clearFocus()
+            desplazamiento.animateScrollTo(0)
+        } else {
+            CampoRegistro.entries.firstOrNull { estado.errorDe(it) != null }
+                ?.let { solicitantesFoco.getValue(it).requestFocus() }
+        }
+    }
+
+    fun Modifier.campo(campo: CampoRegistro): Modifier = this
+        .focusRequester(solicitantesFoco.getValue(campo))
+        .alPerderFoco { alSalirDeCampo(campo) }
 
     Scaffold(
         topBar = {
@@ -181,7 +252,7 @@ fun RegistroContenido(
             modifier = Modifier
                 .padding(relleno)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(desplazamiento)
                 .imePadding()
                 .padding(
                     horizontal = Espaciado.margenPantalla,
@@ -202,6 +273,7 @@ fun RegistroContenido(
                 etiqueta = stringResource(R.string.registro_nombre),
                 error = estado.errorNombre?.let { stringResource(it) },
                 habilitado = !estado.cargando,
+                modifier = Modifier.campo(CampoRegistro.NOMBRE),
                 tecladoOpciones = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Words,
                     keyboardType = KeyboardType.Text,
@@ -216,6 +288,7 @@ fun RegistroContenido(
                 etiqueta = stringResource(R.string.registro_apellidos),
                 error = estado.errorApellidos?.let { stringResource(it) },
                 habilitado = !estado.cargando,
+                modifier = Modifier.campo(CampoRegistro.APELLIDOS),
                 tecladoOpciones = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Words,
                     keyboardType = KeyboardType.Text,
@@ -230,6 +303,7 @@ fun RegistroContenido(
                 etiqueta = stringResource(R.string.auth_correo),
                 error = estado.errorCorreo?.let { stringResource(it) },
                 habilitado = !estado.cargando,
+                modifier = Modifier.campo(CampoRegistro.CORREO),
                 tecladoOpciones = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next
@@ -244,6 +318,7 @@ fun RegistroContenido(
                     etiqueta = stringResource(R.string.auth_contrasena),
                     error = estado.errorContrasena?.let { stringResource(it) },
                     habilitado = !estado.cargando,
+                    modifier = Modifier.campo(CampoRegistro.CONTRASENA),
                     tecladoOpciones = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
                         imeAction = ImeAction.Next
@@ -263,6 +338,7 @@ fun RegistroContenido(
                 etiqueta = stringResource(R.string.registro_telefono),
                 error = estado.errorTelefono?.let { stringResource(it) },
                 habilitado = !estado.cargando,
+                modifier = Modifier.campo(CampoRegistro.TELEFONO),
                 tecladoOpciones = KeyboardOptions(
                     keyboardType = KeyboardType.Phone,
                     imeAction = ImeAction.Done
@@ -270,7 +346,7 @@ fun RegistroContenido(
                 tecladoAcciones = KeyboardActions(
                     onDone = {
                         administradorFoco.clearFocus()
-                        if (!estado.cargando) alRegistrar()
+                        if (!estado.cargando) registrar()
                     }
                 )
             )
@@ -283,7 +359,7 @@ fun RegistroContenido(
 
             BotonPrincipal(
                 texto = stringResource(R.string.registro_accion),
-                onClick = alRegistrar,
+                onClick = registrar,
                 cargando = estado.cargando,
                 modifier = Modifier.fillMaxWidth()
             )
