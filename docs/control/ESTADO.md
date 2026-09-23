@@ -15,7 +15,7 @@
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
 | Terminadas | 3 |
-| En curso | 0 |
+| En curso | 1 |
 | Bloqueadas | 0 |
 
 > Sprint 1 cerrado el 2026-09-20 con sus 16 tareas en `hecha`.
@@ -47,15 +47,15 @@ correo de Supabase Auth desactivada.
 
 ## Tarea en curso
 
-_Ninguna._
+**`S2-T05` — ViewModels y estados de UI del flujo de autenticación.**
 
 | Campo | Valor |
 |---|---|
-| ID | — |
-| Título | — |
-| Quién la tomó | — |
-| Rama | — |
-| Desde | — |
+| ID | S2-T05 |
+| Título | ViewModels y estados de UI del flujo de autenticación |
+| Quién la tomó | Agente Codex por confirmación de RRC |
+| Rama | `feat/S2-T05-viewmodels-estados-ui-autenticacion` |
+| Desde | 2026-09-23 |
 
 ## Última tarea terminada
 

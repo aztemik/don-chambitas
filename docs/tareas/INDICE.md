@@ -66,7 +66,7 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 | `S2-T02` | 970 | Pantalla de registro con selección de rol (cliente / trabajador) | LMM | hecha | S1-T10, S1-T12 |
 | `S2-T03` | 950 | Pantalla de inicio de sesión | RRC | hecha | S1-T10, S1-T12 |
 | `S2-T04` | 900 | Validaciones de formularios y mensajes de error | GRI | pendiente | S2-T02, S2-T03 |
-| `S2-T05` | 850 | ViewModels y estados de UI del flujo de autenticación | BCJL | pendiente | S1-T13 |
+| `S2-T05` | 850 | ViewModels y estados de UI del flujo de autenticación | BCJL | en curso | S1-T13 |
 | `S2-T06` | 800 | Contrato de la API de autenticación (endpoints, payloads y errores) | LMM | pendiente | — |
 | `S2-T07` | 750 | Implementación real de autenticación con Supabase Auth | RRC | pendiente | S2-T06 |
 | `S2-T08` | 700 | Almacenamiento seguro de la sesión y el token (DataStore cifrado) | GRI | pendiente | S2-T05 |
