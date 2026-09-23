@@ -3,7 +3,7 @@
 > Archivo **vivo**. Quien termina una tarea lo actualiza. Es la primera cosa
 > que lee el agente y la única fuente confiable sobre qué está pasando hoy.
 
-**Última actualización:** 2026-09-22
+**Última actualización:** 2026-09-23
 
 ---
 
@@ -15,7 +15,7 @@
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
 | Terminadas | 3 |
-| En curso | 0 |
+| En curso | 1 |
 | Bloqueadas | 0 |
 
 > Sprint 1 cerrado el 2026-09-20 con sus 16 tareas en `hecha`.
@@ -47,15 +47,15 @@ correo de Supabase Auth desactivada.
 
 ## Tarea en curso
 
-_Ninguna._
+**`S2-T04` — Validaciones de formularios y mensajes de error.**
 
 | Campo | Valor |
 |---|---|
-| ID | — |
-| Título | — |
-| Quién la tomó | — |
-| Rama | — |
-| Desde | — |
+| ID | S2-T04 |
+| Título | Validaciones de formularios y mensajes de error |
+| Quién la tomó | Agente Codex por confirmación de RRC |
+| Rama | `feat/S2-T04-validaciones-formularios` |
+| Desde | 2026-09-23 |
 
 ## Última tarea terminada
 
