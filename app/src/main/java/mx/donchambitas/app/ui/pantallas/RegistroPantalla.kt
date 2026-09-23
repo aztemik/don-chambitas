@@ -1,5 +1,6 @@
 package mx.donchambitas.app.ui.pantallas
 
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -477,6 +478,7 @@ private fun OpcionRol(
                 this.role = Role.RadioButton
                 this.selected = seleccionado
             }
+            .focusable(enabled = habilitado)
     )
 }
 
