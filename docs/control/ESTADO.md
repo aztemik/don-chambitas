@@ -62,7 +62,7 @@ _Ninguna._
 ## Última tarea terminada
 
 **`S2-T04` — Validaciones de formularios y mensajes de error.** 2026-09-23.
-Rama `feat/S2-T04-validaciones-formularios`, pull request **sin abrir todavía**.
+Rama `feat/S2-T04-validaciones-formularios`, pull request **#11**, abierto desde el fork `michaelleonmoso25-MLM/don-chambitas`. **El #10 de Ricardo5690 implementa la misma tarea**: se trabajaron en paralelo sin saberlo, y el líder decide cuál integrar.
 
 Ticket `docs/tareas/S2-T04.md`, redactado por el agente como el de `S2-T03`.
 El alcance salió de las secciones 1.5, 1.6, 5 y 7 de
