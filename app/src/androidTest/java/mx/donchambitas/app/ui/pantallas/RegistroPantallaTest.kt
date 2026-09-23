@@ -2,6 +2,7 @@ package mx.donchambitas.app.ui.pantallas
 
 import androidx.annotation.StringRes
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
@@ -26,9 +27,9 @@ import org.junit.runner.RunWith
 /**
  * Pruebas instrumentadas de la pantalla de registro (P-03).
  * Cubren lo que la pantalla decide por si misma: seleccion de rol, filtrado
- * del telefono, bloqueo durante la carga y pintado de los errores que le
- * llegan en el estado. Las reglas de validacion son de S2-T04 y el alta
- * contra el repositorio es de S2-T05.
+ * del telefono, bloqueo durante la carga, pintado de los errores que le
+ * llegan en el estado y cuando se valida (1.5). Cada regla se prueba sin
+ * emulador en ValidacionesAuthTest; el alta contra el repositorio es de S2-T05.
  */
 @RunWith(AndroidJUnit4::class)
 class RegistroPantallaTest {
@@ -58,6 +59,18 @@ class RegistroPantallaTest {
                 )
             }
         }
+    }
+
+    private fun escribir(@StringRes etiqueta: Int, valor: String) {
+        composeTestRule.onNodeWithText(texto(etiqueta)).performTextInput(valor)
+    }
+
+    private fun llenarCamposValidos() {
+        escribir(R.string.registro_nombre, "Refugio")
+        escribir(R.string.registro_apellidos, "Martínez Luna")
+        escribir(R.string.auth_correo, "refugio@ejemplo.mx")
+        escribir(R.string.auth_contrasena, "12345678")
+        escribir(R.string.registro_telefono, "4771234567")
     }
 
     private fun montarContenido(estado: EstadoRegistro) {
@@ -130,9 +143,67 @@ class RegistroPantallaTest {
         montarPantalla(alRegistrarConRol = { rolRecibido = it })
 
         composeTestRule.onNodeWithText(texto(R.string.registro_rol_trabajador)).performClick()
+        llenarCamposValidos()
         botonCrearCuenta().performClick()
 
         assertEquals(RolUsuario.TRABAJADOR, rolRecibido)
+    }
+
+    @Test
+    fun debeMarcarLosCincoCamposYNoEnviar_cuandoSeEnviaConRolYTodoVacio() {
+        var rolRecibido: RolUsuario? = null
+        montarPantalla(alRegistrarConRol = { rolRecibido = it })
+
+        composeTestRule.onNodeWithText(texto(R.string.registro_rol_cliente)).performClick()
+        botonCrearCuenta().performClick()
+
+        listOf(
+            R.string.validacion_nombre_vacio,
+            R.string.validacion_apellidos_vacio,
+            R.string.validacion_correo_vacio,
+            R.string.validacion_contrasena_corta,
+            R.string.validacion_telefono_vacio
+        ).forEach { composeTestRule.onNodeWithText(texto(it)).assertExists() }
+        composeTestRule.onNodeWithText(texto(R.string.registro_nombre)).assertIsFocused()
+        assertNull("Con errores no debe enviarse el registro", rolRecibido)
+    }
+
+    @Test
+    fun debeNoEnviar_cuandoLaContrasenaTieneSieteCaracteres() {
+        var rolRecibido: RolUsuario? = null
+        montarPantalla(alRegistrarConRol = { rolRecibido = it })
+
+        composeTestRule.onNodeWithText(texto(R.string.registro_rol_cliente)).performClick()
+        escribir(R.string.registro_nombre, "Refugio")
+        escribir(R.string.registro_apellidos, "Martínez Luna")
+        escribir(R.string.auth_correo, "refugio@ejemplo.mx")
+        escribir(R.string.auth_contrasena, "1234567")
+        escribir(R.string.registro_telefono, "4771234567")
+        botonCrearCuenta().performClick()
+
+        composeTestRule.onNodeWithText(texto(R.string.validacion_contrasena_corta)).assertExists()
+        composeTestRule.onNodeWithText(texto(R.string.auth_contrasena)).assertIsFocused()
+        assertNull("Con la contrasena corta no debe enviarse el registro", rolRecibido)
+    }
+
+    @Test
+    fun debeMarcarElTelefono_cuandoSaleDelCampoConMenosDeDiezDigitos() {
+        montarPantalla()
+
+        escribir(R.string.registro_telefono, "55123")
+        composeTestRule.onNodeWithText(texto(R.string.registro_nombre)).performClick()
+
+        composeTestRule.onNodeWithText(texto(R.string.validacion_telefono_digitos)).assertExists()
+    }
+
+    @Test
+    fun debeNoMarcarNada_cuandoSePasaPorUnCampoSinEscribir() {
+        montarPantalla()
+
+        composeTestRule.onNodeWithText(texto(R.string.registro_nombre)).performClick()
+        composeTestRule.onNodeWithText(texto(R.string.registro_apellidos)).performClick()
+
+        composeTestRule.onNodeWithText(texto(R.string.validacion_nombre_vacio)).assertDoesNotExist()
     }
 
     @Test
