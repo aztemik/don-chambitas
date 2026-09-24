@@ -14,7 +14,7 @@
 | Sprint | 2 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 5 |
+| Terminadas | 6 |
 | En curso | 1 |
 | Bloqueadas | 0 |
 
@@ -41,10 +41,12 @@ La implementación activa sigue siendo la fuente de datos en memoria.
 
 En la rama de `S2-T05`, el alta escribe en `FuenteDatosFalsa`: permite
 registrarse y entrar, pero la cuenta desaparece al reiniciar la aplicación.
-Cuentas reales contra Supabase Auth corresponden a `S2-T07`. `S2-T06` ya fijó
-que el registro deja sesión abierta, que la confirmación por correo permanece
-desactivada y que la recuperación vuelve a P-18 mediante
-`mx.donchambitas.app://auth/recuperar-contrasena`.
+Cuentas reales contra Supabase Auth ya están implementadas en la rama apilada
+de `S2-T07`. Esa rama cambia únicamente `RepositorioAuth`; para recorrer el
+flujo desde las pantallas también tiene que integrarse `S2-T05`. La prueba
+contra el backend requiere `SUPABASE_URL` y `SUPABASE_ANON_KEY` locales,
+Confirm email desactivado y la Redirect URL
+`mx.donchambitas.app://auth/recuperar-contrasena` registrada en Supabase.
 
 ## Tarea en curso
 
@@ -60,6 +62,27 @@ desde otras ramas.
 | Desde | 2026-09-23, pull request pendiente de revisión |
 
 ## Última tarea terminada
+
+**`S2-T07` — Implementación real de autenticación con Supabase Auth.**
+2026-09-23. Rama `feat/S2-T07-autenticacion-supabase`, apilada sobre S2-T06;
+pull request **sin abrir** y S2-T06 debe integrarse primero.
+
+- `RepositorioAuthSupabase` implementa registro, inicio, recuperación, cambio
+  de contraseña, cierre y observación de sesión con `supabase-kt` 3.0.3.
+- Registro normaliza el correo, manda los cuatro metadatos del trigger y exige
+  una sesión activa. Los errores de Auth/Ktor se traducen a `TipoError`.
+- Hilt activa Supabase solo para `RepositorioAuth`; los otros nueve
+  repositorios permanecen falsos.
+- Auth usa memoria y no carga ni guarda sesión en almacenamiento persistente;
+  el DataStore cifrado queda reservado a `S2-T08`.
+- El intent-filter y `handleDeeplinks` reciben
+  `mx.donchambitas.app://auth/recuperar-contrasena` y abren P-18, incluso con
+  la guarda temporal todavía activa.
+- Verificación: `assembleDebug`, 71 pruebas unitarias y 28 instrumentadas sin
+  fallas. APK instalado y deep link abierto con `adb` en AVD `Pixel_10`,
+  Android 17; la jerarquía visible confirmó «P-18 · Mi cuenta».
+- No se probaron altas reales porque `local.properties` no contiene URL ni
+  `anon key`; son configuración local y no se versionan.
 
 **`S2-T06` — Contrato de la API de autenticación.** 2026-09-23.
 Rama `docs/S2-T06-contrato-api-autenticacion`, pull request **sin abrir**.
@@ -342,14 +365,11 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S2-T07` — Implementación real de autenticación con Supabase Auth
-(prioridad 750, sprint 2, depende de S2-T06).
+`S2-T08` — Almacenamiento seguro de la sesión y el token (DataStore cifrado)
+(prioridad 700, sprint 2, depende de S2-T05).
 
-Debe comenzar desde `main` cuando el pull request de `S2-T06` esté integrado,
-porque consume el contrato y el cambio de tipo de `registrar`. Implementará
-las llamadas reales, el enlace profundo de recuperación y la configuración
-correspondiente; no debe adelantarse desde una rama que todavía no esté
-integrada.
+Debe comenzar desde `main` cuando S2-T05 esté integrado. S2-T07 mantiene la
+sesión solamente en memoria para no adelantar este alcance.
 
 ## Los dos huecos de S2-T01, ya cerrados
 
