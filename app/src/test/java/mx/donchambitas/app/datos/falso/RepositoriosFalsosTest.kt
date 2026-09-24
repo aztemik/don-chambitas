@@ -60,8 +60,9 @@ class RepositoriosFalsosTest {
             rol = RolUsuario.CLIENTE
         )
         assertTrue(resReg is Resultado.Exito)
-        val usuario = (resReg as Resultado.Exito).dato
-        assertEquals("nuevo@prueba.com", usuario.correo)
+        val sesionRegistro = (resReg as Resultado.Exito).dato
+        assertEquals("nuevo@prueba.com", sesionRegistro.usuario.correo)
+        assertEquals(sesionRegistro, repoAuth.sesionActual().first())
 
         // Comprobar inicio de sesion con credenciales correctas
         val resLogin = repoAuth.iniciarSesion("nuevo@prueba.com", "secret123")
@@ -77,6 +78,50 @@ class RepositoriosFalsosTest {
         val resForzado = repoAuth.cerrarSesion()
         assertTrue(resForzado is Resultado.Error)
         assertEquals(TipoError.RED, (resForzado as Resultado.Error).tipo)
+    }
+
+    @Test
+    fun `1b RepositorioAuth rechaza correo duplicado como validacion`() = runBlocking {
+        val correoExistente = fuente.usuarios.first().correo
+
+        val resultado = repoAuth.registrar(
+            correo = correoExistente.uppercase(),
+            contrasena = "secret123",
+            nombre = "Otra",
+            apellidos = "Persona",
+            telefono = null,
+            rol = RolUsuario.CLIENTE
+        )
+
+        assertTrue(resultado is Resultado.Error)
+        assertEquals(TipoError.VALIDACION, (resultado as Resultado.Error).tipo)
+    }
+
+    @Test
+    fun `1c RepositorioAuth recupera de forma opaca aunque el correo no exista`() = runBlocking {
+        val resultado = repoAuth.recuperarContrasena("no-existe@prueba.com")
+
+        assertTrue(resultado is Resultado.Exito)
+    }
+
+    @Test
+    fun `1d RepositorioAuth exige sesion para cambiar contrasena`() = runBlocking {
+        fuente.fijarSesionActiva(null)
+
+        val resultado = repoAuth.cambiarContrasena("nuevaSecret123")
+
+        assertTrue(resultado is Resultado.Error)
+        assertEquals(TipoError.AUTENTICACION, (resultado as Resultado.Error).tipo)
+    }
+
+    @Test
+    fun `1e RepositorioAuth cierra y limpia la sesion activa`() = runBlocking {
+        assertNotNull(repoAuth.sesionActual().first())
+
+        val resultado = repoAuth.cerrarSesion()
+
+        assertTrue(resultado is Resultado.Exito)
+        assertNull(repoAuth.sesionActual().first())
     }
 
     @Test

@@ -39,35 +39,95 @@ Todos los métodos son `suspend` y devuelven `Resultado<T>`.
 
 ## Autenticación · `RepositorioAuth`
 
-| Operación | Con qué |
-|---|---|
-| `registrar(correo, contrasena, nombre, apellidos, telefono, rol)` | `auth.signUpWith(Email)`, con nombre, apellidos, teléfono y rol en `options.data` |
-| `iniciarSesion(correo, contrasena)` | `auth.signInWith(Email)` |
-| `recuperarContrasena(correo)` | `auth.resetPasswordForEmail(correo, redirectTo = <esquema de la app>)` |
-| `cambiarContrasena(nueva)` | `auth.updateUser { password = nueva }` |
-| `cerrarSesion()` | `auth.signOut()` |
-| `sesionActual(): Flow<Sesion?>` | `auth.sessionStatus` |
+| Operación | Entrada | Salida | Efecto de sesión | Con qué |
+|---|---|---|---|---|
+| `registrar(correo, contrasena, nombre, apellidos, telefono, rol)` | Correo normalizado, contraseña, nombre, apellidos, teléfono opcional y `RolUsuario` | `Resultado<Sesion>` | Abre la sesión del usuario creado | `auth.signUpWith(Email)` con confirmación de correo desactivada |
+| `iniciarSesion(correo, contrasena)` | Correo y contraseña | `Resultado<Sesion>` | Abre o reemplaza la sesión activa | `auth.signInWith(Email)` |
+| `recuperarContrasena(correo)` | Correo | `Resultado<Unit>` | No modifica la sesión actual | `auth.resetPasswordForEmail(correo, redirectUrl = URL_RECUPERACION)` |
+| `cambiarContrasena(nueva)` | Contraseña nueva | `Resultado<Unit>` | Conserva la sesión activa | `auth.updateUser { password = nueva }` |
+| `cerrarSesion()` | Sin parámetros | `Resultado<Unit>` | Elimina la sesión activa | `auth.signOut()` |
+| `sesionActual()` | Sin parámetros | `Flow<Sesion?>` | Observa la sesión administrada por el cliente | `auth.sessionStatus` |
+
+### Registro y sesión
+
+`registrar` manda en `data` estos metadatos con sus nombres exactos:
+
+```json
+{
+  "nombre": "Ana",
+  "apellidos": "López Pérez",
+  "telefono": "2221234567",
+  "rol": "cliente"
+}
+```
+
+`telefono` se omite cuando no fue capturado y `rol` usa el valor persistido de
+`RolUsuario` (`cliente` o `trabajador`), no el nombre de la constante Kotlin.
+El correo se recorta y se convierte a minúsculas antes de enviarlo.
+
+Por `DEC-25`, **Confirm email debe estar desactivado en Supabase Auth**. El alta
+termina con una sesión activa y por eso el resultado es `Sesion`, no `Usuario`.
+Si `signUpWith` no deja sesión disponible, la operación falla como
+`DESCONOCIDO`; nunca se reporta un registro exitoso sin sesión. El token lo
+administra `supabase-kt` y no se persiste a mano.
 
 La fila de `public.usuarios` **no se inserta desde la aplicación**: la crea el
-trigger `tg_auth_usuario_creado` leyendo el metadata del registro. Si el
-registro no manda `rol` en `options.data`, el usuario queda como `cliente`.
+trigger `tg_auth_usuario_creado` leyendo los metadatos del registro. Si el
+registro no manda `rol`, el usuario queda como `cliente`.
+
+### Recuperación de contraseña
+
+La URL canónica de recuperación es:
+
+```text
+mx.donchambitas.app://auth/recuperar-contrasena
+```
+
+Ese valor exacto se pasa como `redirectUrl` a `resetPasswordForEmail` y se da
+de alta en la lista **Redirect URLs** de Supabase Auth. El esquema es
+`mx.donchambitas.app`, el host es `auth` y la ruta es
+`/recuperar-contrasena`; no se admiten variantes ni comodines para producción.
+
+El recorrido contractual es:
+
+1. P-03 llama `recuperarContrasena(correo)` y siempre muestra la misma
+   confirmación.
+2. Supabase envía el correo solo cuando la cuenta existe.
+3. El enlace abre el APK y `supabase-kt` importa la sesión de recuperación.
+4. La navegación aterriza en P-18, directamente en la sección de contraseña.
+5. P-18 llama `cambiarContrasena(nueva)` con esa sesión activa.
+
+Los pasos 3 y 4, el `intent-filter` y el alta de la URL en la consola son
+implementación de `S2-T07`; este documento fija su contrato.
 
 `recuperarContrasena` **siempre reporta éxito**, exista o no el correo. Decir
 cuáles correos están registrados es una fuga de información.
 
-**El `redirectTo` no es opcional.** Supabase no hospeda ningún formulario de
-contraseña nueva: el enlace del correo va a la URL que se le pase y la pantalla
-la pone la aplicación. Por `DEC-27` esa URL es un *deep link* al propio APK que
-aterriza en **P-18**, no una página web —`DEC-02` descartó la versión web—.
-`S2-T06` fija el esquema exacto; `S2-T07` agrega el `intent-filter`, canjea el
-token por sesión y da de alta el esquema en la lista de URLs permitidas de la
-consola de Supabase. Si el esquema no está en esa lista, Supabase no redirige.
-
 `cambiarContrasena(nueva)` **no recibe la contraseña anterior**, y eso es lo que
 permite reutilizar P-18 para la recuperación: quien llega por el enlace no puede
-dar la que olvidó.
+dar la que olvidó. Requiere una sesión activa; sin ella devuelve
+`Resultado.Error(AUTENTICACION, ...)`.
 
 La sesión y su refresco los lleva `supabase-kt`. No se guarda el token a mano.
+
+### Errores de autenticación
+
+La implementación real traduce los errores antes de salir de `datos/`:
+
+| Situación | `TipoError` | Conducta contractual |
+|---|---|---|
+| Credenciales inválidas | `AUTENTICACION` | No abre sesión |
+| Sesión ausente, vencida o no recuperable | `AUTENTICACION` | No ejecuta la operación protegida |
+| Correo ya registrado | `VALIDACION` | No altera la sesión existente |
+| Correo, contraseña o metadatos rechazados | `VALIDACION` | Conserva el mensaje seguro en español |
+| Sin red o tiempo agotado | `RED` | Permite reintentar |
+| Respuesta 5xx de Auth | `SERVIDOR` | Permite reintentar más tarde |
+| Error no clasificado o alta sin sesión | `DESCONOCIDO` | No expone detalles internos |
+
+La recuperación es la excepción deliberada: una cuenta inexistente produce
+`Exito(Unit)`, igual que una existente. Los mensajes concretos que ve el
+usuario viven en recursos Android, no en la implementación real del
+repositorio.
 
 ## Usuario · `RepositorioUsuario`
 

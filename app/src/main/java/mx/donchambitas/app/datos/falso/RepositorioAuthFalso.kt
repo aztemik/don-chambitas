@@ -33,10 +33,12 @@ class RepositorioAuthFalso @Inject constructor(
         apellidos: String,
         telefono: String?,
         rol: RolUsuario
-    ): Resultado<Usuario> {
+    ): Resultado<Sesion> {
         verificarSimulacion()?.let { return it }
 
-        if (fuente.usuarios.any { it.correo.equals(correo, ignoreCase = true) }) {
+        val correoNormalizado = correo.trim().lowercase()
+
+        if (fuente.usuarios.any { it.correo.equals(correoNormalizado, ignoreCase = true) }) {
             return Resultado.Error(TipoError.VALIDACION, "El correo ya esta registrado, inicia sesion")
         }
 
@@ -44,7 +46,7 @@ class RepositorioAuthFalso @Inject constructor(
         val ahora = Instant.now()
         val nuevoUsuario = Usuario(
             id = nuevoId,
-            correo = correo,
+            correo = correoNormalizado,
             nombre = nombre,
             apellidos = apellidos,
             telefono = telefono,
@@ -54,9 +56,10 @@ class RepositorioAuthFalso @Inject constructor(
             creadoEn = ahora,
             actualizadoEn = ahora
         )
+        val sesion = Sesion(nuevoUsuario, "token_falso_${nuevoId}")
         fuente.usuarios.add(nuevoUsuario)
-        fuente.fijarSesionActiva(Sesion(nuevoUsuario, "token_falso_${nuevoId}"))
-        return Resultado.Exito(nuevoUsuario)
+        fuente.fijarSesionActiva(sesion)
+        return Resultado.Exito(sesion)
     }
 
     override suspend fun iniciarSesion(

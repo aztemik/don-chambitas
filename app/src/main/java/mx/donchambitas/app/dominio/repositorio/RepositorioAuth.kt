@@ -3,7 +3,6 @@ package mx.donchambitas.app.dominio.repositorio
 import kotlinx.coroutines.flow.Flow
 import mx.donchambitas.app.dominio.modelo.RolUsuario
 import mx.donchambitas.app.dominio.modelo.Sesion
-import mx.donchambitas.app.dominio.modelo.Usuario
 import mx.donchambitas.app.util.Resultado
 
 /**
@@ -12,7 +11,7 @@ import mx.donchambitas.app.util.Resultado
  */
 interface RepositorioAuth {
     /**
-     * Registra un nuevo usuario en el sistema.
+     * Registra un nuevo usuario y deja abierta su sesion.
      */
     suspend fun registrar(
         correo: String,
@@ -21,7 +20,7 @@ interface RepositorioAuth {
         apellidos: String,
         telefono: String?,
         rol: RolUsuario
-    ): Resultado<Usuario>
+    ): Resultado<Sesion>
 
     /**
      * Inicia sesion con credenciales de correo y contrasena.
