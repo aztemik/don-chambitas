@@ -3,7 +3,7 @@
 > Archivo **vivo**. Quien termina una tarea lo actualiza. Es la primera cosa
 > que lee el agente y la única fuente confiable sobre qué está pasando hoy.
 
-**Última actualización:** 2026-09-22
+**Última actualización:** 2026-09-23
 
 ---
 
@@ -14,50 +14,71 @@
 | Sprint | 2 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 3 |
-| En curso | 0 |
+| Terminadas | 5 |
+| En curso | 1 |
 | Bloqueadas | 0 |
 
 > Sprint 1 cerrado el 2026-09-20 con sus 16 tareas en `hecha`.
 
 ## Qué se puede probar hoy en la aplicación
 
-Léelo antes de instalar el APK y reportar que algo "no funciona". La
-aplicación todavía no autentica a nadie: lo que hay son pantallas conectadas
-al grafo y una fuente de datos en memoria.
+Léelo antes de instalar el APK y reportar que algo "no funciona". `main`
+todavía conserva las pantallas sin ViewModels; `S2-T04` está en revisión y
+`S2-T05` está terminada en su rama, pero ninguna de las dos se ha integrado.
+La implementación activa sigue siendo la fuente de datos en memoria.
 
 | Si haces esto | Pasa esto hoy | Lo arregla |
 |---|---|---|
 | Abres la aplicación | P-01 espera 800 ms y te deja en P-02 | — |
 | Estás en P-02 (iniciar sesión) | La pantalla real: marca, los dos campos y los enlaces a P-03 y P-04 | — |
-| Pulsas **Iniciar sesión** con lo que sea | Entra **siempre como cliente**, a P-05. No se comprueba nada: no se llama a `RepositorioAuth` | `S2-T05` |
+| Pulsas **Iniciar sesión** con lo que sea en `main` | Entra **siempre como cliente**, a P-05. La rama de `S2-T05` ya conecta el repositorio falso | Integrar `S2-T05` |
 | Quieres entrar como trabajador | Desde P-02 no se puede todavía. Regístrate como trabajador en P-03 | `S2-T05` |
 | Entras a P-03 desde el marcador de P-02 | La pantalla real de registro, con sus cinco campos y el selector de rol | — |
 | Confirmas el registro **sin elegir rol** | Te reclama el rol y no hace nada más | — |
-| Escribes un correo sin arroba, o una contraseña de un carácter | **Los da por buenos.** No hay ninguna regla de formato ni de longitud | `S2-T04` |
-| Confirmas el registro **con rol** | Te manda a P-05 o P-10. **No se crea ninguna cuenta**: no se llama a `RepositorioAuth`, no se guarda nada, no se comprueba si el correo ya existe | `S2-T05` |
+| Escribes un correo sin arroba, o una contraseña de un carácter en `main` | **Los da por buenos.** La corrección está en el pull request de `S2-T04` | Integrar `S2-T04` |
+| Confirmas el registro **con rol** en `main` | Te manda a P-05 o P-10 sin crear cuenta. La rama de `S2-T05` ya registra contra `FuenteDatosFalsa` | Integrar `S2-T05` |
 | Cierras y vuelves a abrir | No hay cuenta que recordar, ni sesión | `S2-T08`, `S2-T09` |
 
-**Cuando `S2-T05` esté hecha, el alta seguirá sin ser real.** Escribirá en
-`FuenteDatosFalsa`, que vive en memoria: vas a poder registrarte y entrar, y
-la cuenta desaparece al reiniciar la aplicación. Cuentas de verdad, contra
-Supabase Auth, son `S2-T07`. `H-10` ya se cerró: `DEC-25` decide que el
-registro deja sesión abierta, así que `S2-T07` va con la confirmación por
-correo de Supabase Auth desactivada.
+En la rama de `S2-T05`, el alta escribe en `FuenteDatosFalsa`: permite
+registrarse y entrar, pero la cuenta desaparece al reiniciar la aplicación.
+Cuentas reales contra Supabase Auth corresponden a `S2-T07`. `S2-T06` ya fijó
+que el registro deja sesión abierta, que la confirmación por correo permanece
+desactivada y que la recuperación vuelve a P-18 mediante
+`mx.donchambitas.app://auth/recuperar-contrasena`.
 
 ## Tarea en curso
 
-_Ninguna._
+`S2-T04` permanece en revisión de pull request. No se repite ni se modifica
+desde otras ramas.
 
 | Campo | Valor |
 |---|---|
-| ID | — |
-| Título | — |
-| Quién la tomó | — |
-| Rama | — |
-| Desde | — |
+| ID | S2-T04 |
+| Título | Validaciones de formularios y mensajes de error |
+| Quién la tomó | GRI |
+| Rama | `feat/S2-T04-validaciones-formularios` |
+| Desde | 2026-09-23, pull request pendiente de revisión |
 
 ## Última tarea terminada
+
+**`S2-T06` — Contrato de la API de autenticación.** 2026-09-23.
+Rama `docs/S2-T06-contrato-api-autenticacion`, pull request **sin abrir**.
+
+- `CONTRATOS-API.md` detalla entradas, salidas, efectos de sesión, metadatos y
+  traducción de errores de las seis operaciones de `RepositorioAuth`.
+- `registrar` devuelve `Resultado<Sesion>` y el repositorio falso devuelve la
+  misma sesión que deja activa, conforme a `DEC-25`.
+- La recuperación usa exactamente
+  `mx.donchambitas.app://auth/recuperar-contrasena`, llega a P-18 y no revela
+  si el correo existe. La recepción del enlace sigue reservada a `S2-T07`.
+- Verificación: `assembleDebug`, 61 pruebas unitarias y 27 instrumentadas sin
+  fallas. APK instalado y arranque en frío correcto en AVD `Pixel_10`, Android
+  17.
+
+**`S2-T05` — ViewModels y estados de UI del flujo de autenticación.**
+2026-09-23. Rama `feat/S2-T05-viewmodels-estados-ui-autenticacion`, terminada
+y pendiente de que la persona abra el pull request. No forma parte de esta
+rama; se registra para que el estado de `main` no provoque repetirla.
 
 **`S2-T03` — Pantalla de inicio de sesión.** 2026-09-22.
 Rama `feat/S2-T03-pantalla-inicio-sesion`, pull request **sin abrir todavía**.
@@ -321,16 +342,14 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S2-T04` — Validaciones de formularios y mensajes de error
-(prioridad 900, sprint 2, depende de: S2-T02 y S2-T03, las dos hechas)
+`S2-T07` — Implementación real de autenticación con Supabase Auth
+(prioridad 750, sprint 2, depende de S2-T06).
 
-Su alcance ya está escrito: secciones 1.5, 5 y 7 de
-`docs/producto/DISENO-AUTENTICACION.md`. **No tiene ticket**: hay que
-redactarlo antes de tomarla, como se hizo con `S2-T03`.
-
-Ojo: la clave `validacion_contrasena_vacia` de la sección 7 **todavía no
-existe** en `strings.xml`. Ni `S2-T02` ni `S2-T03` la necesitaban, porque
-ninguna de las dos decide reglas de formato. La agrega `S2-T04`.
+Debe comenzar desde `main` cuando el pull request de `S2-T06` esté integrado,
+porque consume el contrato y el cambio de tipo de `registrar`. Implementará
+las llamadas reales, el enlace profundo de recuperación y la configuración
+correspondiente; no debe adelantarse desde una rama que todavía no esté
+integrada.
 
 ## Los dos huecos de S2-T01, ya cerrados
 
