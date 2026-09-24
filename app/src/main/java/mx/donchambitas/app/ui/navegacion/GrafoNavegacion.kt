@@ -87,6 +87,7 @@ import mx.donchambitas.app.ui.tema.titulo
 @Composable
 fun GrafoNavegacion(
     navController: NavHostController = rememberNavController(),
+    esRecuperacionContrasena: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val entradaActual by navController.currentBackStackEntryAsState()
@@ -96,11 +97,30 @@ fun GrafoNavegacion(
     // Guarda global de navegación en tiempo real
     LaunchedEffect(rutaActual, estadoSesion) {
         if (rutaActual != null) {
-            val redireccion = resolverGuarda(rutaActual, estadoSesion)
+            val redireccion = if (
+                esRecuperacionContrasena && rutaActual == Ruta.MiCuenta.ruta
+            ) {
+                null
+            } else {
+                resolverGuarda(rutaActual, estadoSesion)
+            }
             if (redireccion != null && redireccion != rutaActual) {
                 navController.navigate(redireccion) {
                     popUpTo(rutaActual) { inclusive = true }
                 }
+            }
+        }
+    }
+
+    LaunchedEffect(esRecuperacionContrasena, rutaActual) {
+        if (
+            esRecuperacionContrasena &&
+            rutaActual != null &&
+            rutaActual != Ruta.MiCuenta.ruta
+        ) {
+            navController.navigate(Ruta.MiCuenta.ruta) {
+                popUpTo(Subgrafo.Autenticacion.ruta) { inclusive = true }
+                launchSingleTop = true
             }
         }
     }
