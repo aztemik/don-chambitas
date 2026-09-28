@@ -20,12 +20,12 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 | Sprint | Tareas | Pendientes | Bloqueadas | Opcionales | Hechas |
 |---|---|---|---|---|---|
 | 1 | 16 | 0 | 0 | 0 | 16 |
-| 2 | 16 | 12 | 0 | 0 | 4 |
+| 2 | 16 | 11 | 0 | 0 | 5 |
 | 3 | 15 | 15 | 0 | 0 | 0 |
 | 4 | 15 | 13 | 0 | 2 | 0 |
 | 5 | 12 | 12 | 0 | 0 | 0 |
 | 6 | 12 | 12 | 0 | 0 | 0 |
-| **Total** | **86** | **64** | **0** | **2** | **20** |
+| **Total** | **86** | **63** | **0** | **2** | **21** |
 
 > **No queda ninguna tarea bloqueada, ni ningún pendiente abierto.** PEND-01 se
 > resolvió el 2026-09-14 a favor de Supabase (`DEC-16`) y PEND-02 el 2026-09-22
@@ -66,7 +66,7 @@ sin dependencias abiertas. Sin adelantarse, sin saltarse.
 | `S2-T02` | 970 | Pantalla de registro con selección de rol (cliente / trabajador) | LMM | hecha | S1-T10, S1-T12 |
 | `S2-T03` | 950 | Pantalla de inicio de sesión | RRC | hecha | S1-T10, S1-T12 |
 | `S2-T04` | 900 | Validaciones de formularios y mensajes de error | GRI | hecha | S2-T02, S2-T03 |
-| `S2-T05` | 850 | ViewModels y estados de UI del flujo de autenticación | BCJL | pendiente | S1-T13 |
+| `S2-T05` | 850 | ViewModels y estados de UI del flujo de autenticación | BCJL | hecha | S1-T13 |
 | `S2-T06` | 800 | Contrato de la API de autenticación (endpoints, payloads y errores) | LMM | pendiente | — |
 | `S2-T07` | 750 | Implementación real de autenticación con Supabase Auth | RRC | pendiente | S2-T06 |
 | `S2-T08` | 700 | Almacenamiento seguro de la sesión y el token (DataStore cifrado) | GRI | pendiente | S2-T05 |
@@ -173,12 +173,12 @@ criterios de aceptación y cómo probarla.
 
 Los tickets se redactan **al iniciar cada sprint**, no los seis por adelantado:
 detallar hoy el Sprint 5 es trabajo que se va a tirar. Hoy están escritos los
-16 del Sprint 1 y el de `S2-T03`. Para los siguientes, ver el prompt 6 de
+16 del Sprint 1 y los de `S2-T03`, `S2-T04` y `S2-T05`. Para los siguientes, ver el prompt 6 de
 `docs/proceso/PROMPTS.md`.
 
 > **Los del Sprint 2 se están redactando tarde, tarea por tarea.** `S2-T01` y
 > `S2-T02` se trabajaron **sin ticket**, por autorización del líder del
 > 2026-09-21, dejando su alcance escrito en el propio entregable. Desde
 > `S2-T03` sí hay ticket: el líder ordenó el 2026-09-22 redactarlo antes de
-> tomar la tarea. Las 13 restantes del Sprint 2 siguen sin ticket; cada una lo
+> tomar la tarea. Las 11 restantes del Sprint 2 siguen sin ticket; cada una lo
 > necesita antes de empezar.
