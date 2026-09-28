@@ -68,7 +68,7 @@ _Ninguna._
 ## Última tarea terminada
 
 **`S2-T07` — Implementación real de autenticación con Supabase Auth.** 2026-09-27.
-Rama `feat/S2-T07-autenticacion-supabase`, **apilada sobre la de `S2-T06`**, que a su vez va sobre la de `S2-T05`. Pull request **sin abrir todavía**: se integran en ese orden.
+Rama `feat/S2-T07-autenticacion-supabase-v2` en el remoto, **apilada sobre la de `S2-T06`**, que a su vez va sobre la de `S2-T05`. Pull request **#14**: se integra después de #12 y #13.
 
 - `datos/repositorio/RepositorioAuthReal.kt` implementa la sección de autenticación de `CONTRATOS-API.md` y ya está enlazado en `ModuloRepositorios`. Los otros nueve repositorios siguen falsos.
 - `di/ModuloSupabase.kt` provee el cliente con la URL y la `anon key` de `local.properties`. `RepositorioAuthReal` y `MainActivity` lo piden perezoso: **sin llaves, la aplicación abre y el botón muestra "Algo salió mal"** en vez de cerrarse.
@@ -101,7 +101,7 @@ Rama `feat/S2-T07-autenticacion-supabase`, **apilada sobre la de `S2-T06`**, que
 - **Riesgo para `S2-T11`, pendiente del líder:** con la autenticación real, los repositorios falsos ya no ven al usuario con sesión, y P-18 lee su perfil con `RepositorioUsuario`, que no tiene implementación real en el Sprint 2. Detalle en el ticket.
 
 **`S2-T06` — Contrato de la API de autenticación (endpoints, payloads y errores).** 2026-09-27.
-Rama `docs/S2-T06-contrato-api-autenticacion`, **apilada sobre la de `S2-T05`** por decisión del líder. Pull request **sin abrir todavía**: conviene integrar primero el de `S2-T05`.
+Rama `docs/S2-T06-contrato-api-autenticacion-v2` en el remoto, **apilada sobre la de `S2-T05`** por decisión del líder. Pull request **#13**: se integra después de #12.
 
 Ticket `docs/tareas/S2-T06.md`, redactado por el agente el mismo día por instrucción del líder.
 
@@ -128,7 +128,7 @@ Ticket `docs/tareas/S2-T06.md`, redactado por el agente el mismo día por instru
 - **Discrepancia de versión:** `BITACORA.md`, en la fila de `S1-T04`, dice `supabase-kt` 3.1.1, pero `libs.versions.toml` fija 3.0.3. No se tocó esa fila porque es de otra tarea.
 
 **`S2-T05` — ViewModels y estados de UI del flujo de autenticación.** 2026-09-27.
-Rama `feat/S2-T05-viewmodels-autenticacion`, pull request **sin abrir todavía**.
+Rama `feat/S2-T05-viewmodels-autenticacion`, pull request **#12**.
 
 Ticket `docs/tareas/S2-T05.md`, redactado por el agente como los de `S2-T03` y
 `S2-T04`. El alcance salió de las secciones 1.4 a 1.6, 2.2 a 2.4, 3.3 a 3.5 y 6
