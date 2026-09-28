@@ -626,8 +626,9 @@ seis tareas reales de AGENTS.md §6 cubren:
 - mensajería (`S5-T07`).
 
 La IA la cubre `S4-T10`. **`RepositorioSolicitudes`, `RepositorioPostulaciones`
-y `RepositorioResenas` no aparecen en ninguna**, y P-08, P-09, P-13, P-14,
-P-16 y P-17 dependen de ellos. Los tres leen la sesión de `FuenteDatosFalsa`,
+y `RepositorioResenas` no aparecen en ninguna**, y dependen de ellos P-08
+Publicar solicitud, P-09 Mis solicitudes, P-14 Mis postulaciones, P-17 Dejar
+reseña y P-19 Detalle de solicitud. Los tres leen la sesión de `FuenteDatosFalsa`,
 así que con la autenticación real fallan igual que fallaba `RepositorioUsuario`.
 No urge hasta los sprints 4 y 5, pero hay que asignarlos antes de redactar
 esos tickets. **Lo decide el líder.**
