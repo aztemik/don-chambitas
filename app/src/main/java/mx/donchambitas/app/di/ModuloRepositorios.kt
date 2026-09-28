@@ -5,7 +5,6 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
-import mx.donchambitas.app.datos.falso.RepositorioAuthFalso
 import mx.donchambitas.app.datos.falso.RepositorioCatalogosFalso
 import mx.donchambitas.app.datos.falso.RepositorioChatFalso
 import mx.donchambitas.app.datos.falso.RepositorioIaFalso
@@ -15,6 +14,7 @@ import mx.donchambitas.app.datos.falso.RepositorioServiciosFalso
 import mx.donchambitas.app.datos.falso.RepositorioSolicitudesFalso
 import mx.donchambitas.app.datos.falso.RepositorioTrabajadorFalso
 import mx.donchambitas.app.datos.falso.RepositorioUsuarioFalso
+import mx.donchambitas.app.datos.repositorio.RepositorioAuthReal
 import mx.donchambitas.app.dominio.repositorio.RepositorioAuth
 import mx.donchambitas.app.dominio.repositorio.RepositorioCatalogos
 import mx.donchambitas.app.dominio.repositorio.RepositorioChat
@@ -41,7 +41,7 @@ abstract class ModuloRepositorios {
     @Binds
     @Singleton
     abstract fun enlazarRepositorioAuth(
-        impl: RepositorioAuthFalso
+        impl: RepositorioAuthReal
     ): RepositorioAuth
 
     @Binds
