@@ -379,9 +379,9 @@ sea dígito y corta en 10. No es validación, es no dejar teclear basura.
 
 | Resultado del repositorio | Qué ve el usuario |
 |---|---|
-| `Exito(Usuario)` y aparece sesión en `sesionActual()` | Navega a `P-05` o `P-10` según el rol, limpiando la pila del subgrafo de autenticación |
-| `Exito(Usuario)` sin sesión | Vuelve a `P-02` con el aviso "Tu cuenta quedó creada, inicia sesión". Ver el hallazgo H-10 |
-| `Error(VALIDACION, mensaje)` | `EstadoError` en línea con `mensaje` tal cual llega. Es el caso del correo duplicado: "El correo ya está registrado, inicia sesión", y el `BotonTexto` de abajo es el acceso directo a P-02 que pide HU-01 |
+| `Exito(Sesion)` | Navega a `P-05` o `P-10` según el rol de `sesion.usuario`, limpiando la pila del subgrafo de autenticación |
+| ~~`Exito(Usuario)` sin sesión~~ | **Retirada por `DEC-25`**: el registro siempre deja sesión abierta, y desde `S2-T06` `registrar` devuelve `Sesion`. Era la rama de H-10 |
+| `Error(VALIDACION, mensaje)` | `EstadoError` en línea con `mensaje` tal cual llega. Es el caso del correo duplicado: "El correo ya está registrado, inicia sesión", y el `BotonTexto` de abajo es el acceso directo a P-02 que pide HU-01. **De dónde sale ese texto en el alta real está pendiente del líder: `H-11` en `CONTRATOS-API.md`** |
 | `Error(RED, _)` | `EstadoError` en línea, botón "Reintentar", **todo lo capturado se conserva**, incluida la contraseña y el rol elegido |
 | `Error(SERVIDOR, _)` o `Error(DESCONOCIDO, _)` | `EstadoError` en línea con el mensaje del tipo y "Reintentar" |
 | `Error(AUTENTICACION, _)` | No aplica al registro. Si llega, se pinta con el mensaje de su tipo |
