@@ -9,7 +9,7 @@ import mx.donchambitas.app.R
 import mx.donchambitas.app.datos.falso.FuenteDatosFalsa
 import mx.donchambitas.app.datos.falso.RepositorioAuthFalso
 import mx.donchambitas.app.dominio.modelo.RolUsuario
-import mx.donchambitas.app.dominio.modelo.Usuario
+import mx.donchambitas.app.dominio.modelo.Sesion
 import mx.donchambitas.app.dominio.repositorio.RepositorioAuth
 import mx.donchambitas.app.ui.navegacion.Ruta
 import mx.donchambitas.app.util.DatosPrueba
@@ -31,7 +31,7 @@ class RegistroViewModelTest {
     private val repositorio = mockk<RepositorioAuth>()
     private val viewModel = RegistroViewModel(repositorio)
 
-    private fun responderCon(resultado: Resultado<Usuario>) {
+    private fun responderCon(resultado: Resultado<Sesion>) {
         coEvery { repositorio.registrar(any(), any(), any(), any(), any(), any()) } returns resultado
     }
 
@@ -46,7 +46,7 @@ class RegistroViewModelTest {
 
     @Test
     fun debeEnviarLosValoresNormalizados_cuandoSeRegistra() = runTest(reglaCorrutinas.testDispatcher) {
-        responderCon(Resultado.Exito(DatosPrueba.crearUsuario(rol = RolUsuario.TRABAJADOR)))
+        responderCon(Resultado.Exito(Sesion(DatosPrueba.crearUsuario(rol = RolUsuario.TRABAJADOR))))
         viewModel.alElegirRol(RolUsuario.TRABAJADOR)
         viewModel.alCambiarNombre("  Refugio ")
         viewModel.alCambiarApellidos(" Martinez Luna  ")
@@ -103,7 +103,7 @@ class RegistroViewModelTest {
 
     @Test
     fun debeIrAInicioDelRol_cuandoLaCuentaQuedaCreada() = runTest(reglaCorrutinas.testDispatcher) {
-        responderCon(Resultado.Exito(DatosPrueba.crearUsuario(rol = RolUsuario.TRABAJADOR)))
+        responderCon(Resultado.Exito(Sesion(DatosPrueba.crearUsuario(rol = RolUsuario.TRABAJADOR))))
         viewModel.llenarValido(RolUsuario.TRABAJADOR)
 
         viewModel.alRegistrar()
@@ -153,7 +153,7 @@ class RegistroViewModelTest {
         viewModel.alRegistrar()
         advanceUntilIdle()
 
-        responderCon(Resultado.Exito(DatosPrueba.crearUsuario(rol = RolUsuario.CLIENTE)))
+        responderCon(Resultado.Exito(Sesion(DatosPrueba.crearUsuario(rol = RolUsuario.CLIENTE))))
         viewModel.alReintentar()
         advanceUntilIdle()
 
@@ -164,7 +164,7 @@ class RegistroViewModelTest {
 
     @Test
     fun debeLlamarUnaSolaVez_cuandoSePulsaDosVecesMientrasCarga() = runTest(reglaCorrutinas.testDispatcher) {
-        responderCon(Resultado.Exito(DatosPrueba.crearUsuario()))
+        responderCon(Resultado.Exito(Sesion(DatosPrueba.crearUsuario())))
         viewModel.llenarValido()
 
         viewModel.alRegistrar()

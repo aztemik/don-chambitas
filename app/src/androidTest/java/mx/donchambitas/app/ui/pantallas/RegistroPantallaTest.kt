@@ -170,7 +170,7 @@ class RegistroPantallaTest {
         botonCrearCuenta().performClick()
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithText("El correo ya esta registrado", substring = true).assertExists()
+        composeTestRule.onNodeWithText("El correo ya está registrado", substring = true).assertExists()
         composeTestRule.onNodeWithText(texto(R.string.reintentar)).assertDoesNotExist()
         assertNull(destino)
     }
