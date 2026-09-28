@@ -39,11 +39,21 @@ presupuesto que le quitas al equipo.
 
 ## 3. Cómo eliges la siguiente tarea
 
-1. Descarta toda tarea con estado `hecha` o `en curso`.
-2. Descarta toda tarea `bloqueada`.
-3. Descarta toda tarea cuyas dependencias no estén en `hecha`.
-4. De lo que quede, toma la de **mayor prioridad numérica**.
-5. Si hay empate, toma la del sprint más bajo.
+1. Descarta toda tarea de un sprint **posterior** al sprint en curso, el que
+   dice `docs/control/ESTADO.md`. Las de sprints anteriores que quedaron
+   abiertas sí cuentan: se arrastran conservando su prioridad (`PROCESO.md`).
+2. Descarta toda tarea con estado `hecha` o `en curso`.
+3. Descarta toda tarea `bloqueada`.
+4. Descarta toda tarea cuyas dependencias no estén en `hecha`.
+5. De lo que quede, toma la de **mayor prioridad numérica**.
+6. Si hay empate, toma la del sprint más bajo.
+
+**El paso 1 no es opcional.** Cada sprint usa su propia escala de 1000 a 250,
+así que la prioridad solo ordena dentro del sprint: sin ese filtro, una tarea
+de 1000 del sprint siguiente le ganaría a una de 850 del sprint en curso.
+
+Si después del paso 4 no queda ninguna tarea, **detente y repórtalo**. No
+abras el sprint siguiente por tu cuenta: eso lo decide el líder.
 
 Las tareas se trabajan en secuencia. La cola es la verdad, no tu criterio
 sobre qué convendría hacer primero.

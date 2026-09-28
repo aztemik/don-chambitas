@@ -10,7 +10,9 @@
 `opcional` solo si sobra tiempo, riesgo del equipo.
 
 **Regla de selección:** la de mayor prioridad numérica que esté `pendiente`,
-sin dependencias abiertas. Sin adelantarse, sin saltarse.
+sin dependencias abiertas, **del sprint en curso o de uno anterior**. Nunca de
+un sprint posterior: cada sprint tiene su propia escala de prioridad. Sin
+adelantarse, sin saltarse. El detalle, en `AGENTS.md` §3.
 
 **Escala de prioridad, 16 niveles:** 1000, 970, 950, 900, 850, 800, 750, 700,
 650, 600, 550, 500, 450, 400, 300, 250.
