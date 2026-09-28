@@ -122,8 +122,9 @@ regla sigue igual:
   nunca con una fuente de datos concreta, y nunca con Supabase directamente.
 - La implementación activa hoy **sigue siendo la falsa** (`FuenteDatosFalsa`),
   en memoria. Las implementaciones reales entran una por una, en su tarea, en
-  su turno: S2-T07, S2-T14, S3-T09, S4-T09, S5-T07.
-- Si tu tarea no es una de esas cinco, **no escribes código que hable con
+  su turno: S2-T07, S2-T12 (solo `RepositorioUsuario`, por `DEC-31`), S2-T14,
+  S3-T09, S4-T09, S5-T07.
+- Si tu tarea no es una de esas seis, **no escribes código que hable con
   Supabase**. Aunque ya se pueda. Aunque sea de una línea.
 
 Cuando una implementación real aterriza, se cambia el enlace en el módulo de

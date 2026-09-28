@@ -74,8 +74,8 @@ adelantarse, sin saltarse. El detalle, en `AGENTS.md` §3.
 | `S2-T08` | 700 | Almacenamiento seguro de la sesión y el token (DataStore cifrado) | GRI | pendiente | S2-T05 |
 | `S2-T09` | 650 | Manejo de sesión: inicio automatico, cierre de sesión y expiracion | BCJL | pendiente | S2-T08 |
 | `S2-T10` | 600 | Pantalla de recuperación de contraseña | LMM | pendiente | — |
-| `S2-T11` | 550 | Diseño y pantalla del perfil de usuario (ver y editar) | RRC | pendiente | — |
-| `S2-T12` | 500 | Contrato de la API de perfil de usuario | GRI | pendiente | — |
+| `S2-T11` | 550 | Diseño y pantalla del perfil de usuario (ver y editar) | RRC | pendiente | S2-T12 |
+| `S2-T12` | 500 | Contrato de la API de perfil de usuario (y `RepositorioUsuario` real, `DEC-31`) | GRI | pendiente | — |
 | `S2-T13` | 450 | Selección y recorte de la foto de perfil (solo interfaz) | BCJL | pendiente | — |
 | `S2-T14` | 400 | Almacenamiento real de imagenes en Supabase Storage | LMM | pendiente | S2-T13 |
 | `S2-T15` | 300 | Guardas de navegación por sesión y por rol | RRC | pendiente | S2-T09 |

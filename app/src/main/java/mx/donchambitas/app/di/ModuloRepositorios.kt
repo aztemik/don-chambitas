@@ -31,7 +31,7 @@ import mx.donchambitas.app.dominio.repositorio.RepositorioUsuario
  * con sus implementaciones activas.
  *
  * Hoy todas enlazan a la implementacion falsa en memoria (FuenteDatosFalsa).
- * Cuando cada tarea real aterriza (S2-T07, S2-T14, S3-T09, S4-T09, S5-T07),
+ * Cuando cada tarea real aterriza (S2-T07, S2-T12, S2-T14, S3-T09, S4-T09, S5-T07),
  * este archivo es el unico que cambia su enlace.
  */
 @Module

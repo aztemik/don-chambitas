@@ -605,6 +605,9 @@ pantalla se olvida del caso. Mientras no se decida, `RepositorioAuthFalso`
 sigue devolviendo `VALIDACION` con el texto en español, que es lo que P-03
 pinta hoy. **`S2-T07` no puede cerrar el alta real sin esta decisión.**
 
+**`H-12` · CERRADO el 2026-09-27 por `DEC-30`:** `S2-T08` cifra la sesión que
+guarda `supabase-kt` y quita `tokenAcceso`. El hallazgo, como se reportó:
+
 **`H-12` · `Sesion.tokenAcceso` probablemente sobra.** El contrato dice que el
 token, su refresco y su persistencia los lleva `supabase-kt`, y que no se
 guarda a mano. Ninguna pantalla ni ViewModel lo lee. Con eso el campo no
@@ -612,3 +615,20 @@ tiene quien lo use, y un token en un modelo de dominio invita a que alguien
 lo guarde o lo registre en un log. Quitarlo toca el modelo `Sesion`, así que
 no se hizo aquí. Sugerencia: que lo retire `S2-T07` o `S2-T08`, si el líder
 está de acuerdo.
+
+**`H-13` · Tres repositorios no tienen tarea de implementación real.** Salió
+al resolver el riesgo de P-18 que dejó `S2-T07`, y que cerró `DEC-31`. Las
+seis tareas reales de AGENTS.md §6 cubren:
+- autenticación (`S2-T07`) y usuario (`S2-T12`);
+- imágenes (`S2-T14`);
+- trabajador y servicios (`S3-T09`);
+- búsqueda y catálogos (`S4-T09`);
+- mensajería (`S5-T07`).
+
+La IA la cubre `S4-T10`. **`RepositorioSolicitudes`, `RepositorioPostulaciones`
+y `RepositorioResenas` no aparecen en ninguna**, y P-08, P-09, P-13, P-14,
+P-16 y P-17 dependen de ellos. Los tres leen la sesión de `FuenteDatosFalsa`,
+así que con la autenticación real fallan igual que fallaba `RepositorioUsuario`.
+No urge hasta los sprints 4 y 5, pero hay que asignarlos antes de redactar
+esos tickets. **Lo decide el líder.**
+

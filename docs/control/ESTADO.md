@@ -448,10 +448,9 @@ explicados al final de `MODELO-ER.md`.
 `S2-T08` — Almacenamiento seguro de la sesión y el token (DataStore cifrado)
 (prioridad 700, sprint 2, depende de: S2-T05, hecha)
 
-**No tiene ticket.** Conviene que el líder resuelva antes `H-12`
-(`Sesion.tokenAcceso`), porque toca justo lo que esta tarea guarda. Además,
-`supabase-kt` ya persiste la sesión por su cuenta, así que el ticket tiene
-que decir qué agrega el cifrado sobre eso.
+**No tiene ticket.** `DEC-30` ya fijó el alcance: un `SessionManager` cifrado
+para `supabase-kt` y quitar `Sesion.tokenAcceso`. El ticket tiene que proponer
+la biblioteca de cifrado, porque agregarla al stack lo decide el líder.
 
 ## Los dos huecos de S2-T01, ya cerrados
 
@@ -477,6 +476,14 @@ no queda ninguno abierto.**
 
 
 ## Decisiones recientes
+
+**2026-09-27 · Dos decisiones más: `DEC-30` y `DEC-31`.** `DEC-30` cierra
+`H-12`: `S2-T08` cifra la sesión que guarda `supabase-kt` y quita
+`Sesion.tokenAcceso`. `DEC-31` resuelve el riesgo de P-18: `S2-T12` trae
+`RepositorioUsuario` real, `S2-T11` pasa a depender de `S2-T12`, y AGENTS.md
+§6 pasa a seis tareas reales. De ahí salió un hallazgo nuevo, `H-13`:
+solicitudes, postulaciones y reseñas no tienen tarea real. Está al final de
+`CONTRATOS-API.md`.
 
 **2026-09-27 · Dos decisiones nuevas: `DEC-28` y `DEC-29`.** Las tomó el líder
 y las registró el agente por instrucción suya. `DEC-28` cierra `H-11`: el correo
