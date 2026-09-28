@@ -114,10 +114,11 @@ class RegistroViewModel @Inject constructor(
                     // entra directo a la pantalla del rol.
                     is Resultado.Exito -> it.copy(
                         cargando = false,
-                        destino = inicioDelRol(resultado.dato.rol)
+                        destino = inicioDelRol(resultado.dato.usuario.rol)
                     )
-                    // CONTRATOS-API.md: en VALIDACION el mensaje ya viene en
-                    // espanol desde la base y se muestra tal cual (3.3).
+                    // En VALIDACION el mensaje se muestra tal cual (3.3). De
+                    // donde sale ese texto en el alta real esta pendiente:
+                    // H-11 en CONTRATOS-API.md.
                     is Resultado.Error -> it.copy(
                         cargando = false,
                         errorPantalla = resultado.tipo,

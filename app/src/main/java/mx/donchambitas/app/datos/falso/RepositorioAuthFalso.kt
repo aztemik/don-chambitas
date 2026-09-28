@@ -33,11 +33,11 @@ class RepositorioAuthFalso @Inject constructor(
         apellidos: String,
         telefono: String?,
         rol: RolUsuario
-    ): Resultado<Usuario> {
+    ): Resultado<Sesion> {
         verificarSimulacion()?.let { return it }
 
         if (fuente.usuarios.any { it.correo.equals(correo, ignoreCase = true) }) {
-            return Resultado.Error(TipoError.VALIDACION, "El correo ya esta registrado, inicia sesion")
+            return Resultado.Error(TipoError.VALIDACION, "El correo ya está registrado, inicia sesión")
         }
 
         val nuevoId = "usr-${UUID.randomUUID().toString().take(8)}"
@@ -55,8 +55,9 @@ class RepositorioAuthFalso @Inject constructor(
             actualizadoEn = ahora
         )
         fuente.usuarios.add(nuevoUsuario)
-        fuente.fijarSesionActiva(Sesion(nuevoUsuario, "token_falso_${nuevoId}"))
-        return Resultado.Exito(nuevoUsuario)
+        val sesion = Sesion(nuevoUsuario, "token_falso_${nuevoId}")
+        fuente.fijarSesionActiva(sesion)
+        return Resultado.Exito(sesion)
     }
 
     override suspend fun iniciarSesion(
@@ -71,7 +72,7 @@ class RepositorioAuthFalso @Inject constructor(
             fuente.fijarSesionActiva(sesion)
             Resultado.Exito(sesion)
         } else {
-            Resultado.Error(TipoError.AUTENTICACION, "Correo o contrasena incorrectos")
+            Resultado.Error(TipoError.AUTENTICACION, "Correo o contraseña incorrectos")
         }
     }
 
@@ -84,7 +85,7 @@ class RepositorioAuthFalso @Inject constructor(
     override suspend fun cambiarContrasena(nueva: String): Resultado<Unit> {
         verificarSimulacion()?.let { return it }
         val sesion = fuente.sesionActiva.value
-            ?: return Resultado.Error(TipoError.AUTENTICACION, "No hay sesion activa")
+            ?: return Resultado.Error(TipoError.AUTENTICACION, "No hay sesión activa")
         return Resultado.Exito(Unit)
     }
 
