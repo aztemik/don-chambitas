@@ -15,32 +15,35 @@
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
 | Terminadas | 6 |
-| En curso | 0 |
+| En curso | 1 |
 | Bloqueadas | 0 |
 
 > Sprint 1 cerrado el 2026-09-20 con sus 16 tareas en `hecha`.
 
 ## Qué se puede probar hoy en la aplicación
 
-Léelo antes de instalar el APK y reportar que algo "no funciona". Desde
-`S2-T05`, P-02 y P-03 hablan con `RepositorioAuth`, pero la implementación
-enlazada sigue siendo la falsa, en memoria: nada llega a Supabase.
+Léelo antes de instalar el APK y reportar que algo "no funciona". **En la rama
+de `S2-T07`**, `RepositorioAuth` ya está enlazado a `RepositorioAuthReal`:
+P-02 y P-03 hablan con Supabase Auth, y **las cuentas sembradas de
+`FuenteDatosFalsa` ya no sirven para entrar**. En `main`, mientras no se
+integre, sigue la implementación falsa. Esta tabla describe la rama.
 
 | Si haces esto | Pasa esto hoy | Lo arregla |
 |---|---|---|
 | Abres la aplicación | P-01 espera 800 ms y te deja en P-02 | — |
 | Estás en P-02 (iniciar sesión) | La pantalla real: marca, los dos campos y los enlaces a P-03 y P-04 | — |
-| Pulsas **Iniciar sesión** con una cuenta sembrada, como `juan.perez@ejemplo.com` | Entra a P-05. **La contraseña no se revisa**: `RepositorioAuthFalso` solo busca el correo | `S2-T07` |
-| Quieres entrar como trabajador | Usa `pedro.plomero@ejemplo.com` (o cualquiera de los 8 trabajadores sembrados): entra a P-10 | — |
-| Pulsas **Iniciar sesión** con un correo que no existe | "Correo o contraseña incorrectos" en línea, sin "Reintentar", y lo escrito se queda | — |
+| Pulsas **Iniciar sesión** o **Crear cuenta** **sin las llaves** en `local.properties` | "Algo salió mal" con "Reintentar". No se cierra la aplicación | Poner `SUPABASE_URL` y `SUPABASE_ANON_KEY` |
+| Pulsas **Iniciar sesión** con una cuenta real del proyecto | Entra a P-05 o P-10 según su rol en `public.usuarios`. **Sin probar todavía**: falta la corrida con llaves | `S2-T07` |
+| Pulsas **Iniciar sesión** con credenciales malas | "Correo o contraseña incorrectos", sin "Reintentar". **Sin probar contra Supabase** | `S2-T07` |
+| Abres `mx.donchambitas.app://auth#error=…` (enlace vencido) | La aplicación abre en P-02 y no se cierra, en frío y con la aplicación abierta | — |
 | Entras a P-03 desde el marcador de P-02 | La pantalla real de registro, con sus cinco campos y el selector de rol | — |
 | Confirmas el registro **sin elegir rol** | Te reclama el rol y no hace nada más | — |
 | Escribes un correo sin arroba y sales del campo | Sale "Ese correo no se ve bien, revísalo" debajo. Se borra en cuanto vuelves a escribir | — |
 | Pulsas el botón de P-02 o P-03 con campos mal | Marca **todos** los que fallan, no avanza y deja el foco en el primero | — |
 | Entras en P-02 con una contraseña de un carácter y una cuenta que existe | **Entra.** Al iniciar sesión solo se exige que no esté vacía (5.2); el mínimo de 8 es del registro | — |
-| Confirmas el registro **con rol** | Crea la cuenta en `FuenteDatosFalsa` y te manda a P-05 o P-10. Esa cuenta sirve para iniciar sesión en P-02 hasta que cierras la aplicación | `S2-T07` |
-| Te registras con un correo que ya existe | Sale "El correo ya está registrado, inicia sesión" tal cual lo manda el repositorio, sin "Reintentar" | `H-11` para el alta real |
-| Cierras y vuelves a abrir | Las cuentas creadas desaparecen y no hay sesión que recordar | `S2-T07`, `S2-T08`, `S2-T09` |
+| Confirmas el registro **con rol** | Crea la cuenta en Supabase Auth y la ficha en `public.usuarios`, y te manda a P-05 o P-10. **Sin probar todavía** | `S2-T07` |
+| Te registras con un correo que ya existe | Sale "El correo ya está registrado, inicia sesión" desde `strings.xml` (`CORREO_DUPLICADO`), sin "Reintentar". Probado con el repositorio falso; **contra Supabase, sin probar** | `S2-T07` |
+| Cierras y vuelves a abrir | La sesión real queda guardada por `supabase-kt`, pero P-01 todavía lee el marcador temporal y te manda a P-02 | `S2-T09`, `S2-T15` |
 
 **El alta todavía no es real.** Escribe en `FuenteDatosFalsa`, que vive en
 memoria: puedes registrarte y entrar, y la cuenta desaparece al reiniciar la
@@ -51,15 +54,41 @@ correo de Supabase Auth desactivada.
 
 ## Tarea en curso
 
-_Ninguna._
-
 | Campo | Valor |
 |---|---|
-| ID | — |
-| Título | — |
-| Quién la tomó | — |
-| Rama | — |
-| Desde | — |
+| ID | `S2-T07` |
+| Título | Implementación real de autenticación con Supabase Auth |
+| Quién la tomó | Agente, por instrucción del líder |
+| Rama | `feat/S2-T07-autenticacion-supabase`, **apilada sobre la de `S2-T06`** |
+| Desde | 2026-09-27 |
+
+**Hecho:**
+- `TipoError.CORREO_DUPLICADO`, con `mensajePantalla` retirado de P-03 (`H-11`);
+- `ModuloSupabase` con el cliente;
+- `RepositorioAuthReal` según el contrato, y ya enlazado en Hilt;
+- `UsuarioDto`, `ErroresAuth` y `EnlaceAuth`;
+- el `intent-filter` y `MainActivity`;
+- la documentación.
+
+Compila. 136 pruebas unitarias y 39 instrumentadas pasan.
+
+**En esta máquina sin llaves** se comprobó:
+- la aplicación abre;
+- P-02 muestra "Algo salió mal" en vez de cerrarse;
+- un enlace vencido no la cierra, ni en frío ni con la aplicación abierta.
+
+**Lo que falta para cerrarla, y no lo puede hacer el agente:**
+1. **Poner las llaves en `local.properties`:** `SUPABASE_URL` y
+   `SUPABASE_ANON_KEY`. Nunca se suben.
+2. **Aplicar en la consola de Supabase los tres ajustes** de "Configuración
+   del proyecto de Supabase" en `CONTRATOS-API.md`:
+   - confirmación por correo desactivada;
+   - mínimo de contraseña en 8;
+   - `mx.donchambitas.app://auth` en las URLs de redirección permitidas.
+3. **La corrida contra el proyecto real:** los pasos 1 a 5 de "Cómo
+   probarlo" del ticket. Incluye comprobar en la consola que la fila de
+   `public.usuarios` trae nombre, apellidos, teléfono y rol, y ver si
+   Supabase acepta el dominio de los correos de prueba.
 
 ## Última tarea terminada
 

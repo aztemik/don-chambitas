@@ -165,7 +165,7 @@ sealed interface Resultado<out T> {
     data class Error(val tipo: TipoError, val mensaje: String) : Resultado<Nothing>
 }
 
-enum class TipoError { RED, AUTENTICACION, VALIDACION, LIMITE_IA, SERVIDOR, DESCONOCIDO }
+enum class TipoError { RED, AUTENTICACION, VALIDACION, CORREO_DUPLICADO, LIMITE_IA, SERVIDOR, DESCONOCIDO }
 ```
 
 Nada de excepciones cruzando capas. Nada de `null` como señal de error.

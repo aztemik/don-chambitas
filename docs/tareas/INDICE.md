@@ -70,7 +70,7 @@ adelantarse, sin saltarse. El detalle, en `AGENTS.md` §3.
 | `S2-T04` | 900 | Validaciones de formularios y mensajes de error | GRI | hecha | S2-T02, S2-T03 |
 | `S2-T05` | 850 | ViewModels y estados de UI del flujo de autenticación | BCJL | hecha | S1-T13 |
 | `S2-T06` | 800 | Contrato de la API de autenticación (endpoints, payloads y errores) | LMM | hecha | — |
-| `S2-T07` | 750 | Implementación real de autenticación con Supabase Auth | RRC | pendiente | S2-T06 |
+| `S2-T07` | 750 | Implementación real de autenticación con Supabase Auth | RRC | en curso | S2-T06 |
 | `S2-T08` | 700 | Almacenamiento seguro de la sesión y el token (DataStore cifrado) | GRI | pendiente | S2-T05 |
 | `S2-T09` | 650 | Manejo de sesión: inicio automatico, cierre de sesión y expiracion | BCJL | pendiente | S2-T08 |
 | `S2-T10` | 600 | Pantalla de recuperación de contraseña | LMM | pendiente | — |

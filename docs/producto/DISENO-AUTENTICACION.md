@@ -348,18 +348,17 @@ data class EstadoRegistro(
     val errorContrasena: Int? = null,
     val errorTelefono: Int? = null,
     val errorPantalla: TipoError? = null,
-    val mensajePantalla: String? = null, // solo para VALIDACION, ver 3.5
     val cargando: Boolean = false,
     val destino: Ruta? = null
 )
 ```
 
-`mensajePantalla` es la única excepción a la regla de 2.2, y está acotada:
-`CONTRATOS-API.md` dice que en un error de `VALIDACION` lo que se muestra es
-**el mensaje del trigger, que ya viene escrito en español desde la base**.
-Volver a traducirlo en la aplicación sería duplicar ese texto en dos lugares.
-Para cualquier otro tipo de error, `mensajePantalla` va en `null` y manda
-`errorPantalla`.
+**Sin excepciones a la regla de 2.2.** Hasta `S2-T07` había un
+`mensajePantalla` para pintar tal cual el mensaje de un error de `VALIDACION`,
+porque se suponía que venía en español desde un trigger. En el registro no es
+así: el correo duplicado lo rechaza Supabase Auth, y en inglés (`H-11` en
+`CONTRATOS-API.md`). Se retiró, y el correo duplicado tiene su propio
+`TipoError.CORREO_DUPLICADO`.
 
 ### 3.4 Eventos
 
@@ -381,7 +380,8 @@ sea dígito y corta en 10. No es validación, es no dejar teclear basura.
 |---|---|
 | `Exito(Sesion)` | Navega a `P-05` o `P-10` según el rol de `sesion.usuario`, limpiando la pila del subgrafo de autenticación |
 | ~~`Exito(Usuario)` sin sesión~~ | **Retirada por `DEC-25`**: el registro siempre deja sesión abierta, y desde `S2-T06` `registrar` devuelve `Sesion`. Era la rama de H-10 |
-| `Error(VALIDACION, mensaje)` | `EstadoError` en línea con `mensaje` tal cual llega. Es el caso del correo duplicado: "El correo ya está registrado, inicia sesión", y el `BotonTexto` de abajo es el acceso directo a P-02 que pide HU-01. **De dónde sale ese texto en el alta real está pendiente del líder: `H-11` en `CONTRATOS-API.md`** |
+| `Error(CORREO_DUPLICADO, _)` | `EstadoError` en línea con `error_correo_duplicado`: "El correo ya está registrado, inicia sesión", sin "Reintentar". El `BotonTexto` de abajo es el acceso directo a P-02 que pide HU-01 (`H-11`) |
+| `Error(VALIDACION, _)` | `EstadoError` en línea con el mensaje de `S1-T11` para ese tipo. No debería llegar: la interfaz ya validó |
 | `Error(RED, _)` | `EstadoError` en línea, botón "Reintentar", **todo lo capturado se conserva**, incluida la contraseña y el rol elegido |
 | `Error(SERVIDOR, _)` o `Error(DESCONOCIDO, _)` | `EstadoError` en línea con el mensaje del tipo y "Reintentar" |
 | `Error(AUTENTICACION, _)` | No aplica al registro. Si llega, se pinta con el mensaje de su tipo |
@@ -573,13 +573,14 @@ de inicio de sesión. Ahí se pinta `error_credenciales_invalidas`.
 |---|---|---|
 | P-02 | `AUTENTICACION` | `error_credenciales_invalidas` — "Correo o contraseña incorrectos" |
 | P-02, P-03, P-04 | `RED`, `SERVIDOR`, `DESCONOCIDO` | El mensaje de `S1-T11` para ese tipo |
-| P-03 | `VALIDACION` | El `mensaje` que traiga el `Resultado.Error`, tal cual (3.3) |
-| P-02, P-04 | `VALIDACION` | El mensaje de `S1-T11`. No debería llegar |
+| P-03 | `CORREO_DUPLICADO` | `error_correo_duplicado` — "El correo ya está registrado, inicia sesión" |
+| P-02, P-03, P-04 | `VALIDACION` | El mensaje de `S1-T11`. No debería llegar |
 | Todas | `LIMITE_IA` | No aplica. Si llega, `DESCONOCIDO` |
 
 El botón "Reintentar" aparece en `RED`, `SERVIDOR` y `DESCONOCIDO`, que es
-donde volver a intentar puede servir de algo. En `AUTENTICACION` y
-`VALIDACION` no aparece: lo que hay que cambiar es lo que está escrito.
+donde volver a intentar puede servir de algo. En `AUTENTICACION`,
+`VALIDACION` y `CORREO_DUPLICADO` no aparece: lo que hay que cambiar es lo que
+está escrito.
 
 ---
 

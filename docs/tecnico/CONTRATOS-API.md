@@ -194,18 +194,23 @@ lugar donde está escrito; el código lo toma de una sola constante.
 | 1 | `recuperarContrasena` pide el correo con `redirectUrl = ENLACE_AUTH` | `S2-T07` |
 | 2 | Supabase manda el correo. El enlace pasa por su servidor y redirige a `mx.donchambitas.app://auth#access_token=…&refresh_token=…&type=recovery…` | Supabase |
 | 3 | Un `intent-filter` de `MainActivity` con ese esquema y ese host abre la aplicación | `S2-T07` |
-| 4 | `MainActivity` llama a `supabase.handleDeeplinks(intent) { sesion -> … }`. La sesión queda importada, y si `sesion.type == "recovery"` la aplicación marca que viene de recuperar | `S2-T07` |
+| 4 | `MainActivity` revisa el enlace con `esEnlaceConSesion` y llama a `importarSesionDeEnlace` (`datos/remoto/supabase/EnlaceAuth.kt`). Hace lo mismo que `handleDeeplinks`: `parseSessionFromFragment`, `retrieveUser` e `importSession`, pero dentro de un `try`. La sesión queda importada, y `UserSession.type` trae `"recovery"` | `S2-T07` |
 | 5 | Con esa marca, la aplicación aterriza en P-18, directo en la sección de contraseña | `S2-T11` |
 | 6 | P-18 llama a `cambiarContrasena(nueva)` | `S2-T11` |
 
 **El enlace vencido o ya usado.** En ese caso Supabase redirige con
 `#error=…&error_code=…` en vez de tokens. `parseSessionFromFragment` lanza
 `IllegalArgumentException` ("No access token found") cuando no hay
-`access_token`, y `handleDeeplinks` no lo atrapa. **`S2-T07` revisa el
-fragmento antes de llamar a `handleDeeplinks`**, o lo envuelve, para que un
-enlace vencido no cierre la aplicación. En ese caso la aplicación abre normal,
-sin sesión, en P-02. Si además hay que avisarle algo al usuario, lo decide
-`S2-T11`.
+`access_token`, y `handleDeeplinks` no lo atrapa. Además, `handleDeeplinks`
+lee el usuario en un scope propio de la biblioteca **sin manejador de
+errores**, así que abrir el enlace sin red también cerraba la aplicación. Por
+las dos razones, `S2-T07` no usa `handleDeeplinks`. `esEnlaceConSesion`
+descarta el enlace sin tokens, con `error=` o con partes sin `=`, e
+`importarSesionDeEnlace` hace la importación dentro de un `try`.
+
+Con un enlace vencido, la aplicación abre normal, sin sesión, en P-02.
+Verificado en emulador, en frío y con la aplicación abierta. Si además hay
+que avisarle algo al usuario, lo decide `S2-T11`.
 
 **`recuperarContrasena` siempre reporta éxito cuando la petición llega al
 servidor,** exista o no el correo. Decir cuáles correos están registrados es
@@ -275,9 +280,9 @@ códigos son los de `AuthErrorCode` en 3.0.3 y llegan en
 | `email_not_confirmed` | `iniciarSesion` | `AUTENTICACION`. No debería llegar con la confirmación desactivada |
 | `user_banned` | `iniciarSesion` | `AUTENTICACION` |
 | `session_not_found`, `session_expired`, `refresh_token_not_found`, `bad_jwt` | `cambiarContrasena` | `AUTENTICACION` |
-| `user_already_exists`, `email_exists` | `registrar` | `VALIDACION`. **El mensaje está pendiente del líder: ver `H-11`** |
-| `weak_password` (`AuthWeakPasswordException`) | `registrar`, `cambiarContrasena` | `VALIDACION`. Con el mínimo en 8 en el servidor y en la interfaz no debería llegar. Mensaje: ver `H-11` |
-| `same_password` | `cambiarContrasena` | `VALIDACION`. Mensaje: ver `H-11` |
+| `user_already_exists`, `email_exists` | `registrar` | `CORREO_DUPLICADO` (`H-11`). La pantalla pinta `error_correo_duplicado` |
+| `weak_password` (`AuthWeakPasswordException`) | `registrar`, `cambiarContrasena` | `VALIDACION`. Con el mínimo en 8 en el servidor y en la interfaz no debería llegar. Se pinta el mensaje genérico de `VALIDACION` |
+| `same_password` | `cambiarContrasena` | `VALIDACION`. Qué mensaje pinta P-18 lo decide `S2-T11` |
 | `validation_failed`, `email_address_invalid` | `registrar`, `iniciarSesion` | `VALIDACION`. La interfaz ya validó con la misma expresión que el esquema, así que no debería llegar |
 | `over_request_rate_limit` | `registrar`, `iniciarSesion`, `cambiarContrasena` | `SERVIDOR` |
 | `over_email_send_rate_limit`, `over_request_rate_limit` | `recuperarContrasena` | **Éxito**, ver arriba |
@@ -290,11 +295,10 @@ códigos son los de `AuthErrorCode` en 3.0.3 y llegan en
 que no está en `AuthErrorCode` de 3.0.3: se compara contra el texto crudo del
 error.
 
-**Los mensajes en inglés de Supabase Auth nunca llegan a la pantalla.** Para
-los tipos que no son `VALIDACION`, la pantalla pinta el mensaje de
-`strings.xml` que le toca a su `TipoError` (sección 6 de
-`DISENO-AUTENTICACION.md`). Para `VALIDACION` en P-03 hay un hueco. Ver
-`H-11`.
+**Los mensajes en inglés de Supabase Auth nunca llegan a la pantalla.** Todas
+las pantallas de autenticación pintan el mensaje de `strings.xml` que le toca
+a su `TipoError` (sección 6 de `DISENO-AUTENTICACION.md`). El `mensaje` del
+`Resultado.Error` es para el log, no para el usuario.
 
 ### Configuración del proyecto de Supabase que este contrato supone
 
@@ -513,7 +517,8 @@ Supabase y devuelve `Resultado.Error(tipo, mensaje)`.
 | 401, sesión vencida, credenciales malas | `AUTENTICACION` | "Correo o contraseña incorrectos" |
 | 403, RLS rechaza la fila | `AUTENTICACION` | "No tienes permiso para hacer eso" |
 | Violación de CHECK o de trigger | `VALIDACION` | El mensaje del trigger, ya está escrito en español |
-| 409, correo o llave duplicada | `VALIDACION` | "El correo ya está registrado, inicia sesión". En el registro, ver `H-11` |
+| Correo ya registrado en el alta de Supabase Auth | `CORREO_DUPLICADO` | "El correo ya está registrado, inicia sesión" (`H-11`) |
+| 409, otra llave duplicada | `VALIDACION` | El mensaje del trigger, ya está escrito en español |
 | 429 de la Edge Function | `LIMITE_IA` | "Alcanzaste el límite de hoy" |
 | 5xx, 503 de la Edge Function | `SERVIDOR` | "Algo falló de nuestro lado, intenta más tarde" |
 | Cualquier otra cosa | `DESCONOCIDO` | "Algo salió mal, intenta de nuevo" |
