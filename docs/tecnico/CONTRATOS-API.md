@@ -559,9 +559,8 @@ repositorios es la falsa, en memoria. Ver `AGENTS.md` §6.
 Salen de escribir el contrato de detalle de autenticación en `S2-T06`.
 **Ninguno se resolvió aquí**, conforme a AGENTS.md §9.
 
-**`H-11` · CERRADO el 2026-09-27 por decisión del líder: opción 1, un
-`TipoError` nuevo para el correo duplicado.** Falta registrarla con número en
-`DECISIONES.md`, y eso lo hace el líder. La aplica `S2-T07`:
+**`H-11` · CERRADO el 2026-09-27 por `DEC-28`: opción 1, un `TipoError` nuevo
+para el correo duplicado.** La aplicó `S2-T07`:
 - agrega `TipoError.CORREO_DUPLICADO` y su mensaje en `strings.xml`;
 - actualiza la tabla de errores de arriba;
 - P-03 deja de pintar el `mensaje` tal cual, porque en el registro nunca llega

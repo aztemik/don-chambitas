@@ -77,7 +77,7 @@ Rama `feat/S2-T07-autenticacion-supabase`, **apilada sobre la de `S2-T06`**, que
   - `ErroresAuth`, una función pura con una prueba por fila de la tabla del contrato;
   - `EnlaceAuth`;
   - `ConfiguracionSupabase`.
-- **`H-11`, opción 1:** `TipoError.CORREO_DUPLICADO` con su título y su mensaje en `strings.xml`. P-03 pierde `mensajePantalla` y pinta todo error desde `strings.xml`.
+- **`DEC-28` (cierra `H-11`):** `TipoError.CORREO_DUPLICADO` con su título y su mensaje en `strings.xml`. P-03 pierde `mensajePantalla` y pinta todo error desde `strings.xml`.
 - El `intent-filter` de `mx.donchambitas.app://auth` y `launchMode="singleTop"` en `MainActivity`.
 - **Desvío del contrato, ya reflejado en él:** no se usa `handleDeeplinks`. En 3.0.3 lee el usuario en un scope sin manejador de errores, y abrir el enlace sin red cerraba la aplicación. `EnlaceAuth.kt` hace lo mismo dentro de un `try`.
 - Verificación del proyecto:
@@ -477,6 +477,12 @@ no queda ninguno abierto.**
 
 
 ## Decisiones recientes
+
+**2026-09-27 · Dos decisiones nuevas: `DEC-28` y `DEC-29`.** Las tomó el líder
+y las registró el agente por instrucción suya. `DEC-28` cierra `H-11`: el correo
+duplicado es `TipoError.CORREO_DUPLICADO`, y P-03 deja de pintar mensajes tal
+cual. `DEC-29` limita la elección de la siguiente tarea al sprint en curso y
+a los anteriores.
 
 **2026-09-16 · La base se volvió a levantar y a verificar.** `01` a `04` sin
 error, `90_verificacion.sql` **42 de 42** y `91_prueba_funcional.sql`
