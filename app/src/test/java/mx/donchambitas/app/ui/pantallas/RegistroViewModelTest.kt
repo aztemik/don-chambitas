@@ -115,22 +115,21 @@ class RegistroViewModelTest {
     }
 
     @Test
-    fun debeMostrarElMensajeDelRepositorioTalCual_cuandoElErrorEsDeValidacion() = runTest(reglaCorrutinas.testDispatcher) {
-        val mensaje = "El correo ya está registrado, inicia sesión"
-        responderCon(Resultado.Error(TipoError.VALIDACION, mensaje))
+    fun debeMarcarCorreoDuplicadoSinNavegar_cuandoElCorreoYaExiste() = runTest(reglaCorrutinas.testDispatcher) {
+        responderCon(Resultado.Error(TipoError.CORREO_DUPLICADO, "User already registered"))
         viewModel.llenarValido()
 
         viewModel.alRegistrar()
         advanceUntilIdle()
 
         val estado = viewModel.estado.value
-        assertEquals(TipoError.VALIDACION, estado.errorPantalla)
-        assertEquals(mensaje, estado.mensajePantalla)
+        assertEquals(TipoError.CORREO_DUPLICADO, estado.errorPantalla)
         assertNull(estado.destino)
+        assertFalse(estado.cargando)
     }
 
     @Test
-    fun debeConservarTodoYNoTraerMensaje_cuandoElErrorEsDeRed() = runTest(reglaCorrutinas.testDispatcher) {
+    fun debeConservarTodo_cuandoElErrorEsDeRed() = runTest(reglaCorrutinas.testDispatcher) {
         responderCon(Resultado.Error(TipoError.RED, "sin red"))
         viewModel.llenarValido(RolUsuario.TRABAJADOR)
 
@@ -139,7 +138,6 @@ class RegistroViewModelTest {
 
         val estado = viewModel.estado.value
         assertEquals(TipoError.RED, estado.errorPantalla)
-        assertNull(estado.mensajePantalla)
         assertEquals(RolUsuario.TRABAJADOR, estado.rol)
         assertEquals("12345678", estado.contrasena)
         assertEquals("4771234567", estado.telefono)

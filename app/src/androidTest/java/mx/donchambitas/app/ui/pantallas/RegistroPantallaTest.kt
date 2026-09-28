@@ -170,7 +170,7 @@ class RegistroPantallaTest {
         botonCrearCuenta().performClick()
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithText("El correo ya está registrado", substring = true).assertExists()
+        composeTestRule.onNodeWithText(texto(R.string.error_correo_duplicado)).assertExists()
         composeTestRule.onNodeWithText(texto(R.string.reintentar)).assertDoesNotExist()
         assertNull(destino)
     }
@@ -284,16 +284,10 @@ class RegistroPantallaTest {
     }
 
     @Test
-    fun debeMostrarElMensajeDeLaBaseSinReintentar_cuandoElErrorEsDeValidacion() {
-        val mensajeDeLaBase = "El correo ya está registrado, inicia sesión"
-        montarContenido(
-            EstadoRegistro(
-                errorPantalla = TipoError.VALIDACION,
-                mensajePantalla = mensajeDeLaBase
-            )
-        )
+    fun debeMostrarElMensajeDeStringsSinReintentar_cuandoElCorreoYaExiste() {
+        montarContenido(EstadoRegistro(errorPantalla = TipoError.CORREO_DUPLICADO))
 
-        composeTestRule.onNodeWithText(mensajeDeLaBase).assertIsDisplayed()
+        composeTestRule.onNodeWithText(texto(R.string.error_correo_duplicado)).assertIsDisplayed()
         composeTestRule.onNodeWithText(texto(R.string.reintentar)).assertDoesNotExist()
     }
 
