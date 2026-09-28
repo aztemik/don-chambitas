@@ -3,7 +3,7 @@
 > Archivo **vivo**. Quien termina una tarea lo actualiza. Es la primera cosa
 > que lee el agente y la única fuente confiable sobre qué está pasando hoy.
 
-**Última actualización:** 2026-09-23
+**Última actualización:** 2026-09-27
 
 ---
 
@@ -14,7 +14,7 @@
 | Sprint | 2 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 4 |
+| Terminadas | 7 |
 | En curso | 0 |
 | Bloqueadas | 0 |
 
@@ -22,27 +22,33 @@
 
 ## Qué se puede probar hoy en la aplicación
 
-Léelo antes de instalar el APK y reportar que algo "no funciona". La
-aplicación todavía no autentica a nadie: lo que hay son pantallas conectadas
-al grafo y una fuente de datos en memoria.
+Léelo antes de instalar el APK y reportar que algo "no funciona". **En la rama
+de `S2-T07`**, `RepositorioAuth` ya está enlazado a `RepositorioAuthReal`:
+P-02 y P-03 hablan con Supabase Auth, y **las cuentas sembradas de
+`FuenteDatosFalsa` ya no sirven para entrar**. En `main`, mientras no se
+integre, sigue la implementación falsa. Esta tabla describe la rama.
 
 | Si haces esto | Pasa esto hoy | Lo arregla |
 |---|---|---|
 | Abres la aplicación | P-01 espera 800 ms y te deja en P-02 | — |
 | Estás en P-02 (iniciar sesión) | La pantalla real: marca, los dos campos y los enlaces a P-03 y P-04 | — |
-| Pulsas **Iniciar sesión** con un correo válido y cualquier contraseña | Entra **siempre como cliente**, a P-05. No se comprueba la cuenta: no se llama a `RepositorioAuth` | `S2-T05` |
-| Quieres entrar como trabajador | Desde P-02 no se puede todavía. Regístrate como trabajador en P-03 | `S2-T05` |
+| Pulsas **Iniciar sesión** o **Crear cuenta** **sin las llaves** en `local.properties` | "Algo salió mal" con "Reintentar". No se cierra la aplicación | Poner `SUPABASE_URL` y `SUPABASE_ANON_KEY` |
+| Pulsas **Iniciar sesión** con una cuenta real del proyecto | Entra a P-05 o P-10 según su rol en `public.usuarios`. Probado con las cuentas de `92_usuarios_prueba.sql`: `ana.rls@…` entra a P-05 y `beto.rls@…` a P-10 | — |
+| Pulsas **Iniciar sesión** con credenciales malas | "Correo o contraseña incorrectos", sin "Reintentar". Probado contra Supabase | — |
+| Pulsas **Iniciar sesión** sin red | "Sin conexión" con "Reintentar". Con la red de vuelta, "Reintentar" entra | — |
+| Abres `mx.donchambitas.app://auth#error=…` (enlace vencido) | La aplicación abre en P-02 y no se cierra, en frío y con la aplicación abierta | — |
 | Entras a P-03 desde el marcador de P-02 | La pantalla real de registro, con sus cinco campos y el selector de rol | — |
 | Confirmas el registro **sin elegir rol** | Te reclama el rol y no hace nada más | — |
 | Escribes un correo sin arroba y sales del campo | Sale "Ese correo no se ve bien, revísalo" debajo. Se borra en cuanto vuelves a escribir | — |
 | Pulsas el botón de P-02 o P-03 con campos mal | Marca **todos** los que fallan, no avanza y deja el foco en el primero | — |
-| Entras en P-02 con una contraseña de un carácter | **Entra.** Al iniciar sesión solo se exige que no esté vacía (5.2); el mínimo de 8 es del registro | — |
-| Confirmas el registro **con rol** | Te manda a P-05 o P-10. **No se crea ninguna cuenta**: no se llama a `RepositorioAuth`, no se guarda nada, no se comprueba si el correo ya existe | `S2-T05` |
-| Cierras y vuelves a abrir | No hay cuenta que recordar, ni sesión | `S2-T08`, `S2-T09` |
+| Entras en P-02 con una contraseña de un carácter y una cuenta que existe | **Entra.** Al iniciar sesión solo se exige que no esté vacía (5.2); el mínimo de 8 es del registro | — |
+| Confirmas el registro **con rol** | Crea la cuenta en Supabase Auth y la ficha en `public.usuarios`, y te manda a P-05 o P-10 | — |
+| Te registras con un correo que ya existe | "Correo ya registrado / El correo ya está registrado, inicia sesión", sin "Reintentar" | — |
+| Cierras y vuelves a abrir | La sesión real queda guardada por `supabase-kt`, pero P-01 todavía lee el marcador temporal y te manda a P-02 | `S2-T09`, `S2-T15` |
 
-**Cuando `S2-T05` esté hecha, el alta seguirá sin ser real.** Escribirá en
-`FuenteDatosFalsa`, que vive en memoria: vas a poder registrarte y entrar, y
-la cuenta desaparece al reiniciar la aplicación. Cuentas de verdad, contra
+**El alta todavía no es real.** Escribe en `FuenteDatosFalsa`, que vive en
+memoria: puedes registrarte y entrar, y la cuenta desaparece al reiniciar la
+aplicación. Cuentas de verdad, contra
 Supabase Auth, son `S2-T07`. `H-10` ya se cerró: `DEC-25` decide que el
 registro deja sesión abierta, así que `S2-T07` va con la confirmación por
 correo de Supabase Auth desactivada.
@@ -60,6 +66,100 @@ _Ninguna._
 | Desde | — |
 
 ## Última tarea terminada
+
+**`S2-T07` — Implementación real de autenticación con Supabase Auth.** 2026-09-27.
+Rama `feat/S2-T07-autenticacion-supabase-v2` en el remoto, **apilada sobre la de `S2-T06`**, que a su vez va sobre la de `S2-T05`. Pull request **#14**: se integra después de #12 y #13.
+
+- `datos/repositorio/RepositorioAuthReal.kt` implementa la sección de autenticación de `CONTRATOS-API.md` y ya está enlazado en `ModuloRepositorios`. Los otros nueve repositorios siguen falsos.
+- `di/ModuloSupabase.kt` provee el cliente con la URL y la `anon key` de `local.properties`. `RepositorioAuthReal` y `MainActivity` lo piden perezoso: **sin llaves, la aplicación abre y el botón muestra "Algo salió mal"** en vez de cerrarse.
+- `datos/remoto/`:
+  - `UsuarioDto`;
+  - `ErroresAuth`, una función pura con una prueba por fila de la tabla del contrato;
+  - `EnlaceAuth`;
+  - `ConfiguracionSupabase`.
+- **`DEC-28` (cierra `H-11`):** `TipoError.CORREO_DUPLICADO` con su título y su mensaje en `strings.xml`. P-03 pierde `mensajePantalla` y pinta todo error desde `strings.xml`.
+- El `intent-filter` de `mx.donchambitas.app://auth` y `launchMode="singleTop"` en `MainActivity`.
+- **Desvío del contrato, ya reflejado en él:** no se usa `handleDeeplinks`. En 3.0.3 lee el usuario en un scope sin manejador de errores, y abrir el enlace sin red cerraba la aplicación. `EnlaceAuth.kt` hace lo mismo dentro de un `try`.
+- Verificación del proyecto:
+  - Compilación exitosa (`./gradlew assembleDebug`).
+  - 136 pruebas unitarias (25 nuevas) y 39 instrumentadas, 0 fallas.
+  - **Contra el proyecto de Supabase**, en emulador `Medium_Phone`:
+    - un alta de trabajador entra a P-10, y su fila de `public.usuarios` trae nombre, apellidos, teléfono y rol correctos;
+    - la misma cuenta entra otra vez después de cerrar la aplicación;
+    - el correo repetido da `CORREO_DUPLICADO`;
+    - `ana.rls@…` entra a P-05 y `beto.rls@…` a P-10;
+    - una contraseña mala da "Correo o contraseña incorrectos";
+    - sin red sale "Sin conexión", y "Reintentar" funciona;
+    - un enlace vencido no cierra la aplicación, ni en frío ni con la aplicación abierta.
+  - Sin excepciones en logcat.
+- **Consola:** el líder desactivó la confirmación por correo el 2026-09-27, verificado con `GET /auth/v1/settings` (`mailer_autoconfirm: true`). El mínimo de contraseña en 8 y la URL de redirección los aplicó el líder, pero **no se pueden verificar desde fuera**.
+- **Cuenta de prueba creada:** `s2t07.trabajador@prueba.donchambitas.mx`. Se borra con el mismo `delete` de las de `S1-T03`, que está más abajo en este archivo.
+- **`@prueba.donchambitas.mx` sí pasa el alta con la confirmación desactivada**, así que lo que `DEC-25` suponía se confirmó.
+- **Lo que esta tarea NO trae:**
+  - aterrizar en P-18 al llegar por recuperación, que es `S2-T11`;
+  - que P-01 y las guardas lean la sesión real: al reabrir, la sesión existe, pero P-01 manda a P-02. Son `S2-T09` y `S2-T15`.
+- **Riesgo para `S2-T11`, pendiente del líder:** con la autenticación real, los repositorios falsos ya no ven al usuario con sesión, y P-18 lee su perfil con `RepositorioUsuario`, que no tiene implementación real en el Sprint 2. Detalle en el ticket.
+
+**`S2-T06` — Contrato de la API de autenticación (endpoints, payloads y errores).** 2026-09-27.
+Rama `docs/S2-T06-contrato-api-autenticacion-v2` en el remoto, **apilada sobre la de `S2-T05`** por decisión del líder. Pull request **#13**: se integra después de #12.
+
+Ticket `docs/tareas/S2-T06.md`, redactado por el agente el mismo día por instrucción del líder.
+
+- `docs/tecnico/CONTRATOS-API.md`, sección de autenticación reescrita a detalle. **Se verificó contra el código fuente de `supabase-kt` 3.0.3**, la versión de `libs.versions.toml`, sacado de la caché de Gradle; no de memoria.
+  - **Cada operación** tiene su llamada exacta, lo que devuelve y de dónde sale cada campo.
+  - **La `Sesion` se arma en dos pasos:** primero Auth y luego la ficha de `public.usuarios`, con su `UsuarioDto` columna por columna.
+  - **Las llaves del metadata de `registrar`** están cotejadas con las líneas 172 a 175 del esquema.
+  - **El enlace de la aplicación es `mx.donchambitas.app://auth`**, con flujo `IMPLICIT`. Con `PKCE`, el `type=recovery` se pierde y la aplicación no sabría que tiene que ir a P-18. Está el recorrido de la recuperación en seis pasos, con la tarea que hace cada uno.
+  - **`sesionActual()` tiene su tabla de `SessionStatus`.** `RefreshFailure` no cierra la sesión, porque en 3.0.3 solo marca fallas pasajeras.
+  - **Hay una tabla de errores** con los códigos de `AuthErrorCode`, y la lista de ajustes que `S2-T07` aplica en la consola.
+- `RepositorioAuth.registrar` devuelve `Resultado<Sesion>` (`DEC-25`). `RepositorioAuthFalso` devuelve la sesión que abre, y sus mensajes ya llevan acentos. `RegistroViewModel` lee el rol de `sesion.usuario`.
+- `DISENO-AUTENTICACION.md`: la tabla 3.5 dice `Exito(Sesion)` y marca retirada la fila de "sin sesión".
+- Verificación del proyecto:
+  - Compilación exitosa (`./gradlew assembleDebug`).
+  - 111 pruebas unitarias y 39 instrumentadas, 0 fallas.
+  - Recorrido a mano en emulador `Medium_Phone`: un alta nueva entra a P-05, y el correo duplicado muestra "El correo ya está registrado, inicia sesión" con acentos y sin "Reintentar". Sin excepciones en logcat.
+- **Tres cosas que el contrato encontró en la biblioteca, para que `S2-T07` no las descubra tarde:**
+  - Sin red, `signOut` **no** cierra la sesión local.
+  - Un enlace de recuperación vencido hace que `handleDeeplinks` lance una excepción que nadie atrapa: `S2-T07` tiene que revisar el fragmento antes.
+  - Si el alta sale bien y falla la lectura de la ficha, reintentar da correo duplicado.
+- **Dos hallazgos nuevos para el líder**, al final de `CONTRATOS-API.md`:
+  - **`H-11` · De dónde sale el mensaje en español de un error de `VALIDACION` en el registro.** Supabase Auth rechaza el correo duplicado en inglés, y `datos/` no puede leer `strings.xml`. Hay tres salidas; la recomendada es un `TipoError` nuevo. **`S2-T07` no puede cerrar el alta real sin esta decisión.**
+  - **`H-12` · `Sesion.tokenAcceso` sobra.** Nadie lo lee y el token lo lleva `supabase-kt`.
+- **Discrepancia de versión:** `BITACORA.md`, en la fila de `S1-T04`, dice `supabase-kt` 3.1.1, pero `libs.versions.toml` fija 3.0.3. No se tocó esa fila porque es de otra tarea.
+
+**`S2-T05` — ViewModels y estados de UI del flujo de autenticación.** 2026-09-27.
+Rama `feat/S2-T05-viewmodels-autenticacion`, pull request **#12**.
+
+Ticket `docs/tareas/S2-T05.md`, redactado por el agente como los de `S2-T03` y
+`S2-T04`. El alcance salió de las secciones 1.4 a 1.6, 2.2 a 2.4, 3.3 a 3.5 y 6
+de `docs/producto/DISENO-AUTENTICACION.md`.
+
+- `ui/pantallas/IniciarSesionViewModel.kt` y `RegistroViewModel.kt`: `@HiltViewModel` contra la interfaz `RepositorioAuth`, un solo `StateFlow` cada uno.
+  - La validación de `S2-T04` se mudó de la pantalla sin cambiar: mismas reglas, mismo "campo tocado", mismos topes y filtro del teléfono.
+  - Al enviar se normaliza según 1.6: el correo con `trim().lowercase()`, y el nombre y los apellidos con `trim()`.
+  - El destino, P-05 o P-10, sale del rol del usuario que devuelve el repositorio.
+  - Errores del repositorio en `errorPantalla`. En P-03, un error de `VALIDACION` trae además `mensajePantalla` tal cual.
+  - Mientras carga, un segundo toque no hace una segunda llamada. `alReintentar` repite el envío.
+- `IniciarSesionPantalla.kt` y `RegistroPantalla.kt` solo conectan el ViewModel con su `...Contenido`, que no cambió. Se quitaron los `rememberSaveable`: lo capturado sobrevive al giro porque vive en el ViewModel.
+- `EstadoRegistro.kt`: gana `destino`, que le faltaba respecto a 3.3.
+- `GrafoNavegacion.kt`: `entrarConSesion` marca el `MarcadorSesionTemporal` según el destino y limpia la pila del subgrafo, para P-02 y P-03 por igual. El marcador sigue ahí hasta `S2-T15`.
+- Verificación del proyecto:
+  - Compilación exitosa (`./gradlew assembleDebug`).
+  - 111 pruebas unitarias, 0 fallas: 25 nuevas en `IniciarSesionViewModelTest` y `RegistroViewModelTest`. En esta corrida pasaron también las 2 intermitentes de `SplashViewModelTest`.
+  - 39 pruebas instrumentadas, 0 fallas. Las de P-02 y P-03 ahora montan la pantalla con su ViewModel sobre `RepositorioAuthFalso` sin retraso; 4 son nuevas: cliente, trabajador, cuenta inexistente y correo duplicado.
+  - Recorrido a mano en emulador `Medium_Phone` (Android 17):
+    - La cuenta inexistente muestra el error de credenciales sin "Reintentar".
+    - `Pedro.Plomero@ejemplo.com` entra a P-10, y el botón atrás cierra la aplicación.
+    - El correo duplicado en P-03 muestra el mensaje del repositorio.
+    - Un trabajador nuevo entra a P-10. Tras volver a "Sin sesión", la misma cuenta entra desde P-02.
+    - El correo escrito se conserva al girar. Sin excepciones en logcat.
+- **Tres desvíos del documento, para que el líder los revise.**
+  - **El ViewModel de P-04 (4.3) no entra**, aunque la sección 9 se lo asigna a esta tarea: P-04 no existe hasta `S2-T10`, y un ViewModel sin pantalla es código muerto. Lo escribe `S2-T10`.
+  - **La fila "`Exito(Usuario)` sin sesión → volver a P-02" de 3.5 no se implementó.** `DEC-25` la dejó sin objeto, así que el registro exitoso entra directo y `registro_cuenta_creada` sigue sin usarse.
+  - **La pérdida de foco es un solo evento `alPerderFoco(campo)`** en vez de una función por campo.
+- **Dos hallazgos, fuera del alcance:**
+  - **El mensaje de correo duplicado sale sin acentos**, "El correo ya esta registrado, inicia sesion", porque así lo escribe `RepositorioAuthFalso`. Con Supabase lo dará el trigger.
+  - **Con Enter de teclado físico** (`adb shell input keyevent 66`) en el teléfono de P-03, la aplicación regresó a P-02 en vez de enviar. Con la tecla de acción del teclado en pantalla envía bien. No se investigó: el `onDone` es el mismo de `S2-T02`, y lo más probable es que el Enter active el `BotonTexto` de abajo.
 
 **`S2-T04` — Validaciones de formularios y mensajes de error.** 2026-09-23.
 Rama `feat/S2-T04-validaciones-formularios`, pull request **#11**, abierto desde el fork `michaelleonmoso25-MLM/don-chambitas`. **El #10 de Ricardo5690 implementa la misma tarea**: se trabajaron en paralelo sin saberlo, y el líder decide cuál integrar.
@@ -345,13 +445,12 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S2-T05` — ViewModels y estados de UI del flujo de autenticación
-(prioridad 850, sprint 2, depende de: S1-T13, hecha)
+`S2-T08` — Almacenamiento seguro de la sesión y el token (DataStore cifrado)
+(prioridad 700, sprint 2, depende de: S2-T05, hecha)
 
-**No tiene ticket**: hay que redactarlo antes de tomarla, como se hizo con
-`S2-T03` y `S2-T04`. Hoy el estado y la validación de P-02 y P-03 viven en la
-pantalla; `S2-T05` los mueve al ViewModel reutilizando `ValidacionesAuth` tal
-cual, y hace ahí la normalización de 1.6 al enviar.
+**No tiene ticket.** `DEC-30` ya fijó el alcance: un `SessionManager` cifrado
+para `supabase-kt` y quitar `Sesion.tokenAcceso`. El ticket tiene que proponer
+la biblioteca de cifrado, porque agregarla al stack lo decide el líder.
 
 ## Los dos huecos de S2-T01, ya cerrados
 
@@ -377,6 +476,40 @@ no queda ninguno abierto.**
 
 
 ## Decisiones recientes
+
+**2026-09-27 · Se integra la versión de `S2-T05` a `S2-T07` hecha hoy, no la de
+Ricardo5690.** Ricardo5690 implementó las mismas tres tareas entre el 23 y el
+24 de septiembre, en `feat/S2-T05-viewmodels-estados-ui-autenticacion`,
+`docs/S2-T06-contrato-api-autenticacion` y `feat/S2-T07-autenticacion-supabase`.
+Nunca llegaron a `main`, y por eso no aparecían aquí. El líder eligió la
+versión de hoy, que se sube con los nombres
+`feat/S2-T05-viewmodels-autenticacion`,
+`docs/S2-T06-contrato-api-autenticacion-v2` y
+`feat/S2-T07-autenticacion-supabase-v2`. Las razones:
+- parte del `main` actual, con `S2-T04`;
+- la sesión persiste;
+- está probada contra Supabase;
+- ya aplica `DEC-28` a `DEC-31`.
+
+**Las ramas de Ricardo no se borran.** Conviene revisar con él si algo se
+rescata, por ejemplo su prueba del repositorio o la llegada a P-18, que le
+sirve a `S2-T11`. Es la segunda vez que una tarea se hace dos veces, después
+de `S2-T04` (#10 y #11): una tarea tomada en una rama sin PR no se ve desde
+`main`.
+
+**2026-09-27 · Dos decisiones más: `DEC-30` y `DEC-31`.** `DEC-30` cierra
+`H-12`: `S2-T08` cifra la sesión que guarda `supabase-kt` y quita
+`Sesion.tokenAcceso`. `DEC-31` resuelve el riesgo de P-18: `S2-T12` trae
+`RepositorioUsuario` real, `S2-T11` pasa a depender de `S2-T12`, y AGENTS.md
+§6 pasa a seis tareas reales. De ahí salió un hallazgo nuevo, `H-13`:
+solicitudes, postulaciones y reseñas no tienen tarea real. Está al final de
+`CONTRATOS-API.md`.
+
+**2026-09-27 · Dos decisiones nuevas: `DEC-28` y `DEC-29`.** Las tomó el líder
+y las registró el agente por instrucción suya. `DEC-28` cierra `H-11`: el correo
+duplicado es `TipoError.CORREO_DUPLICADO`, y P-03 deja de pintar mensajes tal
+cual. `DEC-29` limita la elección de la siguiente tarea al sprint en curso y
+a los anteriores.
 
 **2026-09-16 · La base se volvió a levantar y a verificar.** `01` a `04` sin
 error, `90_verificacion.sql` **42 de 42** y `91_prueba_funcional.sql`

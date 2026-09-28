@@ -15,7 +15,10 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import mx.donchambitas.app.R
+import mx.donchambitas.app.datos.falso.FuenteDatosFalsa
+import mx.donchambitas.app.datos.falso.RepositorioAuthFalso
 import mx.donchambitas.app.dominio.modelo.RolUsuario
+import mx.donchambitas.app.ui.navegacion.Ruta
 import mx.donchambitas.app.ui.tema.DonChambitasTema
 import mx.donchambitas.app.util.TipoError
 import org.junit.Assert.assertEquals
@@ -26,10 +29,10 @@ import org.junit.runner.RunWith
 
 /**
  * Pruebas instrumentadas de la pantalla de registro (P-03).
- * Cubren lo que la pantalla decide por si misma: seleccion de rol, filtrado
- * del telefono, bloqueo durante la carga, pintado de los errores que le
- * llegan en el estado y cuando se valida (1.5). Cada regla se prueba sin
- * emulador en ValidacionesAuthTest; el alta contra el repositorio es de S2-T05.
+ * Cubren seleccion de rol, filtrado del telefono, bloqueo durante la carga,
+ * pintado de los errores que le llegan en el estado, cuando se valida (1.5) y
+ * el alta contra RepositorioAuthFalso. Las reglas se prueban sin emulador en
+ * ValidacionesAuthTest y la normalizacion en RegistroViewModelTest.
  */
 @RunWith(AndroidJUnit4::class)
 class RegistroPantallaTest {
@@ -49,13 +52,16 @@ class RegistroPantallaTest {
         hasText(texto(R.string.registro_accion)) and hasClickAction()
     )
 
-    private fun montarPantalla(alRegistrarConRol: (RolUsuario) -> Unit = {}) {
+    /** Sin retraso: la espera de 300 ms del repositorio falso no aporta nada aqui. */
+    private fun montarPantalla(alEntrar: (Ruta) -> Unit = {}) {
+        val repositorio = RepositorioAuthFalso(FuenteDatosFalsa()).apply { retrasoMs = 0 }
         composeTestRule.setContent {
             DonChambitasTema {
                 RegistroPantalla(
-                    alRegistrarConRol = alRegistrarConRol,
+                    alEntrar = alEntrar,
                     alRegresar = {},
-                    alIrAIniciarSesion = {}
+                    alIrAIniciarSesion = {},
+                    viewModel = RegistroViewModel(repositorio)
                 )
             }
         }
@@ -128,31 +134,51 @@ class RegistroPantallaTest {
 
     @Test
     fun debeReclamarElRolYNoEnviar_cuandoSeConfirmaSinElegirlo() {
-        var rolRecibido: RolUsuario? = null
-        montarPantalla(alRegistrarConRol = { rolRecibido = it })
+        var destino: Ruta? = null
+        montarPantalla(alEntrar = { destino = it })
 
         botonCrearCuenta().performClick()
 
         composeTestRule.onNodeWithText(texto(R.string.validacion_rol_sin_elegir)).assertIsDisplayed()
-        assertNull("Sin rol elegido no debe enviarse el registro", rolRecibido)
+        assertNull("Sin rol elegido no debe enviarse el registro", destino)
     }
 
     @Test
-    fun debeEntregarElRolElegido_cuandoSeConfirmaConRol() {
-        var rolRecibido: RolUsuario? = null
-        montarPantalla(alRegistrarConRol = { rolRecibido = it })
+    fun debeEntrarAInicioTrabajador_cuandoSeRegistraComoTrabajador() {
+        var destino: Ruta? = null
+        montarPantalla(alEntrar = { destino = it })
 
         composeTestRule.onNodeWithText(texto(R.string.registro_rol_trabajador)).performClick()
         llenarCamposValidos()
         botonCrearCuenta().performClick()
+        composeTestRule.waitForIdle()
 
-        assertEquals(RolUsuario.TRABAJADOR, rolRecibido)
+        assertEquals(Ruta.InicioTrabajador, destino)
+    }
+
+    @Test
+    fun debeMostrarElMensajeDelRepositorioSinReintentar_cuandoElCorreoYaExiste() {
+        var destino: Ruta? = null
+        montarPantalla(alEntrar = { destino = it })
+
+        composeTestRule.onNodeWithText(texto(R.string.registro_rol_cliente)).performClick()
+        escribir(R.string.registro_nombre, "Juan")
+        escribir(R.string.registro_apellidos, "Perez Hernandez")
+        escribir(R.string.auth_correo, "juan.perez@ejemplo.com")
+        escribir(R.string.auth_contrasena, "12345678")
+        escribir(R.string.registro_telefono, "2221234567")
+        botonCrearCuenta().performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithText(texto(R.string.error_correo_duplicado)).assertExists()
+        composeTestRule.onNodeWithText(texto(R.string.reintentar)).assertDoesNotExist()
+        assertNull(destino)
     }
 
     @Test
     fun debeMarcarLosCincoCamposYNoEnviar_cuandoSeEnviaConRolYTodoVacio() {
-        var rolRecibido: RolUsuario? = null
-        montarPantalla(alRegistrarConRol = { rolRecibido = it })
+        var destino: Ruta? = null
+        montarPantalla(alEntrar = { destino = it })
 
         composeTestRule.onNodeWithText(texto(R.string.registro_rol_cliente)).performClick()
         botonCrearCuenta().performClick()
@@ -165,13 +191,13 @@ class RegistroPantallaTest {
             R.string.validacion_telefono_vacio
         ).forEach { composeTestRule.onNodeWithText(texto(it)).assertExists() }
         composeTestRule.onNodeWithText(texto(R.string.registro_nombre)).assertIsFocused()
-        assertNull("Con errores no debe enviarse el registro", rolRecibido)
+        assertNull("Con errores no debe enviarse el registro", destino)
     }
 
     @Test
     fun debeNoEnviar_cuandoLaContrasenaTieneSieteCaracteres() {
-        var rolRecibido: RolUsuario? = null
-        montarPantalla(alRegistrarConRol = { rolRecibido = it })
+        var destino: Ruta? = null
+        montarPantalla(alEntrar = { destino = it })
 
         composeTestRule.onNodeWithText(texto(R.string.registro_rol_cliente)).performClick()
         escribir(R.string.registro_nombre, "Refugio")
@@ -183,7 +209,7 @@ class RegistroPantallaTest {
 
         composeTestRule.onNodeWithText(texto(R.string.validacion_contrasena_corta)).assertExists()
         composeTestRule.onNodeWithText(texto(R.string.auth_contrasena)).assertIsFocused()
-        assertNull("Con la contrasena corta no debe enviarse el registro", rolRecibido)
+        assertNull("Con la contrasena corta no debe enviarse el registro", destino)
     }
 
     @Test
@@ -258,16 +284,10 @@ class RegistroPantallaTest {
     }
 
     @Test
-    fun debeMostrarElMensajeDeLaBaseSinReintentar_cuandoElErrorEsDeValidacion() {
-        val mensajeDeLaBase = "El correo ya está registrado, inicia sesión"
-        montarContenido(
-            EstadoRegistro(
-                errorPantalla = TipoError.VALIDACION,
-                mensajePantalla = mensajeDeLaBase
-            )
-        )
+    fun debeMostrarElMensajeDeStringsSinReintentar_cuandoElCorreoYaExiste() {
+        montarContenido(EstadoRegistro(errorPantalla = TipoError.CORREO_DUPLICADO))
 
-        composeTestRule.onNodeWithText(mensajeDeLaBase).assertIsDisplayed()
+        composeTestRule.onNodeWithText(texto(R.string.error_correo_duplicado)).assertIsDisplayed()
         composeTestRule.onNodeWithText(texto(R.string.reintentar)).assertDoesNotExist()
     }
 

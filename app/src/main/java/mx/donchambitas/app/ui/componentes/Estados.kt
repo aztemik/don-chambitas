@@ -53,6 +53,7 @@ fun obtenerMensajeErrorRes(tipo: TipoError): Int = when (tipo) {
     TipoError.RED -> R.string.error_red
     TipoError.AUTENTICACION -> R.string.error_autenticacion
     TipoError.VALIDACION -> R.string.error_validacion
+    TipoError.CORREO_DUPLICADO -> R.string.error_correo_duplicado
     TipoError.LIMITE_IA -> R.string.error_limite_ia
     TipoError.SERVIDOR -> R.string.error_servidor
     TipoError.DESCONOCIDO -> R.string.error_desconocido
@@ -66,6 +67,7 @@ fun obtenerTituloErrorRes(tipo: TipoError): Int = when (tipo) {
     TipoError.RED -> R.string.error_titulo_red
     TipoError.AUTENTICACION -> R.string.error_titulo_autenticacion
     TipoError.VALIDACION -> R.string.error_titulo_validacion
+    TipoError.CORREO_DUPLICADO -> R.string.error_titulo_correo_duplicado
     TipoError.LIMITE_IA -> R.string.error_titulo_limite_ia
     TipoError.SERVIDOR -> R.string.error_titulo_servidor
     TipoError.DESCONOCIDO -> R.string.error_titulo_desconocido

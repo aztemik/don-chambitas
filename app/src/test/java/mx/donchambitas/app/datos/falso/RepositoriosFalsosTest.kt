@@ -60,8 +60,10 @@ class RepositoriosFalsosTest {
             rol = RolUsuario.CLIENTE
         )
         assertTrue(resReg is Resultado.Exito)
-        val usuario = (resReg as Resultado.Exito).dato
-        assertEquals("nuevo@prueba.com", usuario.correo)
+        val sesion = (resReg as Resultado.Exito).dato
+        assertEquals("nuevo@prueba.com", sesion.usuario.correo)
+        // DEC-25: el registro deja la sesion abierta
+        assertEquals(sesion, repoAuth.sesionActual().first())
 
         // Comprobar inicio de sesion con credenciales correctas
         val resLogin = repoAuth.iniciarSesion("nuevo@prueba.com", "secret123")

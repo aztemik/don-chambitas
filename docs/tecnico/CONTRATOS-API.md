@@ -39,35 +39,289 @@ Todos los métodos son `suspend` y devuelven `Resultado<T>`.
 
 ## Autenticación · `RepositorioAuth`
 
-| Operación | Con qué |
+Contrato de detalle escrito en `S2-T06`. Lo implementa `S2-T07` en
+`RepositorioAuthReal`. Todo lo de esta sección está verificado contra el
+código fuente de **`supabase-kt` 3.0.3**, que es la versión de
+`gradle/libs.versions.toml`. Si esa versión cambia, esta sección se revisa.
+
+### Resumen
+
+| Operación | Devuelve | Con qué |
+|---|---|---|
+| `registrar(correo, contrasena, nombre, apellidos, telefono, rol)` | `Resultado<Sesion>` | `auth.signUpWith(Email)`, con nombre, apellidos, teléfono y rol en `data`; después, la ficha de `public.usuarios` |
+| `iniciarSesion(correo, contrasena)` | `Resultado<Sesion>` | `auth.signInWith(Email)`; después, la ficha de `public.usuarios` |
+| `recuperarContrasena(correo)` | `Resultado<Unit>` | `auth.resetPasswordForEmail(correo, redirectUrl = ENLACE_AUTH)` |
+| `cambiarContrasena(nueva)` | `Resultado<Unit>` | `auth.updateUser { password = nueva }` |
+| `cerrarSesion()` | `Resultado<Unit>` | `auth.signOut()` |
+| `sesionActual()` | `Flow<Sesion?>` | `auth.sessionStatus`, más la ficha de `public.usuarios` |
+
+**Lo que el repositorio recibe ya normalizado.** El correo llega con `trim()`
+y en minúsculas, y el nombre y los apellidos con `trim()`. El teléfono llega
+solo con dígitos. Lo hace el ViewModel al enviar (sección 1.6 de
+`DISENO-AUTENTICACION.md`), y el repositorio **no** lo repite. La contraseña
+llega tal cual.
+
+### Cómo se arma la `Sesion`
+
+Supabase Auth solo sabe de credenciales. El nombre, el rol y lo demás viven
+en `public.usuarios`, así que la `Sesion` se arma en dos pasos:
+
+1. La operación de Auth deja la sesión abierta en `supabase-kt`.
+2. Se lee la ficha propia:
+   `from("usuarios").select { filter { eq("id", <id del usuario de Auth>) } }.decodeSingle<UsuarioDto>()`.
+   La deja pasar la política RLS "usuario ve su propia ficha" (`id = auth.uid()`,
+   `basedatos/02_politicas_rls.sql`).
+
+`UsuarioDto` vive en `datos/remoto/dto/` y trae las columnas de
+`public.usuarios` con su nombre exacto:
+
+| Columna | Tipo en la base | Campo de `Usuario` |
+|---|---|---|
+| `id` | `uuid` | `id` |
+| `correo` | `varchar(160)` | `correo` |
+| `nombre` | `varchar(80)` | `nombre` |
+| `apellidos` | `varchar(120)` | `apellidos` |
+| `telefono` | `varchar(20)`, nulo | `telefono` |
+| `rol` | `rol_usuario` | `rol`, con `RolUsuario.desdeValor` |
+| `foto_url` | `text`, nulo | `fotoUrl` |
+| `activo` | `boolean` | `activo` |
+| `creado_en` | `timestamptz` | `creadoEn` |
+| `actualizado_en` | `timestamptz` | `actualizadoEn` |
+
+`Sesion.tokenAcceso` se llena con `UserSession.accessToken` y **no se guarda
+en ningún lado**: el token, su refresco y su persistencia los lleva
+`supabase-kt` (ver "Lo que esto no cubre").
+
+Si el paso 2 falla, la operación devuelve el error del paso 2 según la tabla
+de errores, aunque el paso 1 haya salido bien. Ver la nota de `registrar`.
+
+### `registrar`
+
+```kotlin
+auth.signUpWith(Email, redirectUrl = null) {
+    email = correo
+    password = contrasena
+    data = buildJsonObject {
+        put("nombre", nombre)
+        put("apellidos", apellidos)
+        put("telefono", telefono)
+        put("rol", rol.valor)
+    }
+}
+```
+
+**Las llaves de `data` son exactamente las que lee
+`fn_crear_usuario_desde_auth`** en `basedatos/01_esquema.sql`, la función que
+dispara `tg_auth_usuario_creado`:
+
+| Llave | Línea del esquema | Si no llega o llega vacía |
+|---|---|---|
+| `nombre` | 172 | `'Sin nombre'` |
+| `apellidos` | 173 | `'Sin apellidos'` |
+| `telefono` | 174 | `null` |
+| `rol` | 175, con `::rol_usuario` | `'cliente'` |
+
+`rol` viaja como `RolUsuario.valor`, es decir `"cliente"` o `"trabajador"`.
+Una llave mal escrita **no falla**: el trigger pone el valor por omisión sin
+avisar, y la cuenta queda con otro nombre o con otro rol. Por eso esta tabla
+se respeta letra por letra.
+
+`redirectUrl = null` porque con la confirmación por correo desactivada
+(`DEC-25`) el registro no manda correo, y no hay enlace que redirigir.
+
+**Por qué `registrar` devuelve `Sesion`.** Con la confirmación desactivada,
+`signUpWith(Email)` devuelve `null` y deja la sesión abierta. Así lo
+documenta `Auth.signUpWith` en 3.0.3: *"null if auto-confirm is enabled
+(resulting in a login)"*. `DEC-25` usa justo eso.
+
+**Si el alta sale bien pero la lectura de la ficha falla**, por ejemplo porque
+se fue la red entre una llamada y otra:
+- `registrar` devuelve el error de la lectura, casi siempre `RED`;
+- **la cuenta ya existe y la sesión quedó abierta**, así que "Reintentar" en
+  P-03 va a devolver correo duplicado;
+- la salida para el usuario es iniciar sesión en P-02.
+
+Es un caso raro, y resolverlo bien exigiría un alta atómica que Supabase Auth
+no ofrece. Queda documentado para que nadie lo tome por un defecto de `S2-T07`.
+
+### `iniciarSesion`
+
+```kotlin
+auth.signInWith(Email) {
+    email = correo
+    password = contrasena
+}
+```
+
+Después, la ficha, como en "Cómo se arma la `Sesion`".
+
+### `recuperarContrasena` y el enlace de la aplicación
+
+```kotlin
+auth.resetPasswordForEmail(correo, redirectUrl = ENLACE_AUTH)
+```
+
+**El enlace de la aplicación es `mx.donchambitas.app://auth`.** Es el único
+lugar donde está escrito; el código lo toma de una sola constante.
+
+| Pieza | Valor |
 |---|---|
-| `registrar(correo, contrasena, nombre, apellidos, telefono, rol)` | `auth.signUpWith(Email)`, con nombre, apellidos, teléfono y rol en `options.data` |
-| `iniciarSesion(correo, contrasena)` | `auth.signInWith(Email)` |
-| `recuperarContrasena(correo)` | `auth.resetPasswordForEmail(correo, redirectTo = <esquema de la app>)` |
-| `cambiarContrasena(nueva)` | `auth.updateUser { password = nueva }` |
-| `cerrarSesion()` | `auth.signOut()` |
-| `sesionActual(): Flow<Sesion?>` | `auth.sessionStatus` |
+| Esquema (`AuthConfig.scheme`) | `mx.donchambitas.app` |
+| Host (`AuthConfig.host`) | `auth` |
+| `ENLACE_AUTH`, igual a `AuthConfig.deepLink` | `mx.donchambitas.app://auth` |
+| Flujo (`AuthConfig.flowType`) | `FlowType.IMPLICIT`, el valor por omisión de 3.0.3 |
 
-La fila de `public.usuarios` **no se inserta desde la aplicación**: la crea el
-trigger `tg_auth_usuario_creado` leyendo el metadata del registro. Si el
-registro no manda `rol` en `options.data`, el usuario queda como `cliente`.
+- **Por qué un esquema propio y no un App Link `https://`.** Un App Link exige
+  publicar `/.well-known/assetlinks.json` en un dominio web, y `DEC-02`
+  descarta la web.
+- **Por qué el nombre del paquete como esquema.** Un esquema propio lo puede
+  reclamar cualquier otra aplicación instalada. Con el nombre del paquete, un
+  choque es mucho menos probable que con `donchambitas://`.
+- **Por qué el host es `auth` y no `recuperar`.** `supabase-kt` 3.0.3 guarda
+  **un** esquema y **un** host para todos sus flujos, así que el host nombra
+  la entrada, no el caso. La recuperación se distingue de otra forma, ver el
+  paso 4 abajo.
+- **Por qué `IMPLICIT` y no `PKCE`.** Con `IMPLICIT` el enlace trae los tokens
+  y `type=recovery` en el fragmento, y `parseSessionFromFragment` conserva ese
+  `type` en `UserSession.type`. Con `PKCE` llega un `code` que se canjea con
+  `exchangeCodeForSession`, y el `type` se pierde. Sin `type` la aplicación no
+  sabe que tiene que llevar al usuario a P-18.
 
-`recuperarContrasena` **siempre reporta éxito**, exista o no el correo. Decir
-cuáles correos están registrados es una fuga de información.
+**El recorrido completo (`DEC-27`):**
 
-**El `redirectTo` no es opcional.** Supabase no hospeda ningún formulario de
-contraseña nueva: el enlace del correo va a la URL que se le pase y la pantalla
-la pone la aplicación. Por `DEC-27` esa URL es un *deep link* al propio APK que
-aterriza en **P-18**, no una página web —`DEC-02` descartó la versión web—.
-`S2-T06` fija el esquema exacto; `S2-T07` agrega el `intent-filter`, canjea el
-token por sesión y da de alta el esquema en la lista de URLs permitidas de la
-consola de Supabase. Si el esquema no está en esa lista, Supabase no redirige.
+| # | Qué pasa | Quién lo hace |
+|---|---|---|
+| 1 | `recuperarContrasena` pide el correo con `redirectUrl = ENLACE_AUTH` | `S2-T07` |
+| 2 | Supabase manda el correo. El enlace pasa por su servidor y redirige a `mx.donchambitas.app://auth#access_token=…&refresh_token=…&type=recovery…` | Supabase |
+| 3 | Un `intent-filter` de `MainActivity` con ese esquema y ese host abre la aplicación | `S2-T07` |
+| 4 | `MainActivity` revisa el enlace con `esEnlaceConSesion` y llama a `importarSesionDeEnlace` (`datos/remoto/supabase/EnlaceAuth.kt`). Hace lo mismo que `handleDeeplinks`: `parseSessionFromFragment`, `retrieveUser` e `importSession`, pero dentro de un `try`. La sesión queda importada, y `UserSession.type` trae `"recovery"` | `S2-T07` |
+| 5 | Con esa marca, la aplicación aterriza en P-18, directo en la sección de contraseña | `S2-T11` |
+| 6 | P-18 llama a `cambiarContrasena(nueva)` | `S2-T11` |
 
-`cambiarContrasena(nueva)` **no recibe la contraseña anterior**, y eso es lo que
-permite reutilizar P-18 para la recuperación: quien llega por el enlace no puede
-dar la que olvidó.
+**El enlace vencido o ya usado.** En ese caso Supabase redirige con
+`#error=…&error_code=…` en vez de tokens. `parseSessionFromFragment` lanza
+`IllegalArgumentException` ("No access token found") cuando no hay
+`access_token`, y `handleDeeplinks` no lo atrapa. Además, `handleDeeplinks`
+lee el usuario en un scope propio de la biblioteca **sin manejador de
+errores**, así que abrir el enlace sin red también cerraba la aplicación. Por
+las dos razones, `S2-T07` no usa `handleDeeplinks`. `esEnlaceConSesion`
+descarta el enlace sin tokens, con `error=` o con partes sin `=`, e
+`importarSesionDeEnlace` hace la importación dentro de un `try`.
 
-La sesión y su refresco los lleva `supabase-kt`. No se guarda el token a mano.
+Con un enlace vencido, la aplicación abre normal, sin sesión, en P-02.
+Verificado en emulador, en frío y con la aplicación abierta. Si además hay
+que avisarle algo al usuario, lo decide `S2-T11`.
+
+**`recuperarContrasena` siempre reporta éxito cuando la petición llega al
+servidor,** exista o no el correo. Decir cuáles correos están registrados es
+una fuga de información. Eso incluye los rechazos por límite de envío
+(`over_email_send_rate_limit`, `over_request_rate_limit`):
+- desde el cliente no se sabe si el límite es del proyecto o de ese correo;
+- uno por correo solo puede saltar si la cuenta existe;
+- responder distinto delataría la cuenta.
+
+**No** incluye la falta de red. Si la petición no salió, es `RED` y P-04 lo
+dice (sección 4.4 de `DISENO-AUTENTICACION.md`).
+
+### `cambiarContrasena`
+
+```kotlin
+auth.updateUser { password = nueva }
+```
+
+Recibe **solo** la contraseña nueva, nunca la anterior. Eso es lo que permite
+reusar P-18 para la recuperación (`DEC-27`): quien llega por el enlace no
+puede dar la que olvidó.
+
+### `cerrarSesion`
+
+```kotlin
+auth.signOut()
+```
+
+Con el alcance por omisión de 3.0.3, `SignOutScope.LOCAL`: cierra la sesión de
+este dispositivo, no las de otros.
+
+**Sin red, la sesión no se cierra.** En 3.0.3, `signOut` solo sigue adelante
+si el servidor rechaza el cierre porque la sesión ya no valía (la sesión
+vencida o la cuenta borrada). Si la petición no sale, lanza la excepción y
+**no** borra la sesión local. `cerrarSesion` devuelve `RED`, y la sesión sigue
+abierta hasta que el usuario lo intente con red.
+
+### `sesionActual()`
+
+Se deriva de `auth.sessionStatus`:
+
+| `SessionStatus` en 3.0.3 | Qué emite `sesionActual()` |
+|---|---|
+| `Initializing` | **Nada.** Todavía no se sabe si hay sesión: emitir `null` mandaría a P-02 a alguien que sí la tiene |
+| `Authenticated(session, source)` | `Sesion` con la ficha de `public.usuarios`. La ficha se lee una vez por usuario, no en cada refresco del token (`source = Refresh`) |
+| `NotAuthenticated(isSignOut)` | `null` |
+| `RefreshFailure(cause)` | **Lo último que emitió**, sin cambios |
+
+- **Por qué `RefreshFailure` no emite `null`.** En 3.0.3 ese estado solo se
+  usa para fallas pasajeras, de red o `5xx`, y `supabase-kt` reintenta solo.
+  Cuando el token de refresco ya no sirve (`4xx`), la biblioteca borra la
+  sesión y pasa a `NotAuthenticated`. Ese sí emite `null`.
+- **Si la lectura de la ficha falla en `Authenticated`,** no se emite nada, y
+  se reintenta con el siguiente cambio de estado. Un tropiezo de red no es un
+  cierre de sesión. Qué muestra P-01 mientras tanto lo decide `S2-T09`.
+
+### Errores de autenticación
+
+Se traducen en `datos/`, con la regla general de "Errores" más abajo. Los
+códigos son los de `AuthErrorCode` en 3.0.3 y llegan en
+`AuthRestException.errorCode`.
+
+| Qué llega | Operaciones | `TipoError` |
+|---|---|---|
+| `HttpRequestException` o `HttpRequestTimeoutException` (sin red, tiempo agotado) | todas | `RED` |
+| `invalid_credentials` | `iniciarSesion` | `AUTENTICACION` |
+| `email_not_confirmed` | `iniciarSesion` | `AUTENTICACION`. No debería llegar con la confirmación desactivada |
+| `user_banned` | `iniciarSesion` | `AUTENTICACION` |
+| `session_not_found`, `session_expired`, `refresh_token_not_found`, `bad_jwt` | `cambiarContrasena` | `AUTENTICACION` |
+| `user_already_exists`, `email_exists` | `registrar` | `CORREO_DUPLICADO` (`H-11`). La pantalla pinta `error_correo_duplicado` |
+| `weak_password` (`AuthWeakPasswordException`) | `registrar`, `cambiarContrasena` | `VALIDACION`. Con el mínimo en 8 en el servidor y en la interfaz no debería llegar. Se pinta el mensaje genérico de `VALIDACION` |
+| `same_password` | `cambiarContrasena` | `VALIDACION`. Qué mensaje pinta P-18 lo decide `S2-T11` |
+| `validation_failed`, `email_address_invalid` | `registrar`, `iniciarSesion` | `VALIDACION`. La interfaz ya validó con la misma expresión que el esquema, así que no debería llegar |
+| `over_request_rate_limit` | `registrar`, `iniciarSesion`, `cambiarContrasena` | `SERVIDOR` |
+| `over_email_send_rate_limit`, `over_request_rate_limit` | `recuperarContrasena` | **Éxito**, ver arriba |
+| `signup_disabled`, `email_provider_disabled` | `registrar`, `iniciarSesion` | `SERVIDOR`. Es configuración nuestra, no del usuario |
+| `unexpected_failure` o `5xx` | todas | `SERVIDOR`. Si el trigger `tg_auth_usuario_creado` falla en un alta, lo esperado es que Auth lo reporte así, como error de base de datos, y **no** con el mensaje del trigger. `S2-T07` lo confirma con una prueba contra el proyecto |
+| La ficha de `public.usuarios` no llega (`RestException` al leerla) | `registrar`, `iniciarSesion` | `SERVIDOR`. Es un defecto nuestro: la crea el trigger en la misma transacción que la credencial |
+| Cualquier otra cosa | todas | `DESCONOCIDO` |
+
+**Confirmado contra el proyecto el 2026-09-27 (`S2-T07`):**
+- `invalid_credentials` da "Correo o contraseña incorrectos";
+- con la confirmación desactivada, un correo repetido da `user_already_exists`,
+  que se traduce a `CORREO_DUPLICADO`;
+- el alta con el dominio ficticio `@prueba.donchambitas.mx` pasa.
+
+**No se confirmó** cómo reporta Auth la falla del trigger en un alta: no hay
+forma de provocarla desde la aplicación sin romper el esquema.
+
+`email_address_invalid` es un código que el servidor de Auth devuelve pero
+que no está en `AuthErrorCode` de 3.0.3: se compara contra el texto crudo del
+error.
+
+**Los mensajes en inglés de Supabase Auth nunca llegan a la pantalla.** Todas
+las pantallas de autenticación pintan el mensaje de `strings.xml` que le toca
+a su `TipoError` (sección 6 de `DISENO-AUTENTICACION.md`). El `mensaje` del
+`Resultado.Error` es para el log, no para el usuario.
+
+### Configuración del proyecto de Supabase que este contrato supone
+
+La aplica `S2-T07` en la consola y la repite `S6-T05` en producción.
+Ninguna se configura desde la aplicación.
+
+Los nombres de los menús de la consola cambian con el tiempo. Lo que manda es
+el ajuste, no la ruta.
+
+| Ajuste de Authentication | Valor | Por qué |
+|---|---|---|
+| Confirmación por correo del proveedor Email | **Desactivada** | `DEC-25`. Con la confirmación activa, `signUpWith` no abre sesión |
+| Largo mínimo de contraseña | **8** | El de la tabla 5.2. Así la base no acepta lo que la interfaz rechaza, ni al revés |
+| URLs de redirección permitidas | **`mx.donchambitas.app://auth`** | Si no está en la lista, Supabase no redirige a la aplicación |
 
 ## Usuario · `RepositorioUsuario`
 
@@ -272,7 +526,8 @@ Supabase y devuelve `Resultado.Error(tipo, mensaje)`.
 | 401, sesión vencida, credenciales malas | `AUTENTICACION` | "Correo o contraseña incorrectos" |
 | 403, RLS rechaza la fila | `AUTENTICACION` | "No tienes permiso para hacer eso" |
 | Violación de CHECK o de trigger | `VALIDACION` | El mensaje del trigger, ya está escrito en español |
-| 409, correo o llave duplicada | `VALIDACION` | "El correo ya está registrado, inicia sesión" |
+| Correo ya registrado en el alta de Supabase Auth | `CORREO_DUPLICADO` | "El correo ya está registrado, inicia sesión" (`H-11`) |
+| 409, otra llave duplicada | `VALIDACION` | El mensaje del trigger, ya está escrito en español |
 | 429 de la Edge Function | `LIMITE_IA` | "Alcanzaste el límite de hoy" |
 | 5xx, 503 de la Edge Function | `SERVIDOR` | "Algo falló de nuestro lado, intenta más tarde" |
 | Cualquier otra cosa | `DESCONOCIDO` | "Algo salió mal, intenta de nuevo" |
@@ -290,9 +545,91 @@ Y todos viven en `strings.xml`.
 
 Las traducciones concretas de arriba son **el contrato**, no la
 implementación. Cada tarea de contrato detalla su módulo con los nombres de
-columna exactos y los DTO: S2-T06 autenticación, S2-T12 perfil de usuario,
+columna exactos y los DTO: S2-T06 autenticación (ya escrito, arriba), S2-T12 perfil de usuario,
 S3-T08 trabajador y servicios, S3-T12 la Edge Function de IA, S4-T08 solicitudes
 y búsqueda, S5-T06 mensajería y postulaciones.
 
 Mientras esas tareas no lleguen, la implementación activa de todos estos
 repositorios es la falsa, en memoria. Ver `AGENTS.md` §6.
+
+---
+
+## Hallazgos para el líder
+
+Salen de escribir el contrato de detalle de autenticación en `S2-T06`.
+**Ninguno se resolvió aquí**, conforme a AGENTS.md §9.
+
+**`H-11` · CERRADO el 2026-09-27 por `DEC-28`: opción 1, un `TipoError` nuevo
+para el correo duplicado.** La aplicó `S2-T07`:
+- agrega `TipoError.CORREO_DUPLICADO` y su mensaje en `strings.xml`;
+- actualiza la tabla de errores de arriba;
+- P-03 deja de pintar el `mensaje` tal cual, porque en el registro nunca llega
+  en español.
+
+El hallazgo, como se reportó:
+
+**`H-11` · Los errores de `VALIDACION` de P-03 no tienen de dónde sacar su
+mensaje en español.**
+- La sección 3.5 de `DISENO-AUTENTICACION.md` dice que, en `VALIDACION`, P-03
+  pinta el mensaje **tal cual llega**, porque viene en español desde un
+  trigger.
+- Esa premisa no se cumple en el registro. El correo duplicado
+  (`user_already_exists`) lo rechaza Supabase Auth antes de que exista la
+  fila, y en inglés ("User already registered"). Si el trigger llegara a
+  fallar, Auth tampoco pasa su mensaje: lo esperado es un error de base de
+  datos genérico.
+- La tabla "Errores" de este documento quiere el texto en español y en
+  `strings.xml`, pero `datos/` no puede leer `strings.xml`: no conoce `R`.
+
+Lo mismo les pasa a `weak_password` y a `same_password`, que P-18 va a
+necesitar. **El caso que hoy se ve es el correo duplicado:** HU-01 lo pide, y
+P-03 tiene el acceso directo a P-02 justo para ese caso.
+
+Las salidas que se ven, las tres del líder:
+
+1. **Un tipo de error nuevo, por ejemplo `TipoError.CORREO_DUPLICADO`.** La
+   pantalla lo traduce con `strings.xml`, como ya hace con los demás tipos, y
+   el `when` exhaustivo obliga a cada pantalla a decidir qué hace con él. Toca
+   `TipoError`, `Estados.kt` y la tabla 3.5.
+2. **Un código estable en `mensaje`**, por ejemplo `"correo_duplicado"`, que
+   P-03 traduce, y el texto genérico de `VALIDACION` para lo que no conozca.
+   No toca `TipoError`, pero `mensaje` deja de ser texto para el usuario
+   solo en este caso.
+3. **Aceptar texto en español dentro de `datos/`.** Es lo que ya hace
+   `RepositorioAuthFalso`, y no cambia nada más. Es una excepción escrita a
+   la regla de `CONVENCIONES.md` de no tener cadenas de interfaz fuera de
+   `strings.xml`.
+
+**Recomendación: la 1.** Es la única en la que el compilador avisa si una
+pantalla se olvida del caso. Mientras no se decida, `RepositorioAuthFalso`
+sigue devolviendo `VALIDACION` con el texto en español, que es lo que P-03
+pinta hoy. **`S2-T07` no puede cerrar el alta real sin esta decisión.**
+
+**`H-12` · CERRADO el 2026-09-27 por `DEC-30`:** `S2-T08` cifra la sesión que
+guarda `supabase-kt` y quita `tokenAcceso`. El hallazgo, como se reportó:
+
+**`H-12` · `Sesion.tokenAcceso` probablemente sobra.** El contrato dice que el
+token, su refresco y su persistencia los lleva `supabase-kt`, y que no se
+guarda a mano. Ninguna pantalla ni ViewModel lo lee. Con eso el campo no
+tiene quien lo use, y un token en un modelo de dominio invita a que alguien
+lo guarde o lo registre en un log. Quitarlo toca el modelo `Sesion`, así que
+no se hizo aquí. Sugerencia: que lo retire `S2-T07` o `S2-T08`, si el líder
+está de acuerdo.
+
+**`H-13` · Tres repositorios no tienen tarea de implementación real.** Salió
+al resolver el riesgo de P-18 que dejó `S2-T07`, y que cerró `DEC-31`. Las
+seis tareas reales de AGENTS.md §6 cubren:
+- autenticación (`S2-T07`) y usuario (`S2-T12`);
+- imágenes (`S2-T14`);
+- trabajador y servicios (`S3-T09`);
+- búsqueda y catálogos (`S4-T09`);
+- mensajería (`S5-T07`).
+
+La IA la cubre `S4-T10`. **`RepositorioSolicitudes`, `RepositorioPostulaciones`
+y `RepositorioResenas` no aparecen en ninguna**, y dependen de ellos P-08
+Publicar solicitud, P-09 Mis solicitudes, P-14 Mis postulaciones, P-17 Dejar
+reseña y P-19 Detalle de solicitud. Los tres leen la sesión de `FuenteDatosFalsa`,
+así que con la autenticación real fallan igual que fallaba `RepositorioUsuario`.
+No urge hasta los sprints 4 y 5, pero hay que asignarlos antes de redactar
+esos tickets. **Lo decide el líder.**
+

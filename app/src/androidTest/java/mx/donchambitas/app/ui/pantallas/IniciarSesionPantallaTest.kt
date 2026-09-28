@@ -14,6 +14,9 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import mx.donchambitas.app.R
+import mx.donchambitas.app.datos.falso.FuenteDatosFalsa
+import mx.donchambitas.app.datos.falso.RepositorioAuthFalso
+import mx.donchambitas.app.ui.navegacion.Ruta
 import mx.donchambitas.app.ui.tema.DonChambitasTema
 import mx.donchambitas.app.util.TipoError
 import org.junit.Assert.assertEquals
@@ -25,11 +28,10 @@ import org.junit.runner.RunWith
 
 /**
  * Pruebas instrumentadas de la pantalla de inicio de sesion (P-02).
- * Cubren lo que la pantalla decide por si misma: anatomia, normalizacion del
- * correo al enviar, navegacion a P-03 y P-04, bloqueo durante la carga,
- * pintado de los errores que le llegan en el estado y cuando se valida (1.5).
- * Cada regla se prueba sin emulador en ValidacionesAuthTest; la llamada a
- * RepositorioAuth es de S2-T05.
+ * Cubren anatomia, navegacion a P-03 y P-04, bloqueo durante la carga,
+ * pintado de los errores que le llegan en el estado, cuando se valida (1.5) y
+ * la entrada contra RepositorioAuthFalso. Las reglas se prueban sin emulador
+ * en ValidacionesAuthTest y la normalizacion en IniciarSesionViewModelTest.
  */
 @RunWith(AndroidJUnit4::class)
 class IniciarSesionPantallaTest {
@@ -49,20 +51,30 @@ class IniciarSesionPantallaTest {
         hasText(texto(R.string.iniciar_sesion_accion)) and hasClickAction()
     )
 
+    /** Sin retraso: la espera de 300 ms del repositorio falso no aporta nada aqui. */
     private fun montarPantalla(
-        alIniciarSesion: (String) -> Unit = {},
+        alEntrar: (Ruta) -> Unit = {},
         alIrARegistro: () -> Unit = {},
         alIrARecuperarContrasena: () -> Unit = {}
     ) {
+        val repositorio = RepositorioAuthFalso(FuenteDatosFalsa()).apply { retrasoMs = 0 }
         composeTestRule.setContent {
             DonChambitasTema {
                 IniciarSesionPantalla(
-                    alIniciarSesion = alIniciarSesion,
+                    alEntrar = alEntrar,
                     alIrARegistro = alIrARegistro,
-                    alIrARecuperarContrasena = alIrARecuperarContrasena
+                    alIrARecuperarContrasena = alIrARecuperarContrasena,
+                    viewModel = IniciarSesionViewModel(repositorio)
                 )
             }
         }
+    }
+
+    private fun iniciarSesionCon(correo: String, contrasena: String) {
+        composeTestRule.onNodeWithText(texto(R.string.auth_correo)).performTextInput(correo)
+        composeTestRule.onNodeWithText(texto(R.string.auth_contrasena)).performTextInput(contrasena)
+        botonIniciarSesion().performClick()
+        composeTestRule.waitForIdle()
     }
 
     private fun montarContenido(
@@ -111,43 +123,59 @@ class IniciarSesionPantallaTest {
     }
 
     @Test
-    fun debeEntregarElCorreoEnMinusculasYSinEspacios_cuandoSeEnvia() {
-        var correoRecibido: String? = null
-        montarPantalla(alIniciarSesion = { correoRecibido = it })
+    fun debeEntrarAInicioCliente_cuandoLaCuentaSembradaEsDeCliente() {
+        var destino: Ruta? = null
+        montarPantalla(alEntrar = { destino = it })
 
-        composeTestRule.onNodeWithText(texto(R.string.auth_correo))
-            .performTextInput("  Refugio@Ejemplo.MX  ")
-        composeTestRule.onNodeWithText(texto(R.string.auth_contrasena))
-            .performTextInput("secreta")
-        botonIniciarSesion().performClick()
+        iniciarSesionCon("  Juan.Perez@Ejemplo.com ", "secreta")
 
-        assertEquals("refugio@ejemplo.mx", correoRecibido)
+        assertEquals(Ruta.InicioCliente, destino)
+    }
+
+    @Test
+    fun debeEntrarAInicioTrabajador_cuandoLaCuentaSembradaEsDeTrabajador() {
+        var destino: Ruta? = null
+        montarPantalla(alEntrar = { destino = it })
+
+        iniciarSesionCon("pedro.plomero@ejemplo.com", "secreta")
+
+        assertEquals(Ruta.InicioTrabajador, destino)
+    }
+
+    @Test
+    fun debeDecirCorreoOContrasenaYConservarLoEscrito_cuandoLaCuentaNoExiste() {
+        var destino: Ruta? = null
+        montarPantalla(alEntrar = { destino = it })
+
+        iniciarSesionCon("nadie@ejemplo.mx", "secreta")
+
+        composeTestRule.onNodeWithText(texto(R.string.error_credenciales_invalidas)).assertIsDisplayed()
+        composeTestRule.onNodeWithText("nadie@ejemplo.mx", substring = true).assertIsDisplayed()
+        assertNull(destino)
     }
 
     @Test
     fun debeMarcarLosDosCamposYNoEnviar_cuandoSeEnviaVacio() {
-        var correoRecibido: String? = null
-        montarPantalla(alIniciarSesion = { correoRecibido = it })
+        var destino: Ruta? = null
+        montarPantalla(alEntrar = { destino = it })
 
         botonIniciarSesion().performClick()
 
         composeTestRule.onNodeWithText(texto(R.string.validacion_correo_vacio)).assertIsDisplayed()
         composeTestRule.onNodeWithText(texto(R.string.validacion_contrasena_vacia)).assertIsDisplayed()
         composeTestRule.onNodeWithText(texto(R.string.auth_correo)).assertIsFocused()
-        assertNull("Con errores no debe enviarse", correoRecibido)
+        assertNull("Con errores no debe entrar", destino)
     }
 
     /** En P-02 la contrasena solo se exige no vacia (5.2): el minimo de 8 es del registro. */
     @Test
     fun debeEnviar_cuandoLaContrasenaTieneUnSoloCaracter() {
-        var correoRecibido: String? = null
-        montarPantalla(alIniciarSesion = { correoRecibido = it })
+        var destino: Ruta? = null
+        montarPantalla(alEntrar = { destino = it })
 
-        composeTestRule.onNodeWithText(texto(R.string.auth_correo)).performTextInput("a@b.mx")
-        composeTestRule.onNodeWithText(texto(R.string.auth_contrasena)).performTextInput("1")
-        botonIniciarSesion().performClick()
+        iniciarSesionCon("juan.perez@ejemplo.com", "1")
 
-        assertEquals("a@b.mx", correoRecibido)
+        assertEquals(Ruta.InicioCliente, destino)
     }
 
     @Test
