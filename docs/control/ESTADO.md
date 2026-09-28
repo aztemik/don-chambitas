@@ -477,6 +477,26 @@ no queda ninguno abierto.**
 
 ## Decisiones recientes
 
+**2026-09-27 · Se integra la versión de `S2-T05` a `S2-T07` hecha hoy, no la de
+Ricardo5690.** Ricardo5690 implementó las mismas tres tareas entre el 23 y el
+24 de septiembre, en `feat/S2-T05-viewmodels-estados-ui-autenticacion`,
+`docs/S2-T06-contrato-api-autenticacion` y `feat/S2-T07-autenticacion-supabase`.
+Nunca llegaron a `main`, y por eso no aparecían aquí. El líder eligió la
+versión de hoy, que se sube con los nombres
+`feat/S2-T05-viewmodels-autenticacion`,
+`docs/S2-T06-contrato-api-autenticacion-v2` y
+`feat/S2-T07-autenticacion-supabase-v2`. Las razones:
+- parte del `main` actual, con `S2-T04`;
+- la sesión persiste;
+- está probada contra Supabase;
+- ya aplica `DEC-28` a `DEC-31`.
+
+**Las ramas de Ricardo no se borran.** Conviene revisar con él si algo se
+rescata, por ejemplo su prueba del repositorio o la llegada a P-18, que le
+sirve a `S2-T11`. Es la segunda vez que una tarea se hace dos veces, después
+de `S2-T04` (#10 y #11): una tarea tomada en una rama sin PR no se ve desde
+`main`.
+
 **2026-09-27 · Dos decisiones más: `DEC-30` y `DEC-31`.** `DEC-30` cierra
 `H-12`: `S2-T08` cifra la sesión que guarda `supabase-kt` y quita
 `Sesion.tokenAcceso`. `DEC-31` resuelve el riesgo de P-18: `S2-T12` trae
