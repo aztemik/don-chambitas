@@ -22,12 +22,12 @@ adelantarse, sin saltarse. El detalle, en `AGENTS.md` §3.
 | Sprint | Tareas | Pendientes | Bloqueadas | Opcionales | Hechas |
 |---|---|---|---|---|---|
 | 1 | 16 | 0 | 0 | 0 | 16 |
-| 2 | 16 | 10 | 0 | 0 | 6 |
+| 2 | 16 | 9 | 0 | 0 | 7 |
 | 3 | 15 | 15 | 0 | 0 | 0 |
 | 4 | 15 | 13 | 0 | 2 | 0 |
 | 5 | 12 | 12 | 0 | 0 | 0 |
 | 6 | 12 | 12 | 0 | 0 | 0 |
-| **Total** | **86** | **62** | **0** | **2** | **22** |
+| **Total** | **86** | **61** | **0** | **2** | **23** |
 
 > **No queda ninguna tarea bloqueada, ni ningún pendiente abierto.** PEND-01 se
 > resolvió el 2026-09-14 a favor de Supabase (`DEC-16`) y PEND-02 el 2026-09-22
@@ -70,7 +70,7 @@ adelantarse, sin saltarse. El detalle, en `AGENTS.md` §3.
 | `S2-T04` | 900 | Validaciones de formularios y mensajes de error | GRI | hecha | S2-T02, S2-T03 |
 | `S2-T05` | 850 | ViewModels y estados de UI del flujo de autenticación | BCJL | hecha | S1-T13 |
 | `S2-T06` | 800 | Contrato de la API de autenticación (endpoints, payloads y errores) | LMM | hecha | — |
-| `S2-T07` | 750 | Implementación real de autenticación con Supabase Auth | RRC | en curso | S2-T06 |
+| `S2-T07` | 750 | Implementación real de autenticación con Supabase Auth | RRC | hecha | S2-T06 |
 | `S2-T08` | 700 | Almacenamiento seguro de la sesión y el token (DataStore cifrado) | GRI | pendiente | S2-T05 |
 | `S2-T09` | 650 | Manejo de sesión: inicio automatico, cierre de sesión y expiracion | BCJL | pendiente | S2-T08 |
 | `S2-T10` | 600 | Pantalla de recuperación de contraseña | LMM | pendiente | — |

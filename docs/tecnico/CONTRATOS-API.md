@@ -291,6 +291,15 @@ códigos son los de `AuthErrorCode` en 3.0.3 y llegan en
 | La ficha de `public.usuarios` no llega (`RestException` al leerla) | `registrar`, `iniciarSesion` | `SERVIDOR`. Es un defecto nuestro: la crea el trigger en la misma transacción que la credencial |
 | Cualquier otra cosa | todas | `DESCONOCIDO` |
 
+**Confirmado contra el proyecto el 2026-09-27 (`S2-T07`):**
+- `invalid_credentials` da "Correo o contraseña incorrectos";
+- con la confirmación desactivada, un correo repetido da `user_already_exists`,
+  que se traduce a `CORREO_DUPLICADO`;
+- el alta con el dominio ficticio `@prueba.donchambitas.mx` pasa.
+
+**No se confirmó** cómo reporta Auth la falla del trigger en un alta: no hay
+forma de provocarla desde la aplicación sin romper el esquema.
+
 `email_address_invalid` es un código que el servidor de Auth devuelve pero
 que no está en `AuthErrorCode` de 3.0.3: se compara contra el texto crudo del
 error.

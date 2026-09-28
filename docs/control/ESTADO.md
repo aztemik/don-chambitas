@@ -14,8 +14,8 @@
 | Sprint | 2 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 6 |
-| En curso | 1 |
+| Terminadas | 7 |
+| En curso | 0 |
 | Bloqueadas | 0 |
 
 > Sprint 1 cerrado el 2026-09-20 con sus 16 tareas en `hecha`.
@@ -42,8 +42,8 @@ integre, sigue la implementación falsa. Esta tabla describe la rama.
 | Escribes un correo sin arroba y sales del campo | Sale "Ese correo no se ve bien, revísalo" debajo. Se borra en cuanto vuelves a escribir | — |
 | Pulsas el botón de P-02 o P-03 con campos mal | Marca **todos** los que fallan, no avanza y deja el foco en el primero | — |
 | Entras en P-02 con una contraseña de un carácter y una cuenta que existe | **Entra.** Al iniciar sesión solo se exige que no esté vacía (5.2); el mínimo de 8 es del registro | — |
-| Confirmas el registro **con rol** | Crea la cuenta en Supabase Auth y la ficha en `public.usuarios`, y te manda a P-05 o P-10. **Sin probar todavía** | `S2-T07` |
-| Te registras con un correo que ya existe | Sale "El correo ya está registrado, inicia sesión" desde `strings.xml` (`CORREO_DUPLICADO`), sin "Reintentar". Probado con el repositorio falso; **contra Supabase, sin probar** | `S2-T07` |
+| Confirmas el registro **con rol** | Crea la cuenta en Supabase Auth y la ficha en `public.usuarios`, y te manda a P-05 o P-10 | — |
+| Te registras con un correo que ya existe | "Correo ya registrado / El correo ya está registrado, inicia sesión", sin "Reintentar" | — |
 | Cierras y vuelves a abrir | La sesión real queda guardada por `supabase-kt`, pero P-01 todavía lee el marcador temporal y te manda a P-02 | `S2-T09`, `S2-T15` |
 
 **El alta todavía no es real.** Escribe en `FuenteDatosFalsa`, que vive en
@@ -55,57 +55,50 @@ correo de Supabase Auth desactivada.
 
 ## Tarea en curso
 
+_Ninguna._
+
 | Campo | Valor |
 |---|---|
-| ID | `S2-T07` |
-| Título | Implementación real de autenticación con Supabase Auth |
-| Quién la tomó | Agente, por instrucción del líder |
-| Rama | `feat/S2-T07-autenticacion-supabase`, **apilada sobre la de `S2-T06`** |
-| Desde | 2026-09-27 |
-
-**Hecho:**
-- `TipoError.CORREO_DUPLICADO`, con `mensajePantalla` retirado de P-03 (`H-11`);
-- `ModuloSupabase` con el cliente;
-- `RepositorioAuthReal` según el contrato, y ya enlazado en Hilt;
-- `UsuarioDto`, `ErroresAuth` y `EnlaceAuth`;
-- el `intent-filter` y `MainActivity`;
-- la documentación.
-
-Compila. 136 pruebas unitarias y 39 instrumentadas pasan.
-
-**Contra el proyecto real**, con las llaves del `.env` copiadas a
-`local.properties`, que git ignora, se probó el inicio de sesión:
-- `ana.rls@…` (cliente) entra a P-05 y `beto.rls@…` (trabajador) a P-10. El
-  rol sale de `public.usuarios`, así que la lectura de la ficha con RLS
-  funciona;
-- una contraseña mala da "Correo o contraseña incorrectos";
-- sin red sale "Sin conexión", y "Reintentar" entra en cuanto vuelve la red.
-
-**El alta real no se probó a propósito.** `GET /auth/v1/settings` dice
-`mailer_autoconfirm: false`: la confirmación por correo **sigue activa** en
-el proyecto, en contra de `DEC-25`. Con ella, un alta no abre sesión y
-Supabase manda correos. Además, con la confirmación activa, un correo
-repetido no devuelve `user_already_exists`: Supabase responde éxito para no
-delatar cuentas, así que tampoco se puede probar `CORREO_DUPLICADO`.
-
-**Antes, sin llaves**, se comprobó:
-- la aplicación abre;
-- P-02 muestra "Algo salió mal" en vez de cerrarse;
-- un enlace vencido no la cierra, ni en frío ni con la aplicación abierta.
-
-**Lo que falta para cerrarla, y no lo puede hacer el agente:**
-1. ~~Poner las llaves en `local.properties`~~. Hecho con las del `.env`.
-2. **Aplicar en la consola de Supabase los tres ajustes** de "Configuración
-   del proyecto de Supabase" en `CONTRATOS-API.md`:
-   - confirmación por correo desactivada;
-   - mínimo de contraseña en 8;
-   - `mx.donchambitas.app://auth` en las URLs de redirección permitidas.
-3. **La corrida del alta contra el proyecto real:** los pasos 1 a 3 de "Cómo
-   probarlo" del ticket. Los pasos 4 y 5 ya se hicieron. Incluye comprobar en la consola que la fila de
-   `public.usuarios` trae nombre, apellidos, teléfono y rol, y ver si
-   Supabase acepta el dominio de los correos de prueba.
+| ID | — |
+| Título | — |
+| Quién la tomó | — |
+| Rama | — |
+| Desde | — |
 
 ## Última tarea terminada
+
+**`S2-T07` — Implementación real de autenticación con Supabase Auth.** 2026-09-27.
+Rama `feat/S2-T07-autenticacion-supabase`, **apilada sobre la de `S2-T06`**, que a su vez va sobre la de `S2-T05`. Pull request **sin abrir todavía**: se integran en ese orden.
+
+- `datos/repositorio/RepositorioAuthReal.kt` implementa la sección de autenticación de `CONTRATOS-API.md` y ya está enlazado en `ModuloRepositorios`. Los otros nueve repositorios siguen falsos.
+- `di/ModuloSupabase.kt` provee el cliente con la URL y la `anon key` de `local.properties`. `RepositorioAuthReal` y `MainActivity` lo piden perezoso: **sin llaves, la aplicación abre y el botón muestra "Algo salió mal"** en vez de cerrarse.
+- `datos/remoto/`:
+  - `UsuarioDto`;
+  - `ErroresAuth`, una función pura con una prueba por fila de la tabla del contrato;
+  - `EnlaceAuth`;
+  - `ConfiguracionSupabase`.
+- **`H-11`, opción 1:** `TipoError.CORREO_DUPLICADO` con su título y su mensaje en `strings.xml`. P-03 pierde `mensajePantalla` y pinta todo error desde `strings.xml`.
+- El `intent-filter` de `mx.donchambitas.app://auth` y `launchMode="singleTop"` en `MainActivity`.
+- **Desvío del contrato, ya reflejado en él:** no se usa `handleDeeplinks`. En 3.0.3 lee el usuario en un scope sin manejador de errores, y abrir el enlace sin red cerraba la aplicación. `EnlaceAuth.kt` hace lo mismo dentro de un `try`.
+- Verificación del proyecto:
+  - Compilación exitosa (`./gradlew assembleDebug`).
+  - 136 pruebas unitarias (25 nuevas) y 39 instrumentadas, 0 fallas.
+  - **Contra el proyecto de Supabase**, en emulador `Medium_Phone`:
+    - un alta de trabajador entra a P-10, y su fila de `public.usuarios` trae nombre, apellidos, teléfono y rol correctos;
+    - la misma cuenta entra otra vez después de cerrar la aplicación;
+    - el correo repetido da `CORREO_DUPLICADO`;
+    - `ana.rls@…` entra a P-05 y `beto.rls@…` a P-10;
+    - una contraseña mala da "Correo o contraseña incorrectos";
+    - sin red sale "Sin conexión", y "Reintentar" funciona;
+    - un enlace vencido no cierra la aplicación, ni en frío ni con la aplicación abierta.
+  - Sin excepciones en logcat.
+- **Consola:** el líder desactivó la confirmación por correo el 2026-09-27, verificado con `GET /auth/v1/settings` (`mailer_autoconfirm: true`). El mínimo de contraseña en 8 y la URL de redirección los aplicó el líder, pero **no se pueden verificar desde fuera**.
+- **Cuenta de prueba creada:** `s2t07.trabajador@prueba.donchambitas.mx`. Se borra con el mismo `delete` de las de `S1-T03`, que está más abajo en este archivo.
+- **`@prueba.donchambitas.mx` sí pasa el alta con la confirmación desactivada**, así que lo que `DEC-25` suponía se confirmó.
+- **Lo que esta tarea NO trae:**
+  - aterrizar en P-18 al llegar por recuperación, que es `S2-T11`;
+  - que P-01 y las guardas lean la sesión real: al reabrir, la sesión existe, pero P-01 manda a P-02. Son `S2-T09` y `S2-T15`.
+- **Riesgo para `S2-T11`, pendiente del líder:** con la autenticación real, los repositorios falsos ya no ven al usuario con sesión, y P-18 lee su perfil con `RepositorioUsuario`, que no tiene implementación real en el Sprint 2. Detalle en el ticket.
 
 **`S2-T06` — Contrato de la API de autenticación (endpoints, payloads y errores).** 2026-09-27.
 Rama `docs/S2-T06-contrato-api-autenticacion`, **apilada sobre la de `S2-T05`** por decisión del líder. Pull request **sin abrir todavía**: conviene integrar primero el de `S2-T05`.
@@ -452,13 +445,13 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S2-T07` — Implementación real de autenticación con Supabase Auth
-(prioridad 750, sprint 2, depende de: S2-T06, hecha)
+`S2-T08` — Almacenamiento seguro de la sesión y el token (DataStore cifrado)
+(prioridad 700, sprint 2, depende de: S2-T05, hecha)
 
-**No tiene ticket**, y **conviene que el líder cierre `H-11` antes de tomarla**:
-sin esa decisión, el alta real no tiene cómo mostrar en español el correo
-duplicado. El contrato que implementa es la sección de autenticación de
-`CONTRATOS-API.md`.
+**No tiene ticket.** Conviene que el líder resuelva antes `H-12`
+(`Sesion.tokenAcceso`), porque toca justo lo que esta tarea guarda. Además,
+`supabase-kt` ya persiste la sesión por su cuenta, así que el ticket tiene
+que decir qué agrega el cifrado sobre eso.
 
 ## Los dos huecos de S2-T01, ya cerrados
 
