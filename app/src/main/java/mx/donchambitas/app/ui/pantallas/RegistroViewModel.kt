@@ -14,7 +14,6 @@ import mx.donchambitas.app.dominio.repositorio.RepositorioAuth
 import mx.donchambitas.app.dominio.validacion.LimitesRegistro
 import mx.donchambitas.app.dominio.validacion.ValidacionesAuth
 import mx.donchambitas.app.util.Resultado
-import mx.donchambitas.app.util.TipoError
 
 /**
  * ViewModel de la pantalla de registro (P-03).
@@ -85,7 +84,6 @@ class RegistroViewModel @Inject constructor(
         if (_estado.value.cargando) return
         val inicial = _estado.value.copy(
             errorPantalla = null,
-            mensajePantalla = null,
             errorRol = ValidacionesAuth.validarRol(_estado.value.rol)?.mensaje()
         )
         val validado = CampoRegistro.entries.fold(inicial) { parcial, campo -> parcial.validado(campo) }
@@ -116,21 +114,14 @@ class RegistroViewModel @Inject constructor(
                         cargando = false,
                         destino = inicioDelRol(resultado.dato.usuario.rol)
                     )
-                    // En VALIDACION el mensaje se muestra tal cual (3.3). De
-                    // donde sale ese texto en el alta real esta pendiente:
-                    // H-11 en CONTRATOS-API.md.
-                    is Resultado.Error -> it.copy(
-                        cargando = false,
-                        errorPantalla = resultado.tipo,
-                        mensajePantalla = resultado.mensaje.takeIf { resultado.tipo == TipoError.VALIDACION }
-                    )
+                    is Resultado.Error -> it.copy(cargando = false, errorPantalla = resultado.tipo)
                 }
             }
         }
     }
 
     fun alReintentar() {
-        _estado.update { it.copy(errorPantalla = null, mensajePantalla = null) }
+        _estado.update { it.copy(errorPantalla = null) }
         alRegistrar()
     }
 

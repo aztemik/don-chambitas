@@ -37,7 +37,7 @@ class RepositorioAuthFalso @Inject constructor(
         verificarSimulacion()?.let { return it }
 
         if (fuente.usuarios.any { it.correo.equals(correo, ignoreCase = true) }) {
-            return Resultado.Error(TipoError.VALIDACION, "El correo ya está registrado, inicia sesión")
+            return Resultado.Error(TipoError.CORREO_DUPLICADO, "El correo ya está registrado, inicia sesión")
         }
 
         val nuevoId = "usr-${UUID.randomUUID().toString().take(8)}"

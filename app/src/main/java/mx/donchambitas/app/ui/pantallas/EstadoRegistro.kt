@@ -12,12 +12,10 @@ import mx.donchambitas.app.util.TipoError
  * Los mensajes de error viajan como identificador de recurso y no como texto:
  * CONVENCIONES.md prohibe cadenas de interfaz fuera de strings.xml, y un
  * estado que ya trae el texto en espanol es una cadena de interfaz fuera de
- * su lugar. La unica excepcion es [mensajePantalla].
+ * su lugar. El error de pantalla tambien: se pinta con el mensaje de su
+ * TipoError, porque el texto que manda Supabase Auth llega en ingles (H-11).
  *
  * @property rol Rol elegido. Nulo mientras el usuario no elige, que es el estado inicial.
- * @property mensajePantalla Mensaje que llega desde la capa de datos en un error de
- *   VALIDACION. CONTRATOS-API.md indica que ese texto ya viene escrito en espanol desde
- *   la base, asi que se muestra tal cual en vez de volver a traducirlo aqui.
  * @property destino Evento de navegacion de un solo uso, igual que en [EstadoIniciarSesion].
  */
 data class EstadoRegistro(
@@ -34,7 +32,6 @@ data class EstadoRegistro(
     @StringRes val errorContrasena: Int? = null,
     @StringRes val errorTelefono: Int? = null,
     val errorPantalla: TipoError? = null,
-    val mensajePantalla: String? = null,
     val cargando: Boolean = false,
     val destino: Ruta? = null
 )

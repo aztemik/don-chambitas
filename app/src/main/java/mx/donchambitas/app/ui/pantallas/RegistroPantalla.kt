@@ -280,7 +280,6 @@ fun RegistroContenido(
 
             ErrorDePantalla(
                 tipoError = estado.errorPantalla,
-                mensajePantalla = estado.mensajePantalla,
                 alReintentar = alReintentar
             )
 
@@ -396,31 +395,22 @@ private fun OpcionRol(
 @Composable
 private fun ErrorDePantalla(
     tipoError: TipoError?,
-    mensajePantalla: String?,
     alReintentar: (() -> Unit)?,
     modifier: Modifier = Modifier
 ) {
     if (tipoError == null) return
 
     // Reintentar solo donde volver a intentar puede servir de algo. En
-    // VALIDACION lo que hay que cambiar es lo que esta escrito.
+    // VALIDACION y CORREO_DUPLICADO lo que hay que cambiar es lo que esta escrito.
     val reintento = alReintentar.takeIf {
         tipoError in setOf(TipoError.RED, TipoError.SERVIDOR, TipoError.DESCONOCIDO)
     }
 
-    if (mensajePantalla != null) {
-        EstadoError(
-            mensaje = mensajePantalla,
-            alReintentar = reintento,
-            modifier = modifier
-        )
-    } else {
-        EstadoError(
-            tipoError = tipoError,
-            alReintentar = reintento,
-            modifier = modifier
-        )
-    }
+    EstadoError(
+        tipoError = tipoError,
+        alReintentar = reintento,
+        modifier = modifier
+    )
 }
 
 @Preview(showBackground = true, widthDp = 360, heightDp = 800, name = "P-03 vacío")
@@ -509,8 +499,7 @@ private fun RegistroCorreoDuplicadoPreview() {
                 correo = "refugio@ejemplo.mx",
                 contrasena = "12345678",
                 telefono = "4771234567",
-                errorPantalla = TipoError.VALIDACION,
-                mensajePantalla = "El correo ya está registrado, inicia sesión"
+                errorPantalla = TipoError.CORREO_DUPLICADO
             ),
             alElegirRol = {},
             alCambiarNombre = {},
