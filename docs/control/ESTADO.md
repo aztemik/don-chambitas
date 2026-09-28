@@ -33,8 +33,9 @@ integre, sigue la implementación falsa. Esta tabla describe la rama.
 | Abres la aplicación | P-01 espera 800 ms y te deja en P-02 | — |
 | Estás en P-02 (iniciar sesión) | La pantalla real: marca, los dos campos y los enlaces a P-03 y P-04 | — |
 | Pulsas **Iniciar sesión** o **Crear cuenta** **sin las llaves** en `local.properties` | "Algo salió mal" con "Reintentar". No se cierra la aplicación | Poner `SUPABASE_URL` y `SUPABASE_ANON_KEY` |
-| Pulsas **Iniciar sesión** con una cuenta real del proyecto | Entra a P-05 o P-10 según su rol en `public.usuarios`. **Sin probar todavía**: falta la corrida con llaves | `S2-T07` |
-| Pulsas **Iniciar sesión** con credenciales malas | "Correo o contraseña incorrectos", sin "Reintentar". **Sin probar contra Supabase** | `S2-T07` |
+| Pulsas **Iniciar sesión** con una cuenta real del proyecto | Entra a P-05 o P-10 según su rol en `public.usuarios`. Probado con las cuentas de `92_usuarios_prueba.sql`: `ana.rls@…` entra a P-05 y `beto.rls@…` a P-10 | — |
+| Pulsas **Iniciar sesión** con credenciales malas | "Correo o contraseña incorrectos", sin "Reintentar". Probado contra Supabase | — |
+| Pulsas **Iniciar sesión** sin red | "Sin conexión" con "Reintentar". Con la red de vuelta, "Reintentar" entra | — |
 | Abres `mx.donchambitas.app://auth#error=…` (enlace vencido) | La aplicación abre en P-02 y no se cierra, en frío y con la aplicación abierta | — |
 | Entras a P-03 desde el marcador de P-02 | La pantalla real de registro, con sus cinco campos y el selector de rol | — |
 | Confirmas el registro **sin elegir rol** | Te reclama el rol y no hace nada más | — |
@@ -72,21 +73,35 @@ correo de Supabase Auth desactivada.
 
 Compila. 136 pruebas unitarias y 39 instrumentadas pasan.
 
-**En esta máquina sin llaves** se comprobó:
+**Contra el proyecto real**, con las llaves del `.env` copiadas a
+`local.properties`, que git ignora, se probó el inicio de sesión:
+- `ana.rls@…` (cliente) entra a P-05 y `beto.rls@…` (trabajador) a P-10. El
+  rol sale de `public.usuarios`, así que la lectura de la ficha con RLS
+  funciona;
+- una contraseña mala da "Correo o contraseña incorrectos";
+- sin red sale "Sin conexión", y "Reintentar" entra en cuanto vuelve la red.
+
+**El alta real no se probó a propósito.** `GET /auth/v1/settings` dice
+`mailer_autoconfirm: false`: la confirmación por correo **sigue activa** en
+el proyecto, en contra de `DEC-25`. Con ella, un alta no abre sesión y
+Supabase manda correos. Además, con la confirmación activa, un correo
+repetido no devuelve `user_already_exists`: Supabase responde éxito para no
+delatar cuentas, así que tampoco se puede probar `CORREO_DUPLICADO`.
+
+**Antes, sin llaves**, se comprobó:
 - la aplicación abre;
 - P-02 muestra "Algo salió mal" en vez de cerrarse;
 - un enlace vencido no la cierra, ni en frío ni con la aplicación abierta.
 
 **Lo que falta para cerrarla, y no lo puede hacer el agente:**
-1. **Poner las llaves en `local.properties`:** `SUPABASE_URL` y
-   `SUPABASE_ANON_KEY`. Nunca se suben.
+1. ~~Poner las llaves en `local.properties`~~. Hecho con las del `.env`.
 2. **Aplicar en la consola de Supabase los tres ajustes** de "Configuración
    del proyecto de Supabase" en `CONTRATOS-API.md`:
    - confirmación por correo desactivada;
    - mínimo de contraseña en 8;
    - `mx.donchambitas.app://auth` en las URLs de redirección permitidas.
-3. **La corrida contra el proyecto real:** los pasos 1 a 5 de "Cómo
-   probarlo" del ticket. Incluye comprobar en la consola que la fila de
+3. **La corrida del alta contra el proyecto real:** los pasos 1 a 3 de "Cómo
+   probarlo" del ticket. Los pasos 4 y 5 ya se hicieron. Incluye comprobar en la consola que la fila de
    `public.usuarios` trae nombre, apellidos, teléfono y rol, y ver si
    Supabase acepta el dominio de los correos de prueba.
 
