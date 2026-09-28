@@ -14,7 +14,7 @@
 | Sprint | 2 |
 | Fechas | PENDIENTE |
 | Tareas del sprint | 16 |
-| Terminadas | 5 |
+| Terminadas | 6 |
 | En curso | 0 |
 | Bloqueadas | 0 |
 
@@ -39,7 +39,7 @@ enlazada sigue siendo la falsa, en memoria: nada llega a Supabase.
 | Pulsas el botón de P-02 o P-03 con campos mal | Marca **todos** los que fallan, no avanza y deja el foco en el primero | — |
 | Entras en P-02 con una contraseña de un carácter y una cuenta que existe | **Entra.** Al iniciar sesión solo se exige que no esté vacía (5.2); el mínimo de 8 es del registro | — |
 | Confirmas el registro **con rol** | Crea la cuenta en `FuenteDatosFalsa` y te manda a P-05 o P-10. Esa cuenta sirve para iniciar sesión en P-02 hasta que cierras la aplicación | `S2-T07` |
-| Te registras con un correo que ya existe | Sale el mensaje del repositorio tal cual, sin "Reintentar" | — |
+| Te registras con un correo que ya existe | Sale "El correo ya está registrado, inicia sesión" tal cual lo manda el repositorio, sin "Reintentar" | `H-11` para el alta real |
 | Cierras y vuelves a abrir | Las cuentas creadas desaparecen y no hay sesión que recordar | `S2-T07`, `S2-T08`, `S2-T09` |
 
 **El alta todavía no es real.** Escribe en `FuenteDatosFalsa`, que vive en
@@ -62,6 +62,33 @@ _Ninguna._
 | Desde | — |
 
 ## Última tarea terminada
+
+**`S2-T06` — Contrato de la API de autenticación (endpoints, payloads y errores).** 2026-09-27.
+Rama `docs/S2-T06-contrato-api-autenticacion`, **apilada sobre la de `S2-T05`** por decisión del líder. Pull request **sin abrir todavía**: conviene integrar primero el de `S2-T05`.
+
+Ticket `docs/tareas/S2-T06.md`, redactado por el agente el mismo día por instrucción del líder.
+
+- `docs/tecnico/CONTRATOS-API.md`, sección de autenticación reescrita a detalle. **Se verificó contra el código fuente de `supabase-kt` 3.0.3**, la versión de `libs.versions.toml`, sacado de la caché de Gradle; no de memoria.
+  - **Cada operación** tiene su llamada exacta, lo que devuelve y de dónde sale cada campo.
+  - **La `Sesion` se arma en dos pasos:** primero Auth y luego la ficha de `public.usuarios`, con su `UsuarioDto` columna por columna.
+  - **Las llaves del metadata de `registrar`** están cotejadas con las líneas 172 a 175 del esquema.
+  - **El enlace de la aplicación es `mx.donchambitas.app://auth`**, con flujo `IMPLICIT`. Con `PKCE`, el `type=recovery` se pierde y la aplicación no sabría que tiene que ir a P-18. Está el recorrido de la recuperación en seis pasos, con la tarea que hace cada uno.
+  - **`sesionActual()` tiene su tabla de `SessionStatus`.** `RefreshFailure` no cierra la sesión, porque en 3.0.3 solo marca fallas pasajeras.
+  - **Hay una tabla de errores** con los códigos de `AuthErrorCode`, y la lista de ajustes que `S2-T07` aplica en la consola.
+- `RepositorioAuth.registrar` devuelve `Resultado<Sesion>` (`DEC-25`). `RepositorioAuthFalso` devuelve la sesión que abre, y sus mensajes ya llevan acentos. `RegistroViewModel` lee el rol de `sesion.usuario`.
+- `DISENO-AUTENTICACION.md`: la tabla 3.5 dice `Exito(Sesion)` y marca retirada la fila de "sin sesión".
+- Verificación del proyecto:
+  - Compilación exitosa (`./gradlew assembleDebug`).
+  - 111 pruebas unitarias y 39 instrumentadas, 0 fallas.
+  - Recorrido a mano en emulador `Medium_Phone`: un alta nueva entra a P-05, y el correo duplicado muestra "El correo ya está registrado, inicia sesión" con acentos y sin "Reintentar". Sin excepciones en logcat.
+- **Tres cosas que el contrato encontró en la biblioteca, para que `S2-T07` no las descubra tarde:**
+  - Sin red, `signOut` **no** cierra la sesión local.
+  - Un enlace de recuperación vencido hace que `handleDeeplinks` lance una excepción que nadie atrapa: `S2-T07` tiene que revisar el fragmento antes.
+  - Si el alta sale bien y falla la lectura de la ficha, reintentar da correo duplicado.
+- **Dos hallazgos nuevos para el líder**, al final de `CONTRATOS-API.md`:
+  - **`H-11` · De dónde sale el mensaje en español de un error de `VALIDACION` en el registro.** Supabase Auth rechaza el correo duplicado en inglés, y `datos/` no puede leer `strings.xml`. Hay tres salidas; la recomendada es un `TipoError` nuevo. **`S2-T07` no puede cerrar el alta real sin esta decisión.**
+  - **`H-12` · `Sesion.tokenAcceso` sobra.** Nadie lo lee y el token lo lleva `supabase-kt`.
+- **Discrepancia de versión:** `BITACORA.md`, en la fila de `S1-T04`, dice `supabase-kt` 3.1.1, pero `libs.versions.toml` fija 3.0.3. No se tocó esa fila porque es de otra tarea.
 
 **`S2-T05` — ViewModels y estados de UI del flujo de autenticación.** 2026-09-27.
 Rama `feat/S2-T05-viewmodels-autenticacion`, pull request **sin abrir todavía**.
@@ -381,12 +408,13 @@ explicados al final de `MODELO-ER.md`.
 
 ## Siguiente en la cola
 
-`S2-T06` — Contrato de la API de autenticación (endpoints, payloads y errores)
-(prioridad 800, sprint 2, sin dependencias)
+`S2-T07` — Implementación real de autenticación con Supabase Auth
+(prioridad 750, sprint 2, depende de: S2-T06, hecha)
 
-**No tiene ticket**: hay que redactarlo antes de tomarla. Por `DEC-25` tiene que
-cambiar `registrar` para que devuelva `Sesion`; cuando cambie,
-`RegistroViewModel` solo cambia de dónde lee el rol.
+**No tiene ticket**, y **conviene que el líder cierre `H-11` antes de tomarla**:
+sin esa decisión, el alta real no tiene cómo mostrar en español el correo
+duplicado. El contrato que implementa es la sección de autenticación de
+`CONTRATOS-API.md`.
 
 ## Los dos huecos de S2-T01, ya cerrados
 
